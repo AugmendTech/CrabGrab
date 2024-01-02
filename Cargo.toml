@@ -1,0 +1,20 @@
+[package]
+name = "crabgrab"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+iosurface = []
+metal = ["metal"]
+dx11 = []
+
+[dependencies]
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa-foundation = "0.1.0"
+block = "0.1.6"
+objc = "0.2.7"
+cocoa = "0.24"
+libc = "~0.2.33"
+objc2 = "0.3.0-beta.5"
+metal = { version = "0.27", optional = true }
