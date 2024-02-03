@@ -3,7 +3,7 @@
 use objc::runtime::Object;
 
 pub struct IoSurface {
-
+    raw: *mut Object,
 }
 
 impl IoSurface {

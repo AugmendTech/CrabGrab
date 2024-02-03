@@ -5,7 +5,7 @@ use crate::platform::platform_impl::{ImplCaptureStream, ImplAudioFrame as AudioF
 pub enum StreamEvent {
     Audio(AudioFrame),
     Video(VideoFrame),
-    Stopped,
+    End,
     StoppedWithError(StreamError)
 }
 
@@ -37,7 +37,7 @@ impl Error for StreamError {
 }
 
 pub struct CaptureStream {
-    capture_stream: ImplCaptureStream,
+    _impl_capture_stream: ImplCaptureStream,
 }
 
 #[derive(Debug, Clone)]
@@ -69,8 +69,11 @@ impl Error for StreamCreateError {
 }
 
 impl CaptureStream {
-    pub fn new(callback: impl FnMut(StreamEvent)) -> Result<Self, StreamCreateError> {
-        Err(StreamCreateError::Other("Not Implemented".into()))
+    pub fn new(callback: impl FnMut(StreamEvent) + Send) -> Result<Self, StreamCreateError> {
+        let boxed_callback = Box::pin(callback);
+        Ok(Self {
+            _impl_capture_stream: ImplCaptureStream::new(boxed_callback)?
+        })
     }
 }
 
