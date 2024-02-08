@@ -1,6 +1,6 @@
-use std::{error::Error, fmt::Display};
+use std::{any::Any, error::Error, fmt::{Debug, Display}};
 
-use crate::{platform::platform_impl::{ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
+use crate::{platform::platform_impl::{ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::{Rect, Size}};
 
 #[derive(Debug, Clone)]
 pub enum CapturableContentError {
@@ -126,8 +126,15 @@ impl CapturableContent {
     }
 }
 
+#[derive(Clone, Debug)]
+pub(crate) enum Capturable {
+    Window(CapturableWindow),
+    Display(CapturableDisplay),
+}
+
+#[derive(Debug, Clone)]
 pub struct CapturableWindow {
-    impl_capturable_window: ImplCapturableWindow
+    pub(crate) impl_capturable_window: ImplCapturableWindow
 }
 
 impl CapturableWindow {
@@ -140,8 +147,9 @@ impl CapturableWindow {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CapturableDisplay {
-    impl_capturable_display: ImplCapturableDisplay
+    pub(crate) impl_capturable_display: ImplCapturableDisplay
 }
 
 impl CapturableDisplay {

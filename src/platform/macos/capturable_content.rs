@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::{cell::Cell, fmt::Debug};
 
 use futures::channel::oneshot;
 
@@ -40,7 +40,7 @@ impl MacosCapturableContent {
 
 #[derive(Clone)]
 pub struct MacosCapturableWindow {
-    window: SCWindow
+    pub(crate) window: SCWindow
 }
 
 impl MacosCapturableWindow {
@@ -69,8 +69,15 @@ impl MacosCapturableWindow {
     }
 }
 
+impl Debug for MacosCapturableWindow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MacosCapturableWindow").field("window", &self.window.title()).finish()
+    }
+}
+
+#[derive(Clone)]
 pub struct MacosCapturableDisplay {
-    display: SCDisplay
+    pub(crate) display: SCDisplay
 }
 
 impl MacosCapturableDisplay {
@@ -92,5 +99,11 @@ impl MacosCapturableDisplay {
                 height: frame.size.y
             }
         }
+    }
+}
+
+impl Debug for MacosCapturableDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MacosCapturableDisplay").field("display", &self.display.raw_id()).finish()
     }
 }

@@ -1,7 +1,10 @@
 use crate::frame::{VideoCaptureFrame, AudioCaptureFrame};
 
-pub struct MacosVideoFrame {
+use super::objc_wrap::CMSampleBuffer;
 
+pub struct MacosVideoFrame {
+    pub(crate) sample_buffer: CMSampleBuffer,
+    pub(crate) frame_id: u64,
 }
 
 impl VideoCaptureFrame for MacosVideoFrame {
@@ -30,17 +33,13 @@ impl VideoCaptureFrame for MacosVideoFrame {
     }
 
     fn frame_id(&self) -> u64 {
-        todo!()
+        self.frame_id
     }
 }
 
-#[cfg(feature="metal")]
-impl MetalVideoFrame for MacosVideoFrame {
-    fn get_texture() -> metal::Texture;
-}
-
 pub struct MacosAudioFrame {
-
+    pub(crate) sample_buffer: CMSampleBuffer,
+    pub(crate) frame_id: u64,
 }
 
 impl AudioCaptureFrame for MacosAudioFrame {
@@ -57,6 +56,6 @@ impl AudioCaptureFrame for MacosAudioFrame {
     }
 
     fn frame_id(&self) -> u64 {
-        todo!()
+        self.frame_id
     }
 }
