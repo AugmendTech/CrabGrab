@@ -1,15 +1,13 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use crabgrab::{prelude::*, util::Runloop};
-
-use futures::{executor::block_on, FutureExt};
+use crabgrab::prelude::*;
 
 fn main() { 
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .build().unwrap();
     let future = runtime.spawn(async {
-        if !CaptureStream::test_access() {
-            CaptureStream::request_access().await;
+        if !CaptureStream::test_access(false) {
+            CaptureStream::request_access(false).await;
             println!("Approve access and run again!");
         }
         let window_filter = CapturableWindowFilter {

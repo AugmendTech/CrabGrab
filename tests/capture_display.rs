@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crabgrab::platform::macos::MacosCaptureConfigExt;
 use crabgrab::prelude::*;
 use crabgrab::util::Size;
 use futures::channel::{mpsc, oneshot};
@@ -9,8 +8,8 @@ use parking_lot::Mutex;
 
 #[tokio::test]
 async fn capture_display() {
-    if !CaptureStream::test_access() {
-        let has_permission = CaptureStream::request_access().await;
+    if !CaptureStream::test_access(false) {
+        let has_permission = CaptureStream::request_access(false).await;
         assert!(has_permission);
     }
     let content_filter = CapturableContentFilter {
@@ -27,8 +26,7 @@ async fn capture_display() {
     let display = display_opt.unwrap();
     println!("display: {:?}", display.rect());
     let size = display.rect().size;
-    let config = CaptureConfig::with_display(display, CapturePixelFormat::Argb2101010)
-        .with_output_size(size);
+    let config = CaptureConfig::with_display(display, CapturePixelFormat::Argb2101010);
     let (tx, rx) = oneshot::channel();
     let tx = Arc::new(Mutex::new(Some(tx)));
     let new_stream_result = CaptureStream::new(config, move |result| {

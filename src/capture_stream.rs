@@ -110,7 +110,7 @@ impl Error for StreamCreateError {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct AudioCaptureConfig {
     pub(crate)  sample_rate: AudioSampleRate,
     pub(crate)  channel_count: AudioChannelCount,
@@ -194,12 +194,12 @@ pub struct CaptureStream {
 }
 
 impl CaptureStream {
-    pub fn test_access() -> bool {
-        ImplCaptureStream::check_access()
+    pub fn test_access(borderless: bool) -> bool {
+        ImplCaptureStream::check_access(borderless)
     }
 
-    pub async fn request_access() -> bool {
-        ImplCaptureStream::request_access().await
+    pub async fn request_access(borderless: bool) -> bool {
+        ImplCaptureStream::request_access(borderless).await
     }
 
     pub fn supported_pixel_formats() -> &'static [CapturePixelFormat] {

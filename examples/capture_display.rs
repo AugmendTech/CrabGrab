@@ -1,17 +1,11 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crabgrab::prelude::*;
 
-use futures::executor::block_on;
-use winit::event::{self, Event};
-use winit::platform::macos::EventLoopBuilderExtMacOS;
-use winit::event_loop::EventLoopBuilder;
-use winit::window::WindowBuilder;
-
 #[tokio::main]
 async fn main() { 
-    if !CaptureStream::test_access() {
-        if !CaptureStream::request_access().await {
+    if !CaptureStream::test_access(false) {
+        if !CaptureStream::request_access(false).await {
             println!("Failed to get access!");
             return;
         };

@@ -7,10 +7,12 @@ edition = "2021"
 iosurface = []
 metal = ["dep:metal"]
 dx11 = []
+image = ["dep:image"]
 
 [dependencies]
 futures = "0.3"
 parking_lot = "0.12"
+image = { version = "0.24", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa-foundation = "0.1.0"
@@ -23,6 +25,32 @@ metal = { version = "0.27", optional = true }
 lazy_static = "1.4"
 core-graphics-types = "*"
 mach2 = "*"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.52", features = [
+    "Win32_Foundation",
+    "Win32_System_Threading",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Graphics_Gdi",
+    "Graphics_Capture",
+    "Graphics_DirectX_Direct3D11",
+    "Win32_Graphics",
+    "Win32_Graphics_Direct3D_Fxc",
+    "Win32_Graphics_Direct3D",
+    "Win32_Graphics_Direct3D10",
+    "Win32_Graphics_Direct3D11",
+    "Win32_Graphics_Dwm",
+    "Win32_Graphics_Dxgi_Common",
+    "Win32_Graphics_Dxgi",
+    "Win32_Graphics_Gdi",
+    "Win32_Graphics_Hlsl",
+    "Win32_System_ProcessStatus",
+    "Win32_System_WinRT_Direct3D11",
+    "Win32_System_WinRT_Graphics_Capture",
+    "Win32_System_WinRT",
+    "Foundation",
+    "Security_Authorization_AppCapabilityAccess"
+] }
 
 [dev-dependencies]
 tokio = { version = "*", features = ["rt", "macros", "rt-multi-thread"] }
