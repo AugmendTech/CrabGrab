@@ -1,4 +1,4 @@
-mod platform;
+pub mod platform;
 mod feature;
 
 pub mod util;
@@ -7,3 +7,4 @@ pub mod capture_stream;
 pub mod capturable_content;
 
 pub mod prelude;
+ 

@@ -1,6 +1,6 @@
-use std::{any::Any, error::Error, fmt::{Debug, Display}};
+use std::{error::Error, fmt::{Debug, Display}};
 
-use crate::{platform::platform_impl::{ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::{Rect, Size}};
+use crate::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
 
 #[derive(Debug, Clone)]
 pub enum CapturableContentError {
@@ -42,14 +42,14 @@ impl Default for CapturableWindowFilter {
 
 pub struct CapturableContentFilter {
     pub windows: Option<CapturableWindowFilter>,
-    pub screens: bool,
+    pub displays: bool,
 }
 
 impl CapturableContentFilter {
     pub fn is_empty(&self) -> bool {
         !(
             self.windows.is_some() ||
-            self.screens
+            self.displays
         )
     }
 }
@@ -108,6 +108,9 @@ impl Iterator for CapturableDisplayIterator<'_> {
 }
 
 impl ExactSizeIterator for CapturableDisplayIterator<'_> {
+    fn len(&self) -> usize {
+        self.content.impl_capturable_content.displays.len()
+    }
 }
 
 impl CapturableContent {
@@ -145,6 +148,12 @@ impl CapturableWindow {
     pub fn rect(&self) -> Rect {
         self.impl_capturable_window.rect()
     }
+
+    pub fn application(&self) -> CapturableApplciation {
+        CapturableApplciation {
+            impl_capturable_application: self.impl_capturable_window.application()
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -155,5 +164,15 @@ pub struct CapturableDisplay {
 impl CapturableDisplay {
     pub fn rect(&self) -> Rect {
         self.impl_capturable_display.rect()
+    }
+}
+
+pub struct CapturableApplciation {
+    impl_capturable_application: ImplCapturableApplication
+}
+
+impl CapturableApplciation {
+    pub fn identifier(&self) -> String {
+        self.impl_capturable_application.identifier()
     }
 }

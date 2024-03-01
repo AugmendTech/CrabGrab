@@ -1,10 +1,11 @@
 use std::{cell::Cell, fmt::Debug};
 
 use futures::channel::oneshot;
+use libc::getpid;
 
 use crate::{capturable_content::{CapturableContentFilter, CapturableContentError}, util::{Rect, Point, Size}};
 
-use super::objc_wrap::{SCShareableContent, SCWindow, SCDisplay};
+use super::objc_wrap::{SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
 
 pub struct MacosCapturableContent {
     pub windows: Vec<SCWindow>,
@@ -21,6 +22,7 @@ impl MacosCapturableContent {
                 let _ = tx.send(result);
             }
         });
+
         match rx.await {
             Ok(Ok(content)) => {
                 let windows = content.windows();
@@ -67,6 +69,12 @@ impl MacosCapturableWindow {
             }
         }
     }
+
+    pub fn application(&self) -> MacosCapturableApplication {
+        MacosCapturableApplication {
+            running_application: self.window.owning_application()
+        }
+    }
 }
 
 impl Debug for MacosCapturableWindow {
@@ -105,5 +113,16 @@ impl MacosCapturableDisplay {
 impl Debug for MacosCapturableDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MacosCapturableDisplay").field("display", &self.display.raw_id()).finish()
+    }
+}
+
+#[derive()]
+pub struct MacosCapturableApplication {
+    pub(crate) running_application: SCRunningApplication,
+}
+
+impl MacosCapturableApplication {
+    pub fn identifier(&self) -> String {
+        self.running_application.bundle_identifier()
     }
 }

@@ -1,18 +1,38 @@
+use std::fmt::Debug;
 use std::{error::Error, fmt::Display};
 
-use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplAudioFrame, ImplCaptureConfig, ImplCaptureStream, ImplVideoFrame};
+use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplAudioFrame, ImplCaptureConfig, ImplCaptureStream, ImplVideoFrame, ImplPixelFormat};
 use crate::capturable_content::Capturable;
-use crate::prelude::{CapturableDisplay, CapturableWindow};
-use crate::util::{Point, Rect, Size};
+use crate::prelude::{AudioChannelCount, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame};
+use crate::util::{Point, Rect};
 
 pub struct AudioFrame {
     pub(crate) impl_audio_frame: ImplAudioFrame,
+}
+
+impl Debug for AudioFrame {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AudioFrame").finish()
+    }
 }
 
 pub struct VideoFrame {
     pub(crate) impl_video_frame: ImplVideoFrame,
 }
 
+impl VideoFrame {
+    pub fn id(&self) -> u64 {
+        self.impl_video_frame.frame_id()
+    }
+}
+
+impl Debug for VideoFrame {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VideoFrame").finish()
+    }
+}
+
+#[derive(Debug)]
 pub enum StreamEvent {
     Audio(AudioFrame),
     Video(VideoFrame),
@@ -47,20 +67,31 @@ impl Error for StreamError {
     }
 }
 
-pub struct CaptureStream {
-    _impl_capture_stream: ImplCaptureStream,
-}
-
 #[derive(Debug, Clone)]
 pub enum StreamCreateError {
-    Other(String)
+    Other(String),
+    UnsupportedPixelFormat,
     //GpuLost,
 }
+
+unsafe impl Send for StreamCreateError {}
+unsafe impl Sync for StreamCreateError {}
+
+#[derive(Debug)]
+pub enum StreamStopError {
+    Other(String),
+    AlreadyStopped,
+    //GpuLost,
+}
+
+unsafe impl Send for StreamStopError {}
+unsafe impl Sync for StreamStopError {}
 
 impl Display for StreamCreateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Other(message) => f.write_fmt(format_args!("StreamCreateError::Other(\"{}\")", message))
+            Self::Other(message) => f.write_fmt(format_args!("StreamCreateError::Other(\"{}\")", message)),
+            Self::UnsupportedPixelFormat => f.write_fmt(format_args!("SteamCreateError::UnsupportedPixelFormat")),
         }
     }
 }
@@ -80,34 +111,29 @@ impl Error for StreamCreateError {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum SampleRate {
-    Hz8000,
-    Hz16000,
-    Hz24000,
-    Hz48000,
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum ChannelCount {
-    Mono,
-    Stereo
-}
-
-#[derive(Copy, Clone, Debug)]
 pub struct AudioCaptureConfig {
-    pub(crate)  sample_rate: SampleRate,
-    pub(crate)  channel_count: ChannelCount,
+    pub(crate)  sample_rate: AudioSampleRate,
+    pub(crate)  channel_count: AudioChannelCount,
     pub(crate)  impl_capture_audio_config: ImplAudioCaptureConfig,
 }
 
 impl AudioCaptureConfig {
     pub fn new() -> Self {
         Self {
-            sample_rate: SampleRate::Hz24000,
-            channel_count: ChannelCount::Mono,
+            sample_rate: AudioSampleRate::Hz24000,
+            channel_count: AudioChannelCount::Mono,
             impl_capture_audio_config: ImplAudioCaptureConfig::new()
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum CapturePixelFormat {
+    Bgra8888,
+    Argb2101010,
+    V420,
+    F420,
 }
 
 #[derive(Clone, Debug)]
@@ -115,15 +141,22 @@ pub struct CaptureConfig {
     pub(crate) target: Capturable,
     pub(crate) source_rect: Rect,
     pub(crate) show_cursor: bool,
+    pub(crate) pixel_format: CapturePixelFormat,
     pub(crate) capture_audio: Option<AudioCaptureConfig>,
     pub(crate) impl_capture_config: ImplCaptureConfig,
 }
 
+#[derive(Debug, Clone)]
+pub enum CaptureConfigError {
+    UnsupportedPixelFormat
+}
+
 impl CaptureConfig {
-    pub fn with_window(window: CapturableWindow) -> CaptureConfig {
+    pub fn with_window(window: CapturableWindow, pixel_format: CapturePixelFormat) -> Result<CaptureConfig, CaptureConfigError> {
         let rect = window.rect();
-        CaptureConfig {
+        Ok(CaptureConfig {
             target: Capturable::Window(window),
+            pixel_format,
             source_rect: Rect {
                 origin: Point {
                     x: 0.0,
@@ -134,19 +167,20 @@ impl CaptureConfig {
             show_cursor: false,
             impl_capture_config: ImplCaptureConfig::new(rect),
             capture_audio: None,
-        }
+        })
     }
 
-    pub fn with_display(display: CapturableDisplay) -> CaptureConfig {
+    pub fn with_display(display: CapturableDisplay, pixel_format: CapturePixelFormat) -> CaptureConfig {
         let rect = display.rect();
         CaptureConfig {
             target: Capturable::Display(display),
+            pixel_format,
             source_rect: Rect {
                 origin: Point {
                     x: 0.0,
                     y: 0.0,
                 },
-                size: rect.size
+                size: rect.size.scaled(2.0)
             },
             show_cursor: false,
             impl_capture_config: ImplCaptureConfig::new(rect),
@@ -155,12 +189,32 @@ impl CaptureConfig {
     }
 }
 
+pub struct CaptureStream {
+    impl_capture_stream: ImplCaptureStream,
+}
+
 impl CaptureStream {
+    pub fn test_access() -> bool {
+        ImplCaptureStream::check_access()
+    }
+
+    pub async fn request_access() -> bool {
+        ImplCaptureStream::request_access().await
+    }
+
+    pub fn supported_pixel_formats() -> &'static [CapturePixelFormat] {
+        ImplCaptureStream::supported_pixel_formats()
+    }
+
     pub fn new(config: CaptureConfig, callback: impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static) -> Result<Self, StreamCreateError> {
         let boxed_callback = Box::new(callback);
         Ok(Self {
-            _impl_capture_stream: ImplCaptureStream::new(config, boxed_callback)?
+            impl_capture_stream: ImplCaptureStream::new(config, boxed_callback)?
         })
+    }
+
+    pub fn stop(&mut self) -> Result<(), StreamStopError> {
+        self.impl_capture_stream.stop()
     }
 }
 

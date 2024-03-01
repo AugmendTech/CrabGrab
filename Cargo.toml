@@ -21,5 +21,9 @@ libc = "~0.2.33"
 objc2 = "0.3.0-beta.5"
 metal = { version = "0.27", optional = true }
 lazy_static = "1.4"
+core-graphics-types = "*"
+mach2 = "*"
 
 [dev-dependencies]
+tokio = { version = "*", features = ["rt", "macros", "rt-multi-thread"] }
+winit = "*"
