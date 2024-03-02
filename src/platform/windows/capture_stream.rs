@@ -1,6 +1,6 @@
-use crate::{prelude::{CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError}, util::Rect};
+use crate::{prelude::{Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError}, util::Rect};
 
-use windows::{core::HSTRING, Graphics::Capture::{Direct3D11CaptureFrame, Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}};
+use windows::{core::HSTRING, Graphics::Capture::{Direct3D11CaptureFrame, Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::System::WinRT::Graphics::Capture::IGraphicsCaptureItemInterop};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum WindowsPixelFormat {
@@ -26,21 +26,26 @@ impl WindowsAudioCaptureConfigExt for CaptureConfig {
 }
 
 #[derive(Clone, Debug)]
-pub struct WindowsCaptureConfig {}
+pub struct WindowsCaptureConfig {
+    d3d11_device: Option<()>,
+}
 
 impl WindowsCaptureConfig {
     pub fn new(rect: Rect) -> Self {
         Self {
+            d3d11_device: None,
         }
     }
 }
 
 pub trait WindowsCaptureConfigExt {
-
+    fn set_d3d11_device(&mut self, device: ());
 }
 
 impl WindowsCaptureConfigExt for CaptureConfig {
-
+    fn set_d3d11_device(&mut self, device: ()) {
+        todo!()
+    }
 }
 
 pub struct WindowsCaptureStream {
@@ -88,7 +93,27 @@ impl WindowsCaptureStream {
     }
 
     pub fn new(config: CaptureConfig, callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
-        Err(StreamCreateError::Other("Unimplemented".into()))
+        /*
+        let interop = windows::core::factory::<GraphicsCaptureItem, IGraphicsCaptureItemInterop>()
+                .map_err(|_| format!("Failed to create graphics capture item interop"))?;
+            let window_capture = 
+                interop.CreateForWindow::<HWND, GraphicsCaptureItem>(window)
+                    .map_err(|error| format!("Failed to create graphics capture item - {}", error.message()))?;
+         */
+        let interop = windows::core::factory::<GraphicsCaptureItem, IGraphicsCaptureItemInterop>()
+            .map_err(|_| StreamCreateError::Other("Failed to create IGraphicsCaptureInterop factory".into()))?;
+        match config.target {
+            Capturable::Window(window) => {
+                unsafe {
+                    let capture_item = interop.CreateForWindow(window.impl_capturable_window.0)
+                        .map_err(|_| StreamCreateError::Other("Failed to create graphics capture item from HWND".into()))?;
+                    todo!()
+                }
+            },
+            Capturable::Display(display) => {
+                Err(StreamCreateError::Other("Windows display capture unimplemented".into()))
+            }
+        }
     }
 
     pub fn stop(&self) -> Result<(), StreamStopError> {
