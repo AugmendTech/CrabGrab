@@ -4,7 +4,7 @@ use std::{error::Error, fmt::Display};
 use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplAudioFrame, ImplCaptureConfig, ImplCaptureStream, ImplVideoFrame, ImplPixelFormat};
 use crate::capturable_content::Capturable;
 use crate::prelude::{AudioChannelCount, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame};
-use crate::util::{Point, Rect};
+use crate::util::{Point, Rect, Size};
 
 pub struct AudioFrame {
     pub(crate) impl_audio_frame: ImplAudioFrame,
@@ -140,15 +140,18 @@ pub enum CapturePixelFormat {
 pub struct CaptureConfig {
     pub(crate) target: Capturable,
     pub(crate) source_rect: Rect,
+    pub(crate) output_size: Size,
     pub(crate) show_cursor: bool,
     pub(crate) pixel_format: CapturePixelFormat,
     pub(crate) capture_audio: Option<AudioCaptureConfig>,
     pub(crate) impl_capture_config: ImplCaptureConfig,
+    pub(crate) buffer_count: usize,
 }
 
 #[derive(Debug, Clone)]
 pub enum CaptureConfigError {
-    UnsupportedPixelFormat
+    UnsupportedPixelFormat,
+    InvalidBufferCount,
 }
 
 impl CaptureConfig {
@@ -164,9 +167,11 @@ impl CaptureConfig {
                 },
                 size: rect.size
             },
+            output_size: rect.size,
             show_cursor: false,
             impl_capture_config: ImplCaptureConfig::new(rect),
             capture_audio: None,
+            buffer_count: 3,
         })
     }
 
@@ -182,9 +187,11 @@ impl CaptureConfig {
                 },
                 size: rect.size.scaled(2.0)
             },
+            output_size: rect.size,
             show_cursor: false,
             impl_capture_config: ImplCaptureConfig::new(rect),
             capture_audio: None,
+            buffer_count: 3,
         }
     }
 }

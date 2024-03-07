@@ -7,7 +7,7 @@ use crate::{prelude::{CapturableContentError, CapturableContentFilter}, util::{P
 use super::AutoHandle;
 
 #[derive(Debug, Clone)]
-pub struct WindowsCapturableWindow(HWND);
+pub struct WindowsCapturableWindow(pub(crate) HWND);
 
 fn hwnd_process(hwnd: HWND) -> HANDLE {
     unsafe {
@@ -60,7 +60,7 @@ impl WindowsCapturableWindow {
 }
 
 #[derive(Clone, Debug)]
-pub struct WindowsCapturableDisplay(HMONITOR);
+pub struct WindowsCapturableDisplay(pub(crate) HMONITOR);
 
 impl WindowsCapturableDisplay {
     pub fn from_impl(hmonitor: HMONITOR) -> Self {
@@ -86,7 +86,7 @@ impl WindowsCapturableDisplay {
 }
 
 #[derive(Clone, Debug)]
-pub struct WindowsCapturableApplication(HANDLE);
+pub struct WindowsCapturableApplication(pub(crate) HANDLE);
 
 impl WindowsCapturableApplication {
     pub fn from_impl(handle: HANDLE) -> Self {
