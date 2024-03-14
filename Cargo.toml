@@ -48,6 +48,7 @@ windows = { version = "0.52", features = [
     "Win32_System_WinRT_Direct3D11",
     "Win32_System_WinRT_Graphics_Capture",
     "Win32_System_WinRT",
+    "Win32_System_Com",
     "Foundation",
     "Security_Authorization_AppCapabilityAccess"
 ] }

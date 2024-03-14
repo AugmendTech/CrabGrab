@@ -29,6 +29,11 @@ pub struct Point {
 }
 
 impl Point {
+    pub const ZERO: Point = Point {
+        x: 0.0, 
+        y: 0.0
+    };
+
     pub fn scaled(&self, scale: f64) -> Self {
         Self {
             x: self.x * scale,
