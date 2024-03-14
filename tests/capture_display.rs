@@ -25,8 +25,8 @@ async fn capture_display() {
     assert!(display_opt.is_some());
     let display = display_opt.unwrap();
     println!("display: {:?}", display.rect());
-    let size = display.rect().size;
-    let config = CaptureConfig::with_display(display, CapturePixelFormat::Argb2101010);
+    //let size = display.rect().size;
+    let config = CaptureConfig::with_display(display, CapturePixelFormat::Bgra8888);
     let (tx, rx) = oneshot::channel();
     let tx = Arc::new(Mutex::new(Some(tx)));
     let new_stream_result = CaptureStream::new(config, move |result| {

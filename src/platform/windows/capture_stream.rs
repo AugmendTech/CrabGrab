@@ -3,7 +3,7 @@ use std::sync::{atomic::{self, AtomicBool, AtomicU64}, Arc};
 use crate::{prelude::{Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
 
 use parking_lot::Mutex;
-use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::Graphics::Capture::IGraphicsCaptureItemInterop}}};
+use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}}};
 
 use super::frame::WindowsVideoFrame;
 
@@ -133,7 +133,7 @@ impl WindowsCaptureStream {
             let mut d3d11_device = None;
             let d3d11_device_result = D3D11CreateDevice(
                 Some(&dxgi_adapter),
-                D3D_DRIVER_TYPE_HARDWARE,
+                D3D_DRIVER_TYPE_UNKNOWN,
                 None,
                 D3D11_CREATE_DEVICE_BGRA_SUPPORT,
                 Some(&[D3D_FEATURE_LEVEL_11_0]),
@@ -156,8 +156,8 @@ impl WindowsCaptureStream {
         };
         
         let pixel_format = match config.pixel_format {
-            CapturePixelFormat::Bgra8888 => DirectXPixelFormat::B8G8R8A8Typeless,
-            CapturePixelFormat::Argb2101010 => DirectXPixelFormat::R10G10B10A2Typeless,
+            CapturePixelFormat::Bgra8888 => DirectXPixelFormat::B8G8R8A8UIntNormalized,
+            CapturePixelFormat::Argb2101010 => DirectXPixelFormat::R10G10B10A2UIntNormalized,
             _ => return Err(StreamCreateError::UnsupportedPixelFormat),
         };
 
@@ -190,14 +190,19 @@ impl WindowsCaptureStream {
             }
         };
 
-        let d3d_device: IDirect3DDevice = d3d11_device.cast().map_err(|_| StreamCreateError::Other("Failed to cast ID3D11Device into IDirect3DDevice".into()))?;
+        let dxgi_device: IDXGIDevice = d3d11_device.cast()
+            .map_err(|_| StreamCreateError::Other("Failed to cast ID3D11Device to IDXGIDevice".into()))?;
+        let direct3d_device_iinspectible = unsafe { CreateDirect3D11DeviceFromDXGIDevice(&dxgi_device) }
+            .map_err(|_| StreamCreateError::Other("Failed to create IDirect3DDevice from IDXGIDevice".into()))?;
+        let direct3d_device: IDirect3DDevice = direct3d_device_iinspectible.cast()
+            .map_err(|_| StreamCreateError::Other("Failed to cast IInspectible to IDirect3DDevice".into()))?;
 
         let frame_pool = Direct3D11CaptureFramePool::CreateFreeThreaded(
-            &d3d_device,
+            &direct3d_device,
             pixel_format,
             config.buffer_count as i32,
             SizeInt32 { Width: config.output_size.width as i32, Height: config.output_size.height as i32 },
-        ).map_err(|_| StreamCreateError::Other("Failed to create Direct3D11CaptureFramePool".into()))?;
+        ).map_err(|e| StreamCreateError::Other(format!("Failed to create Direct3D11CaptureFramePool: {}", e.to_string())))?;
 
         let shared_handler_data = Arc::new(
             SharedHandlerData {
@@ -252,6 +257,8 @@ impl WindowsCaptureStream {
 
         let capture_session = frame_pool.CreateCaptureSession(&graphics_capture_item)
             .map_err(|_| StreamCreateError::Other("Failed to create GraphicsCaptureSession".into()))?;
+
+        capture_session.StartCapture().map_err(|_| StreamCreateError::Other("Failed to start capture".into()))?;
 
         let stream = WindowsCaptureStream {
             dxgi_adapter,

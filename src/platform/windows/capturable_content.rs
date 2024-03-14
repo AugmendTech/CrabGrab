@@ -60,26 +60,22 @@ impl WindowsCapturableWindow {
 }
 
 #[derive(Clone, Debug)]
-pub struct WindowsCapturableDisplay(pub(crate) HMONITOR);
+pub struct WindowsCapturableDisplay(pub(crate) HMONITOR, pub(crate) RECT);
 
 impl WindowsCapturableDisplay {
-    pub fn from_impl(hmonitor: HMONITOR) -> Self {
-        Self(hmonitor)
+    pub fn from_impl(monitor: (HMONITOR, RECT)) -> Self {
+        Self(monitor.0, monitor.1)
     }
 
     pub fn rect(&self) -> Rect {
-        unsafe {
-            let mut monitor_info = MONITORINFO::default();
-            GetMonitorInfoA(self.0, &mut monitor_info as *mut _);
-            Rect {
-                origin: Point {
-                    x: monitor_info.rcMonitor.left as f64,
-                    y: monitor_info.rcMonitor.top as f64,
-                },
-                size: Size {
-                    width: (monitor_info.rcMonitor.right - monitor_info.rcMonitor.left) as f64,
-                    height: (monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top) as f64,
-                }
+        Rect {
+            origin: Point {
+                x: self.1.left as f64,
+                y: self.1.top as f64
+            },
+            size: Size {
+                width: (self.1.right - self.1.left) as f64,
+                height: (self.1.bottom - self.1.top) as f64
             }
         }
     }
@@ -133,7 +129,7 @@ impl WindowsCapturableApplication {
 
 pub struct WindowsCapturableContent {
     pub(crate) windows: Vec<HWND>,
-    pub(crate) displays: Vec<HMONITOR>,
+    pub(crate) displays: Vec<(HMONITOR, RECT)>,
     pub(crate) applications: Vec<HANDLE>,
 }
 
@@ -144,14 +140,14 @@ unsafe extern "system" fn enum_windows_callback(window: HWND, windows_ptr_raw: L
 }
 
 unsafe extern "system" fn enum_monitors_callback(monitor: HMONITOR, _: HDC, rect: *mut RECT, monitors_ptr_raw: LPARAM) -> BOOL {
-    let monitors: &mut Vec<HMONITOR> = &mut *(monitors_ptr_raw.0 as *mut c_void as *mut _);
-    monitors.push(monitor);
+    let monitors: &mut Vec<(HMONITOR, RECT)> = &mut *(monitors_ptr_raw.0 as *mut c_void as *mut _);
+    monitors.push((monitor, *rect));
     TRUE
 }
 
 impl WindowsCapturableContent {
     pub async fn new(filter: CapturableContentFilter) -> Result<Self, CapturableContentError> {
-        let mut displays = Vec::<HMONITOR>::new();
+        let mut displays = Vec::<(HMONITOR, RECT)>::new();
         let mut windows = Vec::<HWND>::new();
         unsafe {
             if filter.displays {
