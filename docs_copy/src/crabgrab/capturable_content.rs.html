@@ -328,8 +328,8 @@
         <span class="self">self</span>.impl_capturable_window.rect()
     }
 
-    <span class="kw">pub fn </span>application(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CapturableApplciation {
-        CapturableApplciation {
+    <span class="kw">pub fn </span>application(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CapturableApplication {
+        CapturableApplication {
             impl_capturable_application: <span class="self">self</span>.impl_capturable_window.application()
         }
     }
@@ -346,11 +346,11 @@
     }
 }
 
-<span class="kw">pub struct </span>CapturableApplciation {
+<span class="kw">pub struct </span>CapturableApplication {
     impl_capturable_application: ImplCapturableApplication
 }
 
-<span class="kw">impl </span>CapturableApplciation {
+<span class="kw">impl </span>CapturableApplication {
     <span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.impl_capturable_application.identifier()
     }
