@@ -3,34 +3,8 @@ use std::{error::Error, fmt::Display};
 
 use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplAudioFrame, ImplCaptureConfig, ImplCaptureStream, ImplVideoFrame, ImplPixelFormat};
 use crate::capturable_content::Capturable;
-use crate::prelude::{AudioChannelCount, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame};
+use crate::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame, VideoFrame};
 use crate::util::{Point, Rect, Size};
-
-pub struct AudioFrame {
-    pub(crate) impl_audio_frame: ImplAudioFrame,
-}
-
-impl Debug for AudioFrame {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AudioFrame").finish()
-    }
-}
-
-pub struct VideoFrame {
-    pub(crate) impl_video_frame: ImplVideoFrame,
-}
-
-impl VideoFrame {
-    pub fn id(&self) -> u64 {
-        self.impl_video_frame.frame_id()
-    }
-}
-
-impl Debug for VideoFrame {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("VideoFrame").finish()
-    }
-}
 
 #[derive(Debug)]
 pub enum StreamEvent {

@@ -1,6 +1,6 @@
-use std::{marker::PhantomData, time::{Duration, Instant}};
+use std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
 
-use crate::util::*;
+use crate::{platform::platform_impl::{ImplAudioFrame, ImplVideoFrame}, util::*};
 
 pub trait VideoCaptureFrame {
     fn logical_frame(&self) -> Rect;
@@ -10,8 +10,6 @@ pub trait VideoCaptureFrame {
     fn capture_time(&self) -> Instant;
     fn frame_id(&self) -> u64;
 }
-
-
 
 #[derive(Copy, Clone, Debug)]
 pub enum AudioSampleRate {
@@ -47,4 +45,31 @@ pub trait AudioCaptureFrame {
     fn origin_time(&self) -> Duration;
     fn capture_time(&self) -> Instant;
     fn frame_id(&self) -> u64;
+}
+
+
+pub struct AudioFrame {
+    pub(crate) impl_audio_frame: ImplAudioFrame,
+}
+
+impl Debug for AudioFrame {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AudioFrame").finish()
+    }
+}
+
+pub struct VideoFrame {
+    pub(crate) impl_video_frame: ImplVideoFrame,
+}
+
+impl VideoFrame {
+    pub fn id(&self) -> u64 {
+        self.impl_video_frame.frame_id()
+    }
+}
+
+impl Debug for VideoFrame {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VideoFrame").finish()
+    }
 }
