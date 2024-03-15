@@ -73,10 +73,11 @@ impl WindowsCaptureConfigExt for CaptureConfig {
 }
 
 pub struct WindowsCaptureStream {
-    dxgi_adapter: IDXGIAdapter,
-    d3d11_device: ID3D11Device,
-    frame_pool: Direct3D11CaptureFramePool,
-    capture_session: GraphicsCaptureSession,
+    pub(crate) dxgi_adapter: IDXGIAdapter,
+    pub(crate) dxgi_device: IDXGIDevice,
+    pub(crate) d3d11_device: ID3D11Device,
+    pub(crate) frame_pool: Direct3D11CaptureFramePool,
+    pub(crate) capture_session: GraphicsCaptureSession,
     should_couninit: bool,
     shared_handler_data: Arc<SharedHandlerData>,
 }
@@ -262,6 +263,7 @@ impl WindowsCaptureStream {
 
         let stream = WindowsCaptureStream {
             dxgi_adapter,
+            dxgi_device,
             d3d11_device,
             frame_pool,
             capture_session,

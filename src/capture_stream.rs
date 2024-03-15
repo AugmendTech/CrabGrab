@@ -171,7 +171,7 @@ impl CaptureConfig {
 }
 
 pub struct CaptureStream {
-    impl_capture_stream: ImplCaptureStream,
+    pub(crate) impl_capture_stream: ImplCaptureStream,
 }
 
 impl CaptureStream {

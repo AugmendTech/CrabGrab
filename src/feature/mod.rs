@@ -1,7 +1,10 @@
 #[cfg(feature = "metal")]
 pub mod metal;
-#[cfg(feature = "d3d")]
+#[cfg(feature = "dxgi")]
 #[cfg(target_os="windows")]
-pub mod d3d;
+pub mod dxgi;
+#[cfg(feature = "dx11")]
+#[cfg(target_os="windows")]
+pub mod dx11;
 #[cfg(feature = "iosurface")]
 pub mod iosurface;

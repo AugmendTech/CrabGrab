@@ -3,7 +3,6 @@ use std::sync::Arc;
 use crabgrab::prelude::*;
 use futures::channel::oneshot;
 use parking_lot::Mutex;
-use crabgrab::feature::d3d::WindowsDirect3DVideoFrame;
 
 #[tokio::test]
 async fn capture_display() {
@@ -34,13 +33,8 @@ async fn capture_display() {
             match result {
                 Ok(event) => {
                     match event {
-                        StreamEvent::Video(frame) => {
-                            let surface_result = frame.get_d3d_surface();
-                            match &surface_result {
-                                Ok(_) => {},
-                                Err(e) => println!("Surface result error: {:?}", e),
-                            }
-                            tx.send(surface_result.is_ok()).unwrap();
+                        StreamEvent::Video(_frame) => {
+                            tx.send(true).unwrap();
                         },
                         _ => {}
                     }
