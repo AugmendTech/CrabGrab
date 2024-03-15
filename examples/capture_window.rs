@@ -29,7 +29,7 @@ fn main() {
                         Ok(event) => {
                             match event {
                                 StreamEvent::Video(frame) => {
-                                    println!("Got frame: {}", frame.id());
+                                    println!("Got frame: {}", frame.frame_id());
                                 },
                                 _ => {}
                             }
