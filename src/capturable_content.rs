@@ -149,8 +149,8 @@ impl CapturableWindow {
         self.impl_capturable_window.rect()
     }
 
-    pub fn application(&self) -> CapturableApplciation {
-        CapturableApplciation {
+    pub fn application(&self) -> CapturableApplication {
+        CapturableApplication {
             impl_capturable_application: self.impl_capturable_window.application()
         }
     }
@@ -167,11 +167,11 @@ impl CapturableDisplay {
     }
 }
 
-pub struct CapturableApplciation {
+pub struct CapturableApplication {
     impl_capturable_application: ImplCapturableApplication
 }
 
-impl CapturableApplciation {
+impl CapturableApplication {
     pub fn identifier(&self) -> String {
         self.impl_capturable_application.identifier()
     }
