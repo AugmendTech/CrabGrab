@@ -4,7 +4,7 @@ use windows::Win32::Foundation::HANDLE;
 mod capture_stream;
 mod capturable_content;
 mod run_loop;
-mod frame;
+pub(crate) mod frame;
 
 pub(crate) struct AutoHandle(HANDLE);
 impl Drop for AutoHandle {

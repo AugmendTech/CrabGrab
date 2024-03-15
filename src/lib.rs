@@ -1,5 +1,5 @@
 pub mod platform;
-mod feature;
+pub mod feature;
 
 pub mod util;
 pub mod frame;

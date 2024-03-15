@@ -1,0 +1,4 @@
+{
+    "rust-analyzer.check.features": ["d3d"],
+    "rust-analyzer.cargo.features": ["d3d"],
+}

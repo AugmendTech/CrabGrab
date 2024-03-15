@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 iosurface = []
 metal = ["dep:metal"]
-dx11 = []
+d3d = []
 image = ["dep:image"]
 
 [dependencies]
