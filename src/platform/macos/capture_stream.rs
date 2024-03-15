@@ -139,11 +139,11 @@ impl MacosCaptureStream {
         ]
     }
 
-    pub fn check_access() -> bool {
+    pub fn check_access(_borderless: bool) -> bool {
         return SCStream::preflight_access()
     }
 
-    pub async fn request_access() -> bool {
+    pub async fn request_access(_borderless: bool) -> bool {
         SCStream::request_access().await
     }
 
