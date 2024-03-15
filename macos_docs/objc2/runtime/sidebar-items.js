@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NO","YES"],"struct":["Bool","Class","Ivar","Method","NSObject","NSZone","Object","Protocol","Sel"],"trait":["NSObjectProtocol"],"type":["BOOL","Imp"]};

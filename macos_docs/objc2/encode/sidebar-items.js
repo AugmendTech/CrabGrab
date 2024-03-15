@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Encoding","EncodingBox"],"mod":["__unstable"],"struct":["ParseError"],"trait":["Encode","OptionEncode","RefEncode"]};

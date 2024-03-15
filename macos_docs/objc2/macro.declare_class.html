@@ -1,0 +1,338 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Declare a new Objective-C class."><title>declare_class in objc2 - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="objc2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../objc2/index.html">objc2</a><span class="version">0.3.0-beta.5</span></h2></div><div class="sidebar-elems"></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">objc2</a>::<wbr><a class="macro" href="#">declare_class</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/objc2/macros/declare_class.rs.html#351-477">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules! </span>declare_class {
+    {
+        $(<span class="attr">#[<span class="macro-nonterminal">$m</span>:meta]</span>)*
+        <span class="macro-nonterminal">$v</span>:vis <span class="kw">struct </span><span class="macro-nonterminal">$name</span>:ident {
+            $(<span class="macro-nonterminal">$fields</span>:tt)*
+        }
+
+        <span class="macro-nonterminal">$ivar_helper_module_v</span>:vis <span class="kw">mod </span><span class="macro-nonterminal">$ivar_helper_module</span>:ident;
+
+        <span class="kw">unsafe impl </span>ClassType <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">for</span>:<span class="macro-nonterminal">ty </span>{
+            $(<span class="attr">#[inherits($(<span class="macro-nonterminal">$inheritance_rest</span>:ty),+)]</span>)<span class="question-mark">?
+            </span><span class="kw">type </span>Super = <span class="macro-nonterminal">$superclass</span>:ty;
+
+            <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro-nonterminal">$name_const</span>:literal;
+        }
+
+        $(<span class="macro-nonterminal">$methods</span>:tt)*
+    } =&gt; { ... };
+    {
+        $(<span class="attr">#[<span class="macro-nonterminal">$m</span>:meta]</span>)*
+        <span class="macro-nonterminal">$v</span>:vis <span class="kw">struct </span><span class="macro-nonterminal">$name</span>:ident {
+            $(<span class="macro-nonterminal">$fields</span>:tt)*
+        }
+
+        <span class="kw">unsafe impl </span>ClassType <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">for</span>:<span class="macro-nonterminal">ty </span>{
+            $(<span class="attr">#[inherits($(<span class="macro-nonterminal">$inheritance_rest</span>:ty),+)]</span>)<span class="question-mark">?
+            </span><span class="kw">type </span>Super = <span class="macro-nonterminal">$superclass</span>:ty;
+
+            <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro-nonterminal">$name_const</span>:literal;
+        }
+
+        $(<span class="macro-nonterminal">$methods</span>:tt)*
+    } =&gt; { ... };
+    {
+        $(<span class="attr">#[<span class="macro-nonterminal">$m</span>:meta]</span>)*
+        <span class="macro-nonterminal">$v</span>:vis <span class="kw">struct </span><span class="macro-nonterminal">$name</span>:ident;
+
+        <span class="kw">unsafe impl </span>ClassType <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">for</span>:<span class="macro-nonterminal">ty </span>{
+            $(<span class="attr">#[inherits($(<span class="macro-nonterminal">$inheritance_rest</span>:ty),+)]</span>)<span class="question-mark">?
+            </span><span class="kw">type </span>Super = <span class="macro-nonterminal">$superclass</span>:ty;
+
+            <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro-nonterminal">$name_const</span>:literal;
+        }
+
+        $(<span class="macro-nonterminal">$methods</span>:tt)*
+    } =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Declare a new Objective-C class.</p>
+<p>This is mostly just a convenience macro on top of <a href="macro.extern_class.html" title="macro objc2::extern_class"><code>extern_class!</code></a> and
+the functionality in the <a href="declare/index.html" title="mod objc2::declare"><code>declare</code></a> module, but it can really help
+with cutting down on boilerplate, in particular when defining delegate
+classes!</p>
+<h2 id="specification"><a href="#specification">Specification</a></h2>
+<p>This macro consists of three parts:</p>
+<ul>
+<li>The class definition + ivar definition + inheritance specification.</li>
+<li>A set of method definitions.</li>
+<li>A set of protocol definitions.</li>
+</ul>
+<h3 id="class-and-ivar-definition"><a href="#class-and-ivar-definition">Class and ivar definition</a></h3>
+<p>The class definition works a lot like <a href="macro.extern_class.html" title="macro objc2::extern_class"><code>extern_class!</code></a>, with the added
+functionality that you can define custom instance variables on your class,
+which are then wrapped in a <a href="declare/struct.Ivar.html" title="struct objc2::declare::Ivar"><code>declare::Ivar</code></a> with the given name, and
+made accessible through the class. (E.g. you can use <code>self.my_ivar</code> as if
+it was a normal Rust struct).</p>
+<p>The instance variable names are specified as such:</p>
+<ul>
+<li><a href="declare/struct.IvarEncode.html" title="struct objc2::declare::IvarEncode"><code>IvarEncode&lt;T, &quot;my_crate_ivar&quot;&gt;</code></a></li>
+<li><a href="declare/struct.IvarBool.html" title="struct objc2::declare::IvarBool"><code>IvarBool&lt;&quot;my_crate_ivar&quot;&gt;</code></a></li>
+<li><a href="declare/struct.IvarDrop.html" title="struct objc2::declare::IvarDrop"><code>IvarDrop&lt;T, &quot;my_crate_ivar&quot;&gt;</code></a></li>
+</ul>
+<p>This is special syntax that will be used to generate helper types that
+implement <a href="declare/trait.IvarType.html" title="trait objc2::declare::IvarType"><code>declare::IvarType</code></a>, which is then used inside the new struct.</p>
+<p>Instance variable names must be unique, and must not conflict with any
+superclass’ instance variables - this means is is good practice to name
+them with a prefix of your crate name, or similar.</p>
+<p>The class name must be specified in <code>ClassType::NAME</code>, and it must be
+unique across the entire application. Good practice here is similarly to
+include your crate name in the prefix.</p>
+<p>The class is guaranteed to have been created and registered with the
+Objective-C runtime after the <a href="trait.ClassType.html#tymethod.class" title="associated function objc2::ClassType::class"><code>ClassType::class</code></a> function has been
+called.</p>
+<p>The macro will generate a <code>dealloc</code> method for you, which will call any
+<code>Drop</code> impl the class may have.</p>
+<h3 id="method-definitions"><a href="#method-definitions">Method definitions</a></h3>
+<p>Within the <code>impl</code> block you can define two types of functions;
+<a href="https://doc.rust-lang.org/reference/items/associated-items.html#methods">“associated functions”</a> and <a href="https://doc.rust-lang.org/reference/items/associated-items.html#methods">“methods”</a>. These are then mapped to the
+Objective-C equivalents “class methods” and “instance methods”. In
+particular, if you use <code>self</code> or the special name <code>this</code> (or <code>_this</code>),
+your method will be registered as an instance method, and if you don’t it
+will be registered as a class method.</p>
+<p>The desired selector can be specified using the <code>#[method(my:selector:)]</code>
+or <code>#[method_id(my:selector:)]</code> attribute, similar to the
+<a href="macro.extern_methods.html" title="macro objc2::extern_methods"><code>extern_methods!</code></a> macro.</p>
+<p>If the <code>#[method_id(...)]</code> attribute is used, the return type must be
+<code>Option&lt;Id&lt;T, O&gt;&gt;</code> or <code>Id&lt;T, O&gt;</code>. Additionally, if the selector is in the
+“init”-family, the <code>self</code>/<code>this</code> argument must be <code>Allocated&lt;Self&gt;</code>.</p>
+<p>Putting other attributes on the method such as <code>cfg</code>, <code>allow</code>, <code>doc</code>,
+<code>deprecated</code> and so on is supported. However, note that <code>cfg_attr</code> may not
+work correctly, due to implementation difficulty - if you have a concrete
+use-case, please <a href="https://github.com/madsmtm/objc2/issues/new">open an issue</a>, then we can discuss it.</p>
+<p>A transformation step is performed on the functions (to make them have the
+correct ABI) and hence they shouldn’t really be called manually. (You
+can’t mark them as <code>pub</code> for the same reason). Instead, use the
+<a href="macro.extern_methods.html" title="macro objc2::extern_methods"><code>extern_methods!</code></a> macro to create a Rust interface to the methods.</p>
+<p>If the argument or return type is <a href="https://doc.rust-lang.org/1.75.0/std/primitive.bool.html" title="primitive bool"><code>bool</code></a>, a conversion is performed to
+make it behave similarly to the Objective-C <code>BOOL</code>. Use <a href="runtime/struct.Bool.html" title="struct objc2::runtime::Bool"><code>runtime::Bool</code></a>
+if you want to control this manually.</p>
+<p>Note that <code>&amp;mut Id&lt;_, _&gt;</code> and other such out parameters are not yet
+supported, and may generate a panic at runtime.</p>
+<h3 id="protocol-definitions"><a href="#protocol-definitions">Protocol definitions</a></h3>
+<p>You can specify protocols that the class should implement, along with any
+required/optional methods for said protocols.</p>
+<p>The protocol must have been previously defined with <a href="macro.extern_protocol.html" title="macro objc2::extern_protocol"><code>extern_protocol!</code></a>.</p>
+<p>The methods work exactly as normal, they’re only put “under” the protocol
+definition to make things easier to read.</p>
+<p>Putting attributes on the <code>impl</code> item such as <code>cfg</code>, <code>allow</code>, <code>doc</code>,
+<code>deprecated</code> and so on is supported.</p>
+<h2 id="panics"><a href="#panics">Panics</a></h2>
+<p>The implemented <code>ClassType::class</code> method may panic in a few cases, such
+as if:</p>
+<ul>
+<li>A class with the specified name already exists.</li>
+<li>One of the class’ instance variables already exist on a superclass.</li>
+<li>Debug assertions are enabled, and an overriden method’s signature is not
+equal to the one on the superclass.</li>
+<li>The <code>verify</code> feature and debug assertions are enabled, and the required
+protocol methods are not implemented.</li>
+<li>And possibly more similar cases.</li>
+</ul>
+<h2 id="safety"><a href="#safety">Safety</a></h2>
+<p>Using this macro requires writing a few <code>unsafe</code> markers:</p>
+<p><code>unsafe impl ClassType for T</code> has the following safety requirements:</p>
+<ul>
+<li>Same as <a href="macro.extern_class.html" title="macro objc2::extern_class"><code>extern_class!</code></a> (the inheritance chain has to be correct).</li>
+<li>Any instance variables you specify under the struct definition must
+either be able to be created using <a href="https://doc.rust-lang.org/1.75.0/core/mem/maybe_uninit/union.MaybeUninit.html#method.zeroed" title="associated function core::mem::maybe_uninit::MaybeUninit::zeroed"><code>MaybeUninit::zeroed</code></a>, or be
+properly initialized in an <code>init</code> method.</li>
+</ul>
+<p><code>unsafe impl T { ... }</code> asserts that the types match those that are
+expected when the method is invoked from Objective-C. Note that there are
+no safe-guards here; you can easily write <code>i8</code>, but if Objective-C thinks
+it’s an <code>u32</code>, it will cause UB when called!</p>
+<p><code>unsafe impl P for T { ... }</code> requires that all required methods of the
+specified protocol is implemented, and that any extra requirements
+(implicit or explicit) that the protocol has are upheld. The methods in
+this definition has the same safety requirements as above.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>Declare a class <code>MyCustomObject</code> that inherits <code>NSObject</code>, has a few
+instance variables and methods, and implements the <code>NSCopying</code> protocol.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::os::raw::c_int;
+<span class="kw">use </span>objc2::declare::{Ivar, IvarDrop, IvarEncode};
+<span class="kw">use </span>objc2::rc::{Id, Owned, Shared};
+<span class="kw">use </span>objc2::runtime::{NSObject, NSObjectProtocol, NSZone};
+<span class="kw">use </span>objc2::{
+    declare_class, extern_protocol, msg_send, msg_send_id, ClassType,
+    ProtocolType,
+};
+
+<span class="comment">// Declare the NSCopying protocol so that we can implement it.
+//
+// In practice, you wouldn&#39;t have to do this, since it is done for you in
+// `icrate`.
+</span><span class="macro">extern_protocol!</span>(
+    <span class="kw">unsafe trait </span>NSCopying {
+        <span class="attr">#[method(copyWithZone:)]
+        </span><span class="kw">fn </span>copy_with_zone(<span class="kw-2">&amp;</span><span class="self">self</span>, _zone: <span class="kw-2">*const </span>NSZone) -&gt; <span class="kw-2">*mut </span><span class="self">Self</span>;
+    }
+
+    <span class="kw">unsafe impl </span>ProtocolType <span class="kw">for dyn </span>NSCopying {
+        <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;NSCopying&quot;</span>;
+    }
+);
+
+
+<span class="macro">declare_class!</span>(
+    <span class="kw">struct </span>MyCustomObject {
+        foo: IvarEncode&lt;u8, <span class="string">&quot;_foo&quot;</span>&gt;,
+        <span class="kw">pub </span>bar: IvarEncode&lt;c_int, <span class="string">&quot;_bar&quot;</span>&gt;,
+        object: IvarDrop&lt;Id&lt;NSObject, Shared&gt;, <span class="string">&quot;_object&quot;</span>&gt;,
+    }
+
+    <span class="kw">mod </span>ivars;
+
+    <span class="kw">unsafe impl </span>ClassType <span class="kw">for </span>MyCustomObject {
+        <span class="kw">type </span>Super = NSObject;
+        <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;MyCustomObject&quot;</span>;
+    }
+
+    <span class="kw">unsafe impl </span>MyCustomObject {
+        <span class="attr">#[method(initWithFoo:)]
+        </span><span class="kw">fn </span>init_with(this: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, foo: u8) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt; {
+            <span class="kw">let </span>this: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt; = <span class="kw">unsafe </span>{
+                <span class="macro">msg_send!</span>[<span class="kw">super</span>(this), init]
+            };
+
+            this.map(|this| {
+                <span class="comment">// Initialize instance variables
+
+                // Some types like `u8`, `bool`, `Option&lt;Box&lt;T&gt;&gt;` and
+                // `Option&lt;Id&lt;T, O&gt;&gt;` are safe to zero-initialize, and
+                // we can simply write to the variable as normal:
+                </span><span class="kw-2">*</span>this.foo = foo;
+                <span class="kw-2">*</span>this.bar = <span class="number">42</span>;
+
+                <span class="comment">// For others like `&amp;u8`, `Box&lt;T&gt;` or `Id&lt;T, O&gt;`, we have
+                // to initialize them with `Ivar::write`:
+                </span>Ivar::write(<span class="kw-2">&amp;mut </span>this.object, Id::into_shared(NSObject::new()));
+
+                <span class="comment">// All the instance variables have been initialized; our
+                // initializer is sound
+                </span>this
+            })
+        }
+
+        <span class="attr">#[method(foo)]
+        </span><span class="kw">fn </span>__get_foo(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+            <span class="kw-2">*</span><span class="self">self</span>.foo
+        }
+
+        <span class="attr">#[method_id(object)]
+        </span><span class="kw">fn </span>__get_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Id&lt;NSObject, Shared&gt; {
+            <span class="self">self</span>.object.clone()
+        }
+
+        <span class="attr">#[method(myClassMethod)]
+        </span><span class="kw">fn </span>__my_class_method() -&gt; bool {
+            <span class="bool-val">true
+        </span>}
+    }
+
+    <span class="kw">unsafe impl </span>NSCopying <span class="kw">for </span>MyCustomObject {
+        <span class="attr">#[method_id(copyWithZone:)]
+        </span><span class="kw">fn </span>copy_with_zone(<span class="kw-2">&amp;</span><span class="self">self</span>, _zone: <span class="kw-2">*const </span>NSZone) -&gt; Id&lt;<span class="self">Self</span>, Owned&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>obj = <span class="self">Self</span>::new(<span class="kw-2">*</span><span class="self">self</span>.foo);
+            <span class="kw-2">*</span>obj.bar = <span class="kw-2">*</span><span class="self">self</span>.bar;
+            obj
+        }
+
+        <span class="comment">// If we have tried to add other methods here, or had forgotten
+        // to implement the method, we would have gotten an error with the
+        // `verify` feature enabled.
+    </span>}
+);
+
+<span class="kw">impl </span>MyCustomObject {
+    <span class="kw">pub fn </span>new(foo: u8) -&gt; Id&lt;<span class="self">Self</span>, Owned&gt; {
+        <span class="kw">unsafe </span>{ <span class="macro">msg_send_id!</span>[<span class="self">Self</span>::alloc(), initWithFoo: foo] }
+    }
+
+    <span class="kw">pub fn </span>get_foo(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="kw">unsafe </span>{ <span class="macro">msg_send!</span>[<span class="self">self</span>, foo] }
+    }
+
+    <span class="kw">pub fn </span>get_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Id&lt;NSObject, Shared&gt; {
+        <span class="kw">unsafe </span>{ <span class="macro">msg_send_id!</span>[<span class="self">self</span>, object] }
+    }
+
+    <span class="kw">pub fn </span>my_class_method() -&gt; bool {
+        <span class="kw">unsafe </span>{ <span class="macro">msg_send!</span>[<span class="self">Self</span>::class(), myClassMethod] }
+    }
+}
+
+<span class="comment">// TODO: `NSCopying` from `icrate` works a bit differently
+// unsafe impl icrate::Foundation::NSCopying for MyCustomObject {
+//     type Ownership = Owned;
+//     type Output = Self;
+// }
+
+</span><span class="kw">fn </span>main() {
+    <span class="kw">let </span>obj = MyCustomObject::new(<span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>obj.foo, <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>obj.bar, <span class="number">42</span>);
+    <span class="macro">assert!</span>(obj.object.is_kind_of::&lt;NSObject&gt;());
+
+    <span class="kw">let </span>obj: Id&lt;MyCustomObject, Shared&gt; = <span class="kw">unsafe </span>{
+         <span class="macro">msg_send_id!</span>[<span class="kw-2">&amp;</span>obj, copy]
+    }; <span class="comment">// Or obj.copy() with `icrate`
+
+    </span><span class="macro">assert_eq!</span>(obj.get_foo(), <span class="number">3</span>);
+    <span class="macro">assert!</span>(obj.get_object().is_kind_of::&lt;NSObject&gt;());
+
+    <span class="macro">assert!</span>(MyCustomObject::my_class_method());
+}</code></pre></div>
+<p>Approximately equivalent to the following ARC-enabled Objective-C code.</p>
+<div class="example-wrap"><pre class="language-text"><code>#import &lt;Foundation/Foundation.h&gt;
+
+@interface MyCustomObject: NSObject &lt;NSCopying&gt; {
+    // Public ivar
+    int bar;
+}
+
+- (instancetype)initWithFoo:(uint8_t)foo;
+- (uint8_t)foo;
+- (NSObject*)object;
++ (BOOL)myClassMethod;
+
+@end
+
+
+@implementation MyCustomObject {
+    // Private ivar
+    uint8_t foo;
+    NSObject* _Nonnull object;
+}
+
+- (instancetype)initWithFoo:(uint8_t)foo_arg {
+    self = [super init];
+    if (self) {
+        self-&gt;foo = foo_arg;
+        self-&gt;bar = 42;
+        self-&gt;object = [NSObject new];
+    }
+    return self;
+}
+
+- (uint8_t)foo {
+    return self-&gt;foo; // Or just `foo`
+}
+
+- (NSObject*)object {
+    return self-&gt;object;
+}
+
++ (BOOL)myClassMethod {
+    return YES;
+}
+
+// NSCopying
+
+- (id)copyWithZone:(NSZone *)_zone {
+    MyCustomObject* obj = [[MyCustomObject alloc] initWithFoo: self-&gt;foo];
+    obj-&gt;bar = self-&gt;bar;
+    return obj;
+}
+
+@end
+</code></pre></div></div></details></section></div></main></body></html>

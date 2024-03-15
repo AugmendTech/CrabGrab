@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["dyld_kernel_image_info","dyld_kernel_process_info"],"type":["dyld_kernel_image_info_array_t","dyld_kernel_image_info_t","dyld_kernel_process_info_t"]};

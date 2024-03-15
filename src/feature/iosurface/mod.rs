@@ -7,5 +7,7 @@ pub struct IoSurface {
 }
 
 impl IoSurface {
-    pub fn get_raw() -> *mut Object;
+    pub fn get_raw(&self) -> *mut Object {
+        self.raw
+    }
 }

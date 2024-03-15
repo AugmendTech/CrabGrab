@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["delegate"],"mod":["appkit","base","foundation","quartzcore"]};
