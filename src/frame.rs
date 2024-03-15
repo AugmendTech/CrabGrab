@@ -2,7 +2,7 @@ use std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
 
 use crate::{platform::platform_impl::{ImplAudioFrame, ImplVideoFrame}, util::*};
 
-pub trait VideoCaptureFrame {
+pub(crate) trait VideoCaptureFrame {
     fn logical_frame(&self) -> Rect;
     fn physical_frame(&self) -> Rect;
     fn duration(&self) -> Duration;
@@ -37,7 +37,7 @@ pub enum AudioBufferError {
     Other(String)
 }
 
-pub trait AudioCaptureFrame {
+pub(crate) trait AudioCaptureFrame {
     fn sample_rate(&self) -> AudioSampleRate;
     fn channel_count(&self) -> AudioChannelCount;
     fn audio_channel_buffer(&mut self, channel: usize) -> Result<AudioChannelData<'_>, AudioBufferError>;
@@ -46,7 +46,6 @@ pub trait AudioCaptureFrame {
     fn capture_time(&self) -> Instant;
     fn frame_id(&self) -> u64;
 }
-
 
 pub struct AudioFrame {
     pub(crate) impl_audio_frame: ImplAudioFrame,
