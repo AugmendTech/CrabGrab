@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["factory"],"macro":["h","s","w"],"struct":["AgileReference","Array","BSTR","Error","Event","GUID","HRESULT","HSTRING","IInspectable","IUnknown","PCSTR","PCWSTR","PSTR","PWSTR","Weak"],"trait":["AsImpl","ComInterface","Interface"],"type":["Result"]};

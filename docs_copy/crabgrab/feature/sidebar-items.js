@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["dx11","dxgi"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["WindowsDx11VideoFrameError"],"trait":["WindowsDx11CaptureStream","WindowsDx11VideoFrame"]};
