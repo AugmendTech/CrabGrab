@@ -1,7 +1,6 @@
 use crate::prelude::{CaptureStream, VideoFrame};
 
-use windows::Win32::Graphics::Dxgi::{IDXGIAdapter, IDXGIDevice, IDXGISurface};
-use windows::core::{ComInterface, IUnknown, Interface};
+use windows::core::ComInterface;
 use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 use windows::Win32::Graphics::Direct3D11::ID3D11Texture2D;
 
@@ -11,11 +10,12 @@ pub enum WindowsDxgiVideoFrameError {
 }
 
 pub trait WindowsDxgiVideoFrame {
-    fn get_dxgi_surface(&self) -> Result<IDXGISurface, WindowsDxgiVideoFrameError>; 
+    /// Get the surface texture for this video frame
+    fn get_dxgi_surface(&self) -> Result<windows::Win32::Graphics::Dxgi::IDXGISurface, WindowsDxgiVideoFrameError>; 
 }
 
 impl WindowsDxgiVideoFrame for VideoFrame {
-    fn get_dxgi_surface(&self) -> Result<IDXGISurface, WindowsDxgiVideoFrameError> {
+    fn get_dxgi_surface(&self) -> Result<windows::Win32::Graphics::Dxgi::IDXGISurface, WindowsDxgiVideoFrameError> {
         let d3d11_surface = self.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDxgiVideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))?;
         let interface_access: IDirect3DDxgiInterfaceAccess = d3d11_surface.cast()
@@ -28,16 +28,18 @@ impl WindowsDxgiVideoFrame for VideoFrame {
 }
 
 pub trait WindowsDxgiCaptureStream {
-    fn get_dxgi_adapter(&self) -> IDXGIAdapter;
-    fn get_dxgi_device(&self) -> IDXGIDevice;
+    /// Get the dxgi adapter used by the capture stream for frame generation
+    fn get_dxgi_adapter(&self) -> windows::Win32::Graphics::Dxgi::IDXGIAdapter;
+    /// Get the dxgi device used by the capture stream for frame generation
+    fn get_dxgi_device(&self) -> windows::Win32::Graphics::Dxgi::IDXGIDevice;
 }
 
 impl WindowsDxgiCaptureStream for CaptureStream {
-    fn get_dxgi_adapter(&self) -> IDXGIAdapter {
+    fn get_dxgi_adapter(&self) -> windows::Win32::Graphics::Dxgi::IDXGIAdapter {
         self.impl_capture_stream.dxgi_adapter.clone()
     }
 
-    fn get_dxgi_device(&self) -> IDXGIDevice {
+    fn get_dxgi_device(&self) -> windows::Win32::Graphics::Dxgi::IDXGIDevice {
         self.impl_capture_stream.dxgi_device.clone()
     }
 }

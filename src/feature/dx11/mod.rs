@@ -13,6 +13,7 @@ pub trait WindowsDx11VideoFrame {
 }
 
 impl WindowsDx11VideoFrame for VideoFrame {
+    /// Get the surface texture for this video frame
     fn get_dx11_surface(&self) -> Result<IDirect3DSurface, WindowsDx11VideoFrameError> {
         self.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDxgiVideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))

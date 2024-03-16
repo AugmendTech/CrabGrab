@@ -16,7 +16,6 @@ pub(crate) use capturable_content::MacosCapturableWindow as ImplCapturableWindow
 pub(crate) use capturable_content::MacosCapturableDisplay as ImplCapturableDisplay;
 pub(crate) use capture_stream::MacosPixelFormat as ImplPixelFormat;
 pub(crate) use capturable_content::MacosCapturableApplication as ImplCapturableApplication;
-pub(crate) use runloop::MacosRunloop as ImplRunloop;
 
 pub use capture_stream::MacosAudioCaptureConfigExt;
 pub use capture_stream::MacosCaptureConfigExt;

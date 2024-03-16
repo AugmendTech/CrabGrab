@@ -3,7 +3,6 @@ use windows::Win32::Foundation::HANDLE;
 
 mod capture_stream;
 mod capturable_content;
-mod run_loop;
 pub(crate) mod frame;
 
 pub(crate) struct AutoHandle(HANDLE);
@@ -26,5 +25,3 @@ pub use capture_stream::WindowsPixelFormat as ImplPixelFormat;
 
 pub use frame::WindowsVideoFrame as ImplVideoFrame;
 pub use frame::WindowsAudioFrame as ImplAudioFrame;
-
-pub use run_loop::WindowsRunLoop as ImplRunloop;
