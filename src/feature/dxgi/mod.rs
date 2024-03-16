@@ -1,3 +1,6 @@
+#![cfg(target_os = "windows")]
+#![cfg(feature = "dxgi")]
+
 use crate::prelude::{CaptureStream, VideoFrame};
 
 use windows::core::ComInterface;

@@ -1,3 +1,6 @@
+#![cfg(target_os = "windows")]
+#![cfg(feature = "dx11")]
+
 use futures::lock::Mutex;
 use windows::{Graphics::DirectX::Direct3D11::IDirect3DSurface, Win32::Graphics::Direct3D11::ID3D11Device};
 
