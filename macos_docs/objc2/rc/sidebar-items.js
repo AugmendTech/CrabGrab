@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["autoreleasepool"],"struct":["Allocated","AutoreleasePool","Id","Owned","Shared","WeakId"],"trait":["AutoreleaseSafe","DefaultId","Ownership","SliceId","SliceIdMut"]};

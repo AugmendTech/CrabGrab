@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Block","ConcreteBlock","RcBlock"],"trait":["BlockArguments","IntoConcreteBlock"]};

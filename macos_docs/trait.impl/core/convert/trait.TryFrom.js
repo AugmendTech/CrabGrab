@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"objc2":[["impl&lt;T: <a class=\"trait\" href=\"objc2/trait.Message.html\" title=\"trait objc2::Message\">Message</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.75.0/core/convert/trait.TryFrom.html\" title=\"trait core::convert::TryFrom\">TryFrom</a>&lt;<a class=\"struct\" href=\"objc2/rc/struct.WeakId.html\" title=\"struct objc2::rc::WeakId\">WeakId</a>&lt;T&gt;&gt; for <a class=\"struct\" href=\"objc2/rc/struct.Id.html\" title=\"struct objc2::rc::Id\">Id</a>&lt;T, <a class=\"struct\" href=\"objc2/rc/struct.Shared.html\" title=\"struct objc2::rc::Shared\">Shared</a>&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

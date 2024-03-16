@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["ClassBuilder","Ivar","IvarBool","IvarDrop","IvarEncode","ProtocolBuilder"],"trait":["InnerIvarType","IvarType","MethodImplementation"]};

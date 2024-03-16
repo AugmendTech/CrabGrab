@@ -115,11 +115,33 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use crate</span>::{platform::platform_impl::{ImplAudioFrame, ImplVideoFrame}, util::<span class="kw-2">*</span>};
 
-<span class="attr">#[derive(Copy, Clone, Debug)]
+<span class="doccomment">/// The rate to capture audio samples
+</span><span class="attr">#[derive(Copy, Clone, Debug)]
 </span><span class="kw">pub enum </span>AudioSampleRate {
     Hz8000,
     Hz16000,
@@ -127,19 +149,22 @@
     Hz48000,
 }
 
-<span class="attr">#[derive(Copy, Clone, Debug)]
+<span class="doccomment">/// The number of audio channels to capture
+</span><span class="attr">#[derive(Copy, Clone, Debug)]
 </span><span class="kw">pub enum </span>AudioChannelCount {
     Mono,
     Stereo
 }
 
-<span class="kw">pub enum </span>AudioChannelData&lt;<span class="lifetime">'data</span>&gt; {
+<span class="doccomment">/// Represents audio channel data in an audio frame
+</span><span class="kw">pub enum </span>AudioChannelData&lt;<span class="lifetime">'data</span>&gt; {
     F32(<span class="kw-2">*const </span>f32, usize, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span>()&gt;),
     I32(<span class="kw-2">*const </span>i32, usize, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span>()&gt;),
     I16(<span class="kw-2">*const </span>i16, usize, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span>()&gt;)
 }
 
-<span class="kw">pub enum </span>AudioBufferError {
+<span class="doccomment">/// Represents an error getting the data for an audio channel
+</span><span class="kw">pub enum </span>AudioBufferError {
     UnsupportedFormat,
     InvalidChannel,
     Other(String)
@@ -155,7 +180,8 @@
     <span class="kw">fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 }
 
-<span class="kw">pub struct </span>AudioFrame {
+<span class="doccomment">/// A frame of captured audio
+</span><span class="kw">pub struct </span>AudioFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_audio_frame: ImplAudioFrame,
 }
 
@@ -166,27 +192,35 @@
 }
 
 <span class="kw">impl </span>AudioFrame {
-    <span class="kw">pub fn </span>sample_rate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioSampleRate {
+    <span class="doccomment">/// Get the sample rate of the captured audio
+    </span><span class="kw">pub fn </span>sample_rate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioSampleRate {
         <span class="self">self</span>.impl_audio_frame.sample_rate()
     }
 
-    <span class="kw">pub fn </span>channel_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioChannelCount {
+    <span class="doccomment">/// Get the channel count of the captured audio
+    </span><span class="kw">pub fn </span>channel_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioChannelCount {
         <span class="self">self</span>.impl_audio_frame.channel_count()
     }
 
-    <span class="kw">pub fn </span>audio_channel_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel: usize) -&gt; <span class="prelude-ty">Result</span>&lt;AudioChannelData&lt;<span class="lifetime">'_</span>&gt;, AudioBufferError&gt; {
+    <span class="doccomment">/// Get the data buffer for the captured audio channel
+    </span><span class="kw">pub fn </span>audio_channel_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel: usize) -&gt; <span class="prelude-ty">Result</span>&lt;AudioChannelData&lt;<span class="lifetime">'_</span>&gt;, AudioBufferError&gt; {
         <span class="self">self</span>.impl_audio_frame.audio_channel_buffer(channel)
     }
 
-    <span class="kw">pub fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
+    <span class="doccomment">/// Get the duration of this audio frames
+    </span><span class="kw">pub fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
         <span class="self">self</span>.impl_audio_frame.duration()
     }
 
-    <span class="kw">pub fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
+    <span class="doccomment">/// Get the time since the start of the stream that this audio frame begins at
+    </span><span class="kw">pub fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
         <span class="self">self</span>.impl_audio_frame.duration()
     }
 
-    <span class="kw">pub fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    <span class="doccomment">/// Get the sequence id of this frame (monotonically increasing)
+    /// 
+    /// Note: This is separate from video frame ids
+    </span><span class="kw">pub fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.impl_audio_frame.frame_id()
     }
 }
@@ -200,28 +234,36 @@
     <span class="kw">fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 }
 
-<span class="kw">pub struct </span>VideoFrame {
+<span class="doccomment">/// A frame of captured video
+</span><span class="kw">pub struct </span>VideoFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_video_frame: ImplVideoFrame,
 }
 
 <span class="kw">impl </span>VideoFrame {
-    <span class="kw">pub fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    <span class="doccomment">/// Get the sequence id of this video frame (monotonically increasing)
+    /// 
+    /// Note: This is separate from audio frame ids
+    </span><span class="kw">pub fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.impl_video_frame.frame_id()
     }
 
-    <span class="kw">pub fn </span>capture_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Instant {
+    <span class="doccomment">/// Get the Instant that this frame was delivered to the application
+    </span><span class="kw">pub fn </span>capture_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Instant {
         <span class="self">self</span>.impl_video_frame.capture_time()
     }
 
-    <span class="kw">pub fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
+    <span class="doccomment">/// Get the time since the start of the stream that this frame was generated
+    </span><span class="kw">pub fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
         <span class="self">self</span>.impl_video_frame.origin_time()
     }
 
-    <span class="kw">pub fn </span>physical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+    <span class="doccomment">/// Get the rectangle in system space physical pixels representing the captured area
+    </span><span class="kw">pub fn </span>physical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
         <span class="self">self</span>.impl_video_frame.physical_frame()
     }
 
-    <span class="kw">pub fn </span>logical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+    <span class="doccomment">/// Get the rectangle in system space logical pixels representing the captured area
+    </span><span class="kw">pub fn </span>logical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
         <span class="self">self</span>.impl_video_frame.logical_frame()
     }
 }

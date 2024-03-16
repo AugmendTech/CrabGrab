@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["CFFileSecurityCopyGroupUUID","CFFileSecurityCopyOwnerUUID","CFFileSecurityCreate","CFFileSecurityCreateCopy","CFFileSecurityGetTypeID","CFFileSecuritySetGroupUUID","CFFileSecuritySetOwnerUUID"],"struct":["__CFFileSecurity"],"type":["CFFileSecurityRef"]};

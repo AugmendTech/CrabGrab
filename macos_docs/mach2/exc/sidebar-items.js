@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["exc_MSG_COUNT"],"fn":["exception_raise","exception_raise_state","exception_raise_state_identity"],"struct":["__Reply__exception_raise_t","__Request__exception_raise_t"]};

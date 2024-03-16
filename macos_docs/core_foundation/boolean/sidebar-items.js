@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["CFBooleanGetTypeID"],"static":["kCFBooleanFalse","kCFBooleanTrue"],"struct":["CFBoolean"],"type":["CFBooleanRef"]};

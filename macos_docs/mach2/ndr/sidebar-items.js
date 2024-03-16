@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"static":["NDR_record"],"struct":["NDR_record_t"]};

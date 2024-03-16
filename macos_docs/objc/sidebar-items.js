@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"macro":["class","msg_send","sel"],"mod":["declare","rc","runtime"],"struct":["Encoding","MessageError"],"trait":["Encode","EncodeArguments","Message","MessageArguments"]};

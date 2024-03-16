@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["kCGErrorCannotComplete","kCGErrorFailure","kCGErrorIllegalArgument","kCGErrorInvalidConnection","kCGErrorInvalidContext","kCGErrorInvalidOperation","kCGErrorNoneAvailable","kCGErrorNotImplemented","kCGErrorRangeCheck","kCGErrorSuccess","kCGErrorTypeCheck"],"type":["CGError","CGFloat","CGGlyph","boolean_t"]};

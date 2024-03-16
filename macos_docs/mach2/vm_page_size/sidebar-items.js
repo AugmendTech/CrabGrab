@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["mach_vm_round_page","mach_vm_trunc_page"],"static":["vm_page_mask","vm_page_shift","vm_page_size"]};
