@@ -6,14 +6,20 @@ use crate::capturable_content::Capturable;
 use crate::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame, VideoFrame};
 use crate::util::{Point, Rect, Size};
 
+/// Represents an event in a capture stream
 #[derive(Debug)]
 pub enum StreamEvent {
+    /// This event is produced when the stream receives a new audio packet
     Audio(AudioFrame),
+    /// This event is produced when the stream receives a new video frame
     Video(VideoFrame),
+    /// This event is produced when the stream goes idle - IE when no new frames are expected for some time, like when a window minimizes
     Idle,
+    /// This event is produced once at the end of the stream
     End,
 }
 
+/// This represents an error during a stream, for example a failure to retreive a video or audio frame
 #[derive(Debug, Clone)]
 pub enum StreamError {
     Other(String),
@@ -41,9 +47,11 @@ impl Error for StreamError {
     }
 }
 
+/// This represents an error when creating a capture stream
 #[derive(Debug, Clone)]
 pub enum StreamCreateError {
     Other(String),
+    /// The supplied pixel format is unsupported by the implementation
     UnsupportedPixelFormat,
     //GpuLost,
 }
@@ -51,9 +59,11 @@ pub enum StreamCreateError {
 unsafe impl Send for StreamCreateError {}
 unsafe impl Sync for StreamCreateError {}
 
+/// This represents an error while stopping a stream
 #[derive(Debug)]
 pub enum StreamStopError {
     Other(String),
+    /// The stream was already stopped
     AlreadyStopped,
     //GpuLost,
 }
@@ -84,14 +94,18 @@ impl Error for StreamCreateError {
     }
 }
 
+/// Configuration settings for audio streams
 #[derive(Clone, Debug)]
 pub struct AudioCaptureConfig {
-    pub(crate)  sample_rate: AudioSampleRate,
+    pub(crate)  sample_rate: AudioSampleRate, 
     pub(crate)  channel_count: AudioChannelCount,
     pub(crate)  impl_capture_audio_config: ImplAudioCaptureConfig,
 }
 
 impl AudioCaptureConfig {
+    /// Creates a new audio capture config with default settings:
+    /// * 24000 hz
+    /// * Mono
     pub fn new() -> Self {
         Self {
             sample_rate: AudioSampleRate::Hz24000,
@@ -101,15 +115,25 @@ impl AudioCaptureConfig {
     }
 }
 
+/// The pixel format of returned video frames
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum CapturePixelFormat {
+    /// One plane, 4 channels, 8 bits per channel: {b: u8, g: u8, r: u8, a: u8}, full range: [0, 255]
     Bgra8888,
+    /// One plane, 4 channels, 10 bits per color channel, two bits for alpha: {a: u2, r: u10, g: u10, b: u10}, rgb range: [0, 1023], alpha range: [0, 3]
     Argb2101010,
+    /// Two planes:
+    /// * 1 channel, luminance, 8 bits per pixel, video range: [16, 240]
+    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
     V420,
+    /// Two planes:
+    /// * 1 channel, luminance, 8 bits per pixel, full range: [0, 255]
+    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
     F420,
 }
 
+/// Configuration settings for a capture stream
 #[derive(Clone, Debug)]
 pub struct CaptureConfig {
     pub(crate) target: Capturable,
@@ -122,13 +146,17 @@ pub struct CaptureConfig {
     pub(crate) buffer_count: usize,
 }
 
+/// Represents an error creating the capture config
 #[derive(Debug, Clone)]
 pub enum CaptureConfigError {
+    /// The pixel format is unsupported by the implementation
     UnsupportedPixelFormat,
+    /// The buffer count is out of the valid range for the implementation
     InvalidBufferCount,
 }
 
 impl CaptureConfig {
+    /// Create a capture configuration for a given capturable window
     pub fn with_window(window: CapturableWindow, pixel_format: CapturePixelFormat) -> Result<CaptureConfig, CaptureConfigError> {
         let rect = window.rect();
         Ok(CaptureConfig {
@@ -149,6 +177,7 @@ impl CaptureConfig {
         })
     }
 
+    /// Create a capture configuration for a given capturable display
     pub fn with_display(display: CapturableDisplay, pixel_format: CapturePixelFormat) -> CaptureConfig {
         let rect = display.rect();
         CaptureConfig {
@@ -170,23 +199,30 @@ impl CaptureConfig {
     }
 }
 
+/// Represents an active capture stream
 pub struct CaptureStream {
     pub(crate) impl_capture_stream: ImplCaptureStream,
 }
 
 impl CaptureStream {
+    /// Test whether the calling application has permission to capture content
     pub fn test_access(borderless: bool) -> bool {
         ImplCaptureStream::check_access(borderless)
     }
 
+    /// Prompt the user for permission to capture content
     pub async fn request_access(borderless: bool) -> bool {
         ImplCaptureStream::request_access(borderless).await
     }
 
+    /// Gets the implementation's supported pixel formats
+    /// 
+    /// Note that the returned formats may not work for all capture modalities (eg, window vs display)
     pub fn supported_pixel_formats() -> &'static [CapturePixelFormat] {
         ImplCaptureStream::supported_pixel_formats()
     }
 
+    /// Start a new capture stream with the given stream callback
     pub fn new(config: CaptureConfig, callback: impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static) -> Result<Self, StreamCreateError> {
         let boxed_callback = Box::new(callback);
         Ok(Self {
@@ -194,6 +230,7 @@ impl CaptureStream {
         })
     }
 
+    /// Stop the capture
     pub fn stop(&mut self) -> Result<(), StreamStopError> {
         self.impl_capture_stream.stop()
     }

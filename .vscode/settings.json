@@ -1,4 +1,4 @@
 {
-    "rust-analyzer.check.features": ["dxgi"],
-    "rust-analyzer.cargo.features": ["dx11"],
+    "rust-analyzer.check.features": ["dxgi","metal","iosurface"],
+    "rust-analyzer.cargo.features": ["dx11","metal","iosurface"],
 }
