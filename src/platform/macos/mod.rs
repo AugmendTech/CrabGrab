@@ -4,7 +4,6 @@ mod capture_stream;
 mod frame;
 mod capturable_content;
 mod objc_wrap;
-mod runloop;
 
 pub(crate) use capture_stream::MacosCaptureStream as ImplCaptureStream;
 pub(crate) use capture_stream::MacosAudioCaptureConfig as ImplAudioCaptureConfig;

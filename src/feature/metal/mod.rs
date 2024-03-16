@@ -24,7 +24,7 @@ pub trait MetalVideoFrame {
 
 #[cfg(feature="metal")]
 impl MetalVideoFrame for VideoFrame {
-    fn get_texture(&self) -> Result<metal::Texture, MacosVideoFrameError> {
+    fn get_texture(&self, plane: MetalVideoFramePlaneTexture) -> Result<metal::Texture, MacosVideoFrameError> {
         todo!()
     }
 }

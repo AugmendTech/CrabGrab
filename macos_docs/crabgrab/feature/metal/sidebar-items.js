@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["MetalVideoFrame"]};
+window.SIDEBAR_ITEMS = {"enum":["MacosVideoFrameError","MetalVideoFramePlaneTexture"],"trait":["MetalVideoFrame"]};

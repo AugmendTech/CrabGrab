@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Point","Rect","Runloop","Size"]};
+window.SIDEBAR_ITEMS = {"struct":["Point","Rect","Size"]};

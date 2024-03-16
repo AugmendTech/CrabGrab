@@ -5,7 +5,7 @@ use crate::prelude::VideoFrame;
 
 /// A Macos IOSurface instance
 pub struct IoSurface {
-    raw: *mut Object,
+    raw: *mut objc::runtime::Object,
 }
 
 impl IoSurface {

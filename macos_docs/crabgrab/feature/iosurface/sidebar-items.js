@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["IoSurface"]};
+window.SIDEBAR_ITEMS = {"struct":["IoSurface"],"trait":["MacosIoSurfaceVideoFrame"]};
