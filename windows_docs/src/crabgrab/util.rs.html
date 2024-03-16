@@ -79,31 +79,24 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::platform::platform_impl::ImplRunloop;
-
-<span class="attr">#[derive(Debug, Copy, Clone)]
+</pre></div><pre class="rust"><code><span class="doccomment">/// Represents a 2d size
+</span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Size {
     <span class="kw">pub </span>width: f64,
     <span class="kw">pub </span>height: f64,
 }
 
 <span class="kw">impl </span>Size {
-    <span class="kw">pub fn </span>scaled(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: f64) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// scale the size uniformly by some value
+    </span><span class="kw">pub fn </span>scaled(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: f64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             width: <span class="self">self</span>.width * scale,
             height: <span class="self">self</span>.height * scale
         }
     }
 
-    <span class="kw">pub fn </span>scaled_2d(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: (f64, f64)) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// scale the size non-uniformly in x and y
+    </span><span class="kw">pub fn </span>scaled_2d(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: (f64, f64)) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             width: <span class="self">self</span>.width * scale.<span class="number">0</span>,
             height: <span class="self">self</span>.height * scale.<span class="number">1
@@ -111,26 +104,30 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Copy, Clone)]
+<span class="doccomment">/// Represents a 2d point
+</span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Point {
     <span class="kw">pub </span>x: f64,
     <span class="kw">pub </span>y: f64,
 }
 
 <span class="kw">impl </span>Point {
-    <span class="kw">pub const </span>ZERO: Point = Point {
+    <span class="doccomment">/// The point at (0, 0)
+    </span><span class="kw">pub const </span>ZERO: Point = Point {
         x: <span class="number">0.0</span>, 
         y: <span class="number">0.0
     </span>};
 
-    <span class="kw">pub fn </span>scaled(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: f64) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Scale the point uniformly by some value
+    </span><span class="kw">pub fn </span>scaled(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: f64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             x: <span class="self">self</span>.x * scale,
             y: <span class="self">self</span>.y * scale
         }
     }
 
-    <span class="kw">pub fn </span>scaled_2d(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: (f64, f64)) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Scale the point non-uniformly in x and y
+    </span><span class="kw">pub fn </span>scaled_2d(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: (f64, f64)) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             x: <span class="self">self</span>.x * scale.<span class="number">0</span>,
             y: <span class="self">self</span>.y * scale.<span class="number">1
@@ -138,41 +135,28 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Copy, Clone)]
+<span class="doccomment">/// Represents an axis-aligned rectangle
+</span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Rect {
     <span class="kw">pub </span>origin: Point,
     <span class="kw">pub </span>size: Size,
 }
 
 <span class="kw">impl </span>Rect {
-    <span class="kw">pub fn </span>scaled(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: f64) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Scale the rectangle uniformly
+    </span><span class="kw">pub fn </span>scaled(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: f64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             origin: <span class="self">self</span>.origin.scaled(scale),
             size: <span class="self">self</span>.size.scaled(scale)
         }
     }
 
-    <span class="kw">pub fn </span>scaled_2d(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: (f64, f64)) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Scale the rectangle non-uniformly in x and y
+    </span><span class="kw">pub fn </span>scaled_2d(<span class="kw-2">&amp;</span><span class="self">self</span>, scale: (f64, f64)) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             origin: <span class="self">self</span>.origin.scaled_2d(scale),
             size: <span class="self">self</span>.size.scaled_2d(scale)
         }
-    }
-}
-
-<span class="kw">pub struct </span>Runloop {
-    impl_runloop: ImplRunloop
-}
-
-<span class="kw">impl </span>Runloop {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            impl_runloop: ImplRunloop::new()
-        }
-    }
-
-    <span class="kw">pub fn </span>run(<span class="self">self</span>) {
-        <span class="self">self</span>.impl_runloop.run()
     }
 }
 </code></pre></div></section></main></body></html>

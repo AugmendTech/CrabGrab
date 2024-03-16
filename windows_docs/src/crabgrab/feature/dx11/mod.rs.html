@@ -29,6 +29,7 @@
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>futures::lock::Mutex;
 <span class="kw">use </span>windows::{Graphics::DirectX::Direct3D11::IDirect3DSurface, Win32::Graphics::Direct3D11::ID3D11Device};
 
@@ -44,7 +45,8 @@
 }
 
 <span class="kw">impl </span>WindowsDx11VideoFrame <span class="kw">for </span>VideoFrame {
-    <span class="kw">fn </span>get_dx11_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;IDirect3DSurface, WindowsDx11VideoFrameError&gt; {
+    <span class="doccomment">/// Get the surface texture for this video frame
+    </span><span class="kw">fn </span>get_dx11_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;IDirect3DSurface, WindowsDx11VideoFrameError&gt; {
         <span class="self">self</span>.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDxgiVideoFrameError::Other(<span class="macro">format!</span>(<span class="string">"Failed to get frame surface: {}"</span>, e.to_string())))
     }

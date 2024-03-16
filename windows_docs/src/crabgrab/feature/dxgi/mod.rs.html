@@ -42,10 +42,11 @@
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
 <a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::prelude::{CaptureStream, VideoFrame};
 
-<span class="kw">use </span>windows::Win32::Graphics::Dxgi::{IDXGIAdapter, IDXGIDevice, IDXGISurface};
-<span class="kw">use </span>windows::core::{ComInterface, IUnknown, Interface};
+<span class="kw">use </span>windows::core::ComInterface;
 <span class="kw">use </span>windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 <span class="kw">use </span>windows::Win32::Graphics::Direct3D11::ID3D11Texture2D;
 
@@ -55,11 +56,12 @@
 }
 
 <span class="kw">pub trait </span>WindowsDxgiVideoFrame {
-    <span class="kw">fn </span>get_dxgi_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;IDXGISurface, WindowsDxgiVideoFrameError&gt;; 
+    <span class="doccomment">/// Get the surface texture for this video frame
+    </span><span class="kw">fn </span>get_dxgi_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;windows::Win32::Graphics::Dxgi::IDXGISurface, WindowsDxgiVideoFrameError&gt;; 
 }
 
 <span class="kw">impl </span>WindowsDxgiVideoFrame <span class="kw">for </span>VideoFrame {
-    <span class="kw">fn </span>get_dxgi_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;IDXGISurface, WindowsDxgiVideoFrameError&gt; {
+    <span class="kw">fn </span>get_dxgi_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;windows::Win32::Graphics::Dxgi::IDXGISurface, WindowsDxgiVideoFrameError&gt; {
         <span class="kw">let </span>d3d11_surface = <span class="self">self</span>.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDxgiVideoFrameError::Other(<span class="macro">format!</span>(<span class="string">"Failed to get frame surface: {}"</span>, e.to_string())))<span class="question-mark">?</span>;
         <span class="kw">let </span>interface_access: IDirect3DDxgiInterfaceAccess = d3d11_surface.cast()
@@ -72,16 +74,18 @@
 }
 
 <span class="kw">pub trait </span>WindowsDxgiCaptureStream {
-    <span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IDXGIAdapter;
-    <span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IDXGIDevice;
+    <span class="doccomment">/// Get the dxgi adapter used by the capture stream for frame generation
+    </span><span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIAdapter;
+    <span class="doccomment">/// Get the dxgi device used by the capture stream for frame generation
+    </span><span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIDevice;
 }
 
 <span class="kw">impl </span>WindowsDxgiCaptureStream <span class="kw">for </span>CaptureStream {
-    <span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IDXGIAdapter {
+    <span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIAdapter {
         <span class="self">self</span>.impl_capture_stream.dxgi_adapter.clone()
     }
 
-    <span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IDXGIDevice {
+    <span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIDevice {
         <span class="self">self</span>.impl_capture_stream.dxgi_device.clone()
     }
 }

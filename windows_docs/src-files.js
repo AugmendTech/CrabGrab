@@ -1,6 +1,6 @@
 var srcIndex = new Map(JSON.parse('[\
 ["cfg_if",["",[],["lib.rs"]]],\
-["crabgrab",["",[["feature",[["dx11",[],["mod.rs"]],["dxgi",[],["mod.rs"]]],["mod.rs"]],["platform",[["windows",[],["capturable_content.rs","capture_stream.rs","frame.rs","mod.rs","run_loop.rs"]]],["mod.rs"]]],["capturable_content.rs","capture_stream.rs","frame.rs","lib.rs","prelude.rs","util.rs"]]],\
+["crabgrab",["",[["feature",[["dx11",[],["mod.rs"]],["dxgi",[],["mod.rs"]]],["mod.rs"]],["platform",[["windows",[],["capturable_content.rs","capture_stream.rs","frame.rs","mod.rs"]]],["mod.rs"]]],["capturable_content.rs","capture_stream.rs","frame.rs","lib.rs","prelude.rs","util.rs"]]],\
 ["futures",["",[],["lib.rs"]]],\
 ["futures_channel",["",[["mpsc",[],["mod.rs","queue.rs","sink_impl.rs"]]],["lib.rs","lock.rs","oneshot.rs"]]],\
 ["futures_core",["",[["task",[["__internal",[],["atomic_waker.rs","mod.rs"]]],["mod.rs","poll.rs"]]],["future.rs","lib.rs","stream.rs"]]],\

@@ -26,15 +26,11 @@
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>windows::Win32::Foundation::CloseHandle;
 <span class="kw">use </span>windows::Win32::Foundation::HANDLE;
 
 <span class="kw">mod </span>capture_stream;
 <span class="kw">mod </span>capturable_content;
-<span class="kw">mod </span>run_loop;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>frame;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AutoHandle(HANDLE);
@@ -57,6 +53,4 @@
 
 <span class="kw">pub use </span>frame::WindowsVideoFrame <span class="kw">as </span>ImplVideoFrame;
 <span class="kw">pub use </span>frame::WindowsAudioFrame <span class="kw">as </span>ImplAudioFrame;
-
-<span class="kw">pub use </span>run_loop::WindowsRunLoop <span class="kw">as </span>ImplRunloop;
 </code></pre></div></section></main></body></html>
