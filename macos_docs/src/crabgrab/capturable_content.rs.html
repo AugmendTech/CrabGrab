@@ -176,11 +176,39 @@
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::{Debug, Display}};
 
 <span class="kw">use crate</span>::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// Represents an error that occured when enumerating capturable content
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>CapturableContentError {
     Other(String)
 }
@@ -207,9 +235,12 @@
     }
 }
 
-<span class="kw">pub struct </span>CapturableWindowFilter {
-    <span class="kw">pub </span>desktop_windows: bool,
-    <span class="kw">pub </span>onscreen_only: bool,
+<span class="doccomment">/// Selects the kind of windows to enumerate for capture
+</span><span class="kw">pub struct </span>CapturableWindowFilter {
+    <span class="doccomment">/// Desktop windows are elements of the desktop environment, E.G. the dock on macos or the start bar on windows.
+    </span><span class="kw">pub </span>desktop_windows: bool,
+    <span class="doccomment">/// Whether to restrict to onscreen windows
+    </span><span class="kw">pub </span>onscreen_only: bool,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>CapturableWindowFilter {
@@ -218,13 +249,17 @@
     }
 }
 
-<span class="kw">pub struct </span>CapturableContentFilter {
-    <span class="kw">pub </span>windows: <span class="prelude-ty">Option</span>&lt;CapturableWindowFilter&gt;,
-    <span class="kw">pub </span>displays: bool,
+<span class="doccomment">/// Selects the kind of capturable content to enumerate
+</span><span class="kw">pub struct </span>CapturableContentFilter {
+    <span class="doccomment">/// What kind of capturable windows, if Some, to enumerate
+    </span><span class="kw">pub </span>windows: <span class="prelude-ty">Option</span>&lt;CapturableWindowFilter&gt;,
+    <span class="doccomment">/// Whether to enumerate capturable displays
+    </span><span class="kw">pub </span>displays: bool,
 }
 
 <span class="kw">impl </span>CapturableContentFilter {
-    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// Whether this filter allows any capturable content
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !(
             <span class="self">self</span>.windows.is_some() ||
             <span class="self">self</span>.displays
@@ -236,7 +271,8 @@
     impl_capturable_content: ImplCapturableContent
 }
 
-<span class="kw">pub struct </span>CapturableWindowIterator&lt;<span class="lifetime">&#39;content</span>&gt; {
+<span class="doccomment">/// An iterator over capturable windows
+</span><span class="kw">pub struct </span>CapturableWindowIterator&lt;<span class="lifetime">&#39;content</span>&gt; {
     content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;content </span>CapturableContent,
     i: usize
 }
@@ -262,7 +298,8 @@
 <span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>CapturableWindowIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
 }
 
-<span class="kw">pub struct </span>CapturableDisplayIterator&lt;<span class="lifetime">&#39;content</span>&gt; {
+<span class="doccomment">/// An iterator over capturable displays
+</span><span class="kw">pub struct </span>CapturableDisplayIterator&lt;<span class="lifetime">&#39;content</span>&gt; {
     content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;content </span>CapturableContent,
     i: usize
 }
@@ -292,17 +329,23 @@
 }
 
 <span class="kw">impl </span>CapturableContent {
-    <span class="kw">pub async fn </span>new(filter: CapturableContentFilter) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CapturableContentError&gt; {
+    <span class="doccomment">/// Requests capturable content from the OS
+    /// 
+    /// Note that the returned capturable content may be stale - for example, a window enumerated in this capturable content
+    /// may have been closed before it is used to open a stream, and creating a stream for that window will result in an error.
+    </span><span class="kw">pub async fn </span>new(filter: CapturableContentFilter) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CapturableContentError&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             impl_capturable_content: ImplCapturableContent::new(filter).<span class="kw">await</span><span class="question-mark">?
         </span>})
     }
 
-    <span class="kw">pub fn </span>windows&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; CapturableWindowIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Get an iterator over the capturable windows
+    </span><span class="kw">pub fn </span>windows&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; CapturableWindowIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
         CapturableWindowIterator { content: <span class="self">self</span>, i: <span class="number">0 </span>}
     }
 
-    <span class="kw">pub fn </span>displays&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; CapturableDisplayIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Get an iterator over the capturable displays
+    </span><span class="kw">pub fn </span>displays&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; CapturableDisplayIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
         CapturableDisplayIterator { content: <span class="self">self</span>, i: <span class="number">0 </span>}
     }
 }
@@ -313,34 +356,42 @@
     Display(CapturableDisplay),
 }
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// Represents a capturable application window
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>CapturableWindow {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_capturable_window: ImplCapturableWindow
 }
 
 <span class="kw">impl </span>CapturableWindow {
-    <span class="kw">pub fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+    <span class="doccomment">/// Gets the title of the window
+    </span><span class="kw">pub fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.impl_capturable_window.title()
     }
 
-    <span class="kw">pub fn </span>rect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+    <span class="doccomment">/// Gets the virtual screen rectangle of the window
+    </span><span class="kw">pub fn </span>rect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
         <span class="self">self</span>.impl_capturable_window.rect()
     }
 
-    <span class="kw">pub fn </span>application(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CapturableApplication {
+    <span class="doccomment">/// Gets the application that owns this window
+    </span><span class="kw">pub fn </span>application(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CapturableApplication {
         CapturableApplication {
             impl_capturable_application: <span class="self">self</span>.impl_capturable_window.application()
         }
     }
 }
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// Represents a capturable display
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>CapturableDisplay {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_capturable_display: ImplCapturableDisplay
 }
 
 <span class="kw">impl </span>CapturableDisplay {
-    <span class="kw">pub fn </span>rect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+    <span class="doccomment">/// Gets the virtual screen rectangle of this display
+    /// 
+    /// Note: Currently on windows, this is only evaluated at the time of display enumeration
+    </span><span class="kw">pub fn </span>rect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
         <span class="self">self</span>.impl_capturable_display.rect()
     }
 }
@@ -350,7 +401,10 @@
 }
 
 <span class="kw">impl </span>CapturableApplication {
-    <span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+    <span class="doccomment">/// Gets the &quot;identifier&quot; of the application
+    /// 
+    /// On Macos, this is the application bundle, and on windows, this is the application file name
+    </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.impl_capturable_application.identifier()
     }
 }

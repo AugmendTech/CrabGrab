@@ -200,6 +200,43 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::{error::Error, fmt::Display};
 
@@ -208,15 +245,21 @@
 <span class="kw">use </span><span class="kw">crate</span>::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame, VideoFrame};
 <span class="kw">use </span><span class="kw">crate</span>::util::{Point, Rect, Size};
 
-<span class="attr">#[derive(Debug)]
+<span class="doccomment">/// Represents an event in a capture stream
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>StreamEvent {
-    Audio(AudioFrame),
-    Video(VideoFrame),
-    Idle,
-    End,
+    <span class="doccomment">/// This event is produced when the stream receives a new audio packet
+    </span>Audio(AudioFrame),
+    <span class="doccomment">/// This event is produced when the stream receives a new video frame
+    </span>Video(VideoFrame),
+    <span class="doccomment">/// This event is produced when the stream goes idle - IE when no new frames are expected for some time, like when a window minimizes
+    </span>Idle,
+    <span class="doccomment">/// This event is produced once at the end of the stream
+    </span>End,
 }
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// This represents an error during a stream, for example a failure to retreive a video or audio frame
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>StreamError {
     Other(String),
 }
@@ -243,20 +286,24 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// This represents an error when creating a capture stream
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>StreamCreateError {
     Other(String),
-    UnsupportedPixelFormat,
+    <span class="doccomment">/// The supplied pixel format is unsupported by the implementation
+    </span>UnsupportedPixelFormat,
     <span class="comment">//GpuLost,
 </span>}
 
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>StreamCreateError {}
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>StreamCreateError {}
 
-<span class="attr">#[derive(Debug)]
+<span class="doccomment">/// This represents an error while stopping a stream
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>StreamStopError {
     Other(String),
-    AlreadyStopped,
+    <span class="doccomment">/// The stream was already stopped
+    </span>AlreadyStopped,
     <span class="comment">//GpuLost,
 </span>}
 
@@ -286,15 +333,19 @@
     }
 }
 
-<span class="attr">#[derive(Clone, Debug)]
+<span class="doccomment">/// Configuration settings for audio streams
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>AudioCaptureConfig {
-    <span class="kw">pub</span>(<span class="kw">crate</span>)  sample_rate: AudioSampleRate,
+    <span class="kw">pub</span>(<span class="kw">crate</span>)  sample_rate: AudioSampleRate, 
     <span class="kw">pub</span>(<span class="kw">crate</span>)  channel_count: AudioChannelCount,
     <span class="kw">pub</span>(<span class="kw">crate</span>)  impl_capture_audio_config: ImplAudioCaptureConfig,
 }
 
 <span class="kw">impl </span>AudioCaptureConfig {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new audio capture config with default settings:
+    /// * 24000 hz
+    /// * Mono
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             sample_rate: AudioSampleRate::Hz24000,
             channel_count: AudioChannelCount::Mono,
@@ -303,16 +354,26 @@
     }
 }
 
-<span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+<span class="doccomment">/// The pixel format of returned video frames
+</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>CapturePixelFormat {
-    Bgra8888,
-    Argb2101010,
-    V420,
-    F420,
+    <span class="doccomment">/// One plane, 4 channels, 8 bits per channel: {b: u8, g: u8, r: u8, a: u8}, full range: [0, 255]
+    </span>Bgra8888,
+    <span class="doccomment">/// One plane, 4 channels, 10 bits per color channel, two bits for alpha: {a: u2, r: u10, g: u10, b: u10}, rgb range: [0, 1023], alpha range: [0, 3]
+    </span>Argb2101010,
+    <span class="doccomment">/// Two planes:
+    /// * 1 channel, luminance, 8 bits per pixel, video range: [16, 240]
+    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
+    </span>V420,
+    <span class="doccomment">/// Two planes:
+    /// * 1 channel, luminance, 8 bits per pixel, full range: [0, 255]
+    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
+    </span>F420,
 }
 
-<span class="attr">#[derive(Clone, Debug)]
+<span class="doccomment">/// Configuration settings for a capture stream
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>CaptureConfig {
     <span class="kw">pub</span>(<span class="kw">crate</span>) target: Capturable,
     <span class="kw">pub</span>(<span class="kw">crate</span>) source_rect: Rect,
@@ -324,14 +385,18 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) buffer_count: usize,
 }
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// Represents an error creating the capture config
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>CaptureConfigError {
-    UnsupportedPixelFormat,
-    InvalidBufferCount,
+    <span class="doccomment">/// The pixel format is unsupported by the implementation
+    </span>UnsupportedPixelFormat,
+    <span class="doccomment">/// The buffer count is out of the valid range for the implementation
+    </span>InvalidBufferCount,
 }
 
 <span class="kw">impl </span>CaptureConfig {
-    <span class="kw">pub fn </span>with_window(window: CapturableWindow, pixel_format: CapturePixelFormat) -&gt; <span class="prelude-ty">Result</span>&lt;CaptureConfig, CaptureConfigError&gt; {
+    <span class="doccomment">/// Create a capture configuration for a given capturable window
+    </span><span class="kw">pub fn </span>with_window(window: CapturableWindow, pixel_format: CapturePixelFormat) -&gt; <span class="prelude-ty">Result</span>&lt;CaptureConfig, CaptureConfigError&gt; {
         <span class="kw">let </span>rect = window.rect();
         <span class="prelude-val">Ok</span>(CaptureConfig {
             target: Capturable::Window(window),
@@ -351,7 +416,8 @@
         })
     }
 
-    <span class="kw">pub fn </span>with_display(display: CapturableDisplay, pixel_format: CapturePixelFormat) -&gt; CaptureConfig {
+    <span class="doccomment">/// Create a capture configuration for a given capturable display
+    </span><span class="kw">pub fn </span>with_display(display: CapturableDisplay, pixel_format: CapturePixelFormat) -&gt; CaptureConfig {
         <span class="kw">let </span>rect = display.rect();
         CaptureConfig {
             target: Capturable::Display(display),
@@ -372,31 +438,39 @@
     }
 }
 
-<span class="kw">pub struct </span>CaptureStream {
+<span class="doccomment">/// Represents an active capture stream
+</span><span class="kw">pub struct </span>CaptureStream {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_capture_stream: ImplCaptureStream,
 }
 
 <span class="kw">impl </span>CaptureStream {
-    <span class="kw">pub fn </span>test_access(borderless: bool) -&gt; bool {
+    <span class="doccomment">/// Test whether the calling application has permission to capture content
+    </span><span class="kw">pub fn </span>test_access(borderless: bool) -&gt; bool {
         ImplCaptureStream::check_access(borderless)
     }
 
-    <span class="kw">pub async fn </span>request_access(borderless: bool) -&gt; bool {
+    <span class="doccomment">/// Prompt the user for permission to capture content
+    </span><span class="kw">pub async fn </span>request_access(borderless: bool) -&gt; bool {
         ImplCaptureStream::request_access(borderless).<span class="kw">await
     </span>}
 
-    <span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[CapturePixelFormat] {
+    <span class="doccomment">/// Gets the implementation&#39;s supported pixel formats
+    /// 
+    /// Note that the returned formats may not work for all capture modalities (eg, window vs display)
+    </span><span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[CapturePixelFormat] {
         ImplCaptureStream::supported_pixel_formats()
     }
 
-    <span class="kw">pub fn </span>new(config: CaptureConfig, callback: <span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
+    <span class="doccomment">/// Start a new capture stream with the given stream callback
+    </span><span class="kw">pub fn </span>new(config: CaptureConfig, callback: <span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
         <span class="kw">let </span>boxed_callback = Box::new(callback);
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             impl_capture_stream: ImplCaptureStream::new(config, boxed_callback)<span class="question-mark">?
         </span>})
     }
 
-    <span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), StreamStopError&gt; {
+    <span class="doccomment">/// Stop the capture
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), StreamStopError&gt; {
         <span class="self">self</span>.impl_capture_stream.stop()
     }
 }
