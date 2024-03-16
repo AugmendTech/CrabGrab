@@ -96,7 +96,7 @@ pub(crate) trait VideoCaptureFrame {
     fn frame_id(&self) -> u64;
 }
 
-/// Represents a captured video frame
+/// A frame of captured video
 pub struct VideoFrame {
     pub(crate) impl_video_frame: ImplVideoFrame,
 }
