@@ -1,9 +1,9 @@
 #![allow(unused)]
 
-mod capture_stream;
-mod frame;
-mod capturable_content;
-mod objc_wrap;
+pub(crate) mod capture_stream;
+pub(crate) mod frame;
+pub(crate) mod capturable_content;
+pub(crate) mod objc_wrap;
 
 pub(crate) use capture_stream::MacosCaptureStream as ImplCaptureStream;
 pub(crate) use capture_stream::MacosAudioCaptureConfig as ImplAudioCaptureConfig;

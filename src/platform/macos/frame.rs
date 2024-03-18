@@ -9,6 +9,8 @@ pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) capture_time: Instant,
     pub(crate) dictionary: RefCell<Option<CFDictionary>>,
     pub(crate) frame_id: u64,
+    #[cfg(feature = "metal")]
+    pub(crate) metal_device: metal::Device,
 }
 
 pub(crate) struct MacosCGDisplayStreamVideoFrame {
@@ -32,7 +34,7 @@ impl MacosSCStreamVideoFrame {
     }
 }
 
-pub enum MacosVideoFrame {
+pub(crate) enum MacosVideoFrame {
     SCStream(MacosSCStreamVideoFrame),
     CGDisplayStream(MacosCGDisplayStreamVideoFrame),
 }

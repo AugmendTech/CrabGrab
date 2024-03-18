@@ -1,11 +1,11 @@
-use std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::Arc, time::{Duration, Instant}};
+use std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
 
 use futures::executor::block_on;
 use objc::runtime::Object;
 use parking_lot::Mutex;
 
 use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, StreamStopError, VideoFrame}, util::{Rect, Size}};
-use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat}};
+use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat}};
 
 pub type MacosPixelFormat = SCStreamPixelFormat;
 
@@ -29,7 +29,11 @@ enum MacosCaptureStreamInternal {
 }
 
 pub(crate) struct MacosCaptureStream {
-    stream: MacosCaptureStreamInternal
+    stream: MacosCaptureStreamInternal,
+    stopped_flag: Arc<AtomicBool>,
+    shared_callback: Arc<Mutex<Box<dyn FnMut(Result<StreamEvent, StreamError>) + Send + 'static>>>,
+    #[cfg(feature = "metal")]
+    pub(crate) metal_device: metal::Device,
 }
 
 pub trait MacosCaptureConfigExt {
@@ -37,14 +41,18 @@ pub trait MacosCaptureConfigExt {
     fn with_scale_to_fit(self, scale_to_fit: bool) -> Self;
     fn with_maximum_fps(self, maximum_fps: Option<f32>) -> Self;
     fn with_queue_depth(self, queue_depth: usize) -> Self;
+    #[cfg(feature = "metal")]
+    fn with_metal_device(self, metal_device: metal::Device) -> Self;
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct MacosCaptureConfig {
     output_size: Size,
     scale_to_fit: bool,
     maximum_fps: Option<f32>,
     queue_depth: usize,
+    #[cfg(feature = "metal")]
+    metal_device: Option<metal::Device>,
 }
 
 impl MacosCaptureConfig {
@@ -54,6 +62,8 @@ impl MacosCaptureConfig {
             scale_to_fit: true,
             maximum_fps: None,
             queue_depth: 3,
+            #[cfg(feature = "metal")]
+            metal_device: None,
         }
     }
 }
@@ -93,6 +103,17 @@ impl MacosCaptureConfigExt for CaptureConfig {
         Self {
             impl_capture_config: MacosCaptureConfig {
                 queue_depth,
+                ..self.impl_capture_config
+            },
+            ..self
+        }
+    }
+
+    #[cfg(feature = "metal")]
+    fn with_metal_device(self, metal_device: metal::Device) -> Self {
+        Self {
+            impl_capture_config: MacosCaptureConfig {
+                metal_device: Some(metal_device),
                 ..self.impl_capture_config
             },
             ..self
@@ -147,10 +168,11 @@ impl MacosCaptureStream {
         SCStream::request_access().await
     }
 
-    pub fn new(config: CaptureConfig, mut callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
-        match config.target {
+    pub fn new(capture_config: CaptureConfig, mut callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+        let shared_callback = Arc::new(Mutex::new(callback as Box<dyn FnMut(Result<StreamEvent, StreamError>) + Send + 'static>));
+        let stream_shared_callback = shared_callback.clone();
+        match capture_config.target {
             Capturable::Window(window) => {
-                
                 let mut config = SCStreamConfiguration::new();
                 config.set_size(CGSize {
                     x: window.rect().size.width * 2.0,
@@ -174,9 +196,101 @@ impl MacosCaptureStream {
                 let filter = SCContentFilter::new_with_desktop_independent_window(window.impl_capturable_window.window);
 
                 let handler_queue = DispatchQueue::make_serial("com.augmend.crabgrab.window_capture".into());
+
+                let mut audio_frame_id_counter = AtomicU64::new(0);
+                let mut video_frame_id_counter = AtomicU64::new(0);
+
+                let stopped_flag = Arc::new(AtomicBool::new(false));
+                let callback_stopped_flag = stopped_flag.clone();
+
+                #[cfg(feature = "metal")]
+                let mut metal_device = match capture_config.impl_capture_config.metal_device {
+                    Some(metal_device) => metal_device,
+                    None => {
+                        match metal::Device::system_default() {
+                            Some(device) => device,
+                            None => return Err(StreamCreateError::Other("Failed to create system default metal device".into()))
+                        }
+                    }
+                };
+                #[cfg(feature = "metal")]
+                let callback_metal_device = metal_device.clone();
                 
-                let handler = SCStreamHandler::new(Box::new(move |stream_result| {
-                    println!("callback!");
+                let handler = SCStreamHandler::new(Box::new(move |stream_result: Result<(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError>| {
+                    let mut callback = stream_shared_callback.lock();
+                    let capture_time = Instant::now();
+                    match stream_result {
+                        Ok((sample_buffer, output_type)) => {
+                            match output_type {
+                                SCStreamOutputType::Audio => {
+                                    let frame_id = audio_frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
+                                    // TODO...
+                                },
+                                SCStreamOutputType::Screen => {
+                                    let attachments = sample_buffer.get_sample_attachment_array();
+                                    if attachments.len() == 0 {
+                                        return;
+                                    }
+                                    let status_int_ptr = unsafe { attachments[0].get_value(SCStreamFrameInfoStatus) };
+                                    if status_int_ptr.is_null() {
+                                        return;
+                                    }
+                                    let status_opt = SCFrameStatus::from_i32(unsafe { *(status_int_ptr as *mut i32) });
+                                    if status_opt.is_none() {
+                                        return;
+                                    }
+                                    match status_opt.unwrap() {
+                                        SCFrameStatus::Complete => {
+                                            if callback_stopped_flag.load(atomic::Ordering::Acquire) {
+                                                return;
+                                            }
+                                            let frame_id = video_frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
+                                            let video_frame = VideoFrame {
+                                                impl_video_frame: MacosVideoFrame::SCStream(MacosSCStreamVideoFrame {
+                                                    sample_buffer,
+                                                    capture_time,
+                                                    dictionary: RefCell::new(None),
+                                                    frame_id,
+                                                    #[cfg(feature = "metal")]
+                                                    metal_device: callback_metal_device.clone()
+                                                })
+                                            };
+                                            (callback)(Ok(StreamEvent::Video(video_frame)));
+                                        },
+                                        SCFrameStatus::Suspended |
+                                        SCFrameStatus::Idle => {
+                                            if callback_stopped_flag.load(atomic::Ordering::Acquire) {
+                                                return;
+                                            }
+                                            (callback)(Ok(StreamEvent::Idle));
+                                        },
+                                        SCFrameStatus::Stopped => {
+                                            if callback_stopped_flag.fetch_and(true, atomic::Ordering::AcqRel) {
+                                                return;
+                                            }
+                                            (callback)(Ok(StreamEvent::End));
+                                        }
+                                        _ => {}
+                                    }
+
+                                    
+                                },
+                            }
+                        },
+                        Err(err) => {
+                            let event = match err {
+                                SCStreamCallbackError::StreamStopped => {
+                                    if callback_stopped_flag.fetch_and(true, atomic::Ordering::AcqRel) {
+                                        return;
+                                    }
+                                    Ok(StreamEvent::End)
+                                },
+                                SCStreamCallbackError::SampleBufferCopyFailed => Err(StreamError::Other("Failed to copy sample buffer".into())),
+                                SCStreamCallbackError::Other(e) => Err(StreamError::Other(format!("Internal stream failure: [description: {}, reason: {}, code: {}, domain: {}]", e.description(), e.reason(), e.code(), e.domain()))),
+                            };
+                            (callback)(event);
+                        }
+                    }
                 }));
 
                 let mut sc_stream = SCStream::new(filter, config, handler_queue, handler)
@@ -185,7 +299,11 @@ impl MacosCaptureStream {
                 sc_stream.start();
 
                 Ok(MacosCaptureStream {
-                    stream: MacosCaptureStreamInternal::Window(sc_stream)
+                    stopped_flag,
+                    shared_callback,
+                    stream: MacosCaptureStreamInternal::Window(sc_stream),
+                    #[cfg(feature = "metal")]
+                    metal_device
                 })
             },
             Capturable::Display(_) => Err(StreamCreateError::Other("Macos display capture unimplemented".into()))
@@ -194,6 +312,12 @@ impl MacosCaptureStream {
     }
 
     pub(crate) fn stop(&mut self) -> Result<(), StreamStopError> {
+        {
+            let mut callback = self.shared_callback.lock();
+            if !self.stopped_flag.fetch_and(true, atomic::Ordering::AcqRel) {
+                (callback)(Ok(StreamEvent::End));
+            }
+        }
         match &mut self.stream {
             MacosCaptureStreamInternal::Window(stream) => { stream.stop(); Ok(()) },
             MacosCaptureStreamInternal::Display(stream) => stream.stop().map_err(|_| StreamStopError::Other("Unkown".into())),

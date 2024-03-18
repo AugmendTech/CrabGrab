@@ -40,10 +40,11 @@ type CFArrayRef = CFTypeRef;
 type OSStatus = i32;
 type CGDisplayStreamRef = CFTypeRef;
 type CGDisplayStreamUpdateRef = CFTypeRef;
-type IOSurfaceRef = CFTypeRef;
+pub(crate) type IOSurfaceRef = CFTypeRef;
 type CGDictionaryRef = CFTypeRef;
 type CFBooleanRef = CFTypeRef;
 type CFNumberRef = CFTypeRef;
+type CVPixelBufferRef = CFTypeRef;
 
 #[allow(unused)]
 fn debug_objc_class(name: &str) {
@@ -158,8 +159,11 @@ extern "C" {
 
     fn CMFormatDescriptionGetMediaType(fdesc: CMFormatDescriptionRef) -> OSType;
     fn CMAudioFormatDescriptionGetStreamBasicDescription(afdesc: CMFormatDescriptionRef) -> *const AudioStreamBasicDescription;
-    // OSStatus CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(CMSampleBufferRef sbuf, size_t *bufferListSizeNeededOut, AudioBufferList *bufferListOut, size_t bufferListSize, CFAllocatorRef blockBufferStructureAllocator, CFAllocatorRef blockBufferBlockAllocator, uint32_t flags, CMBlockBufferRef  _Nullable *blockBufferOut);
     fn CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sbuf: CMSampleBufferRef, buffer_list_size_needed_out: *mut usize, buffer_list_out: *mut AudioBufferList, buffer_list_size: usize, block_buffer_structure_allocator: CFAllocatorRef, block_buffer_block_allocator: CFAllocatorRef, flags: u32, block_buffer_out: *mut CMBlockBufferRef) -> OSStatus;
+    fn CMSampleBufferGetImageBuffer(sbuffer: CMSampleBufferRef) -> CVPixelBufferRef;
+    fn CVPixelBufferGetIOSurface(pixel_buffer: CVPixelBufferRef) -> IOSurfaceRef;
+    fn CVBufferRetain(buffer: CVPixelBufferRef) -> CVPixelBufferRef;
+    fn CVBufferRelease(buffer: CVPixelBufferRef) -> CVPixelBufferRef;
 
     fn CFArrayGetCount(array: CFArrayRef) -> i32;
     fn CFArrayGetValueAtIndex(array: CFArrayRef, index: i32) -> CFTypeRef;
@@ -177,6 +181,9 @@ extern "C" {
     fn CGMainDisplayID() -> u32;
 
     fn CGRectCreateDictionaryRepresentation(rect: CGRect) -> CFDictionaryRef;
+
+    pub(crate) fn IOSurfaceIncrementUseCount(r: IOSurfaceRef);
+    pub(crate) fn IOSurfaceDecrementUseCount(r: IOSurfaceRef);
 
     static mut _dispatch_queue_attr_concurrent: c_void;
 
@@ -1440,6 +1447,18 @@ impl CMSampleBuffer {
             attachments
         }
     }
+
+    pub(crate) fn get_image_buffer(&self) -> Option<CVPixelBuffer> {
+        unsafe {
+            let buffer_ref = CMSampleBufferGetImageBuffer(self.0);
+            if buffer_ref.is_null() {
+                None
+            } else {
+                Some(CVPixelBuffer::from_ref_unretained(buffer_ref))
+            }
+        }
+    }
+
 }
 
 impl Clone for CMSampleBuffer {
@@ -1947,7 +1966,7 @@ impl Drop for CGDisplayStream {
     }
 }
 
-pub(crate) struct IOSurface(IOSurfaceRef);
+pub(crate) struct IOSurface(pub(crate) IOSurfaceRef);
 
 impl IOSurface {
     fn from_ref_unretained(r: IOSurfaceRef) -> Self {
@@ -2156,5 +2175,64 @@ impl Clone for NSApplication {
 impl Drop for NSApplication {
     fn drop(&mut self) {
         unsafe { let _: () = msg_send![self.0, release]; }
+    }
+}
+
+pub enum SCFrameStatus {
+    Complete,
+    Idle,
+    Blank,
+    Started,
+    Suspended,
+    Stopped,
+}
+
+impl SCFrameStatus {
+    pub fn from_i32(x: i32) -> Option<Self> {
+        match x {
+            0 => Some(Self::Complete),
+            1 => Some(Self::Idle),
+            2 => Some(Self::Blank),
+            3 => Some(Self::Suspended),
+            4 => Some(Self::Started),
+            5 => Some(Self::Stopped),
+            _ => None,
+        }
+    }
+}
+
+pub struct CVPixelBuffer(CVPixelBufferRef);
+
+impl CVPixelBuffer {
+    pub fn from_ref_unretained(r: CVPixelBufferRef) -> Self {
+        unsafe { CFRetain(r); }
+        Self(r)
+    }
+
+    pub fn from_ref_retained(r: CVPixelBufferRef) -> Self {
+        Self(r)
+    }
+
+    pub fn get_iosurface_ptr(&self) -> Option<*const c_void> {
+        unsafe {
+            let iosurface_ptr = CVPixelBufferGetIOSurface(self.0);
+            if iosurface_ptr.is_null() {
+                None
+            } else {
+                Some(iosurface_ptr)
+            }
+        }
+    }
+}
+
+impl Clone for CVPixelBuffer {
+    fn clone(&self) -> Self {
+        Self::from_ref_unretained(self.0)
+    }
+}
+
+impl Drop for CVPixelBuffer {
+    fn drop(&mut self) {
+        unsafe { CFRelease(self.0); }
     }
 }
