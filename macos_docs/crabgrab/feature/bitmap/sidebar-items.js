@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["FrameBitmap","VideoFrameBitmapError","VideoRange"],"trait":["VideoFrameBitmap"]};
+window.SIDEBAR_ITEMS = {"enum":["FrameBitmap","VideoFrameBitmapError","VideoRange"],"struct":["FrameBitmapBgraUnorm8x4","FrameBitmapRgbaF16x4","FrameBitmapYCbCr"],"trait":["VideoFrameBitmap"]};
