@@ -75,12 +75,16 @@
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>windows::Graphics::{Capture::Direct3D11CaptureFrame, SizeInt32};
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>windows::Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32};
 
 <span class="kw">use crate</span>::{prelude::{AudioCaptureFrame, VideoCaptureFrame}, util::{Point, Rect, Size}};
 
 <span class="kw">pub struct </span>WindowsVideoFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame: Direct3D11CaptureFrame,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) frame_size: (usize, usize),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) pixel_format: DirectXPixelFormat,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_id: u64,
 }
 

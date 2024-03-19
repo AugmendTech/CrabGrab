@@ -293,6 +293,10 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc};
 
 <span class="kw">use crate</span>::{prelude::{Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
@@ -493,11 +497,13 @@
         <span class="kw">let </span>direct3d_device: IDirect3DDevice = direct3d_device_iinspectible.cast()
             .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to cast IInspectible to IDirect3DDevice"</span>.into()))<span class="question-mark">?</span>;
 
+        <span class="kw">let </span>(width, height) = ((config.output_size.width + <span class="number">0.1</span>) <span class="kw">as </span>usize, (config.output_size.height + <span class="number">0.1</span>) <span class="kw">as </span>usize);
+
         <span class="kw">let </span>frame_pool = Direct3D11CaptureFramePool::CreateFreeThreaded(
             <span class="kw-2">&amp;</span>direct3d_device,
             pixel_format,
             config.buffer_count <span class="kw">as </span>i32,
-            SizeInt32 { Width: config.output_size.width <span class="kw">as </span>i32, Height: config.output_size.height <span class="kw">as </span>i32 },
+            SizeInt32 { Width: width <span class="kw">as </span>i32, Height: height <span class="kw">as </span>i32 },
         ).map_err(|e| StreamCreateError::Other(<span class="macro">format!</span>(<span class="string">"Failed to create Direct3D11CaptureFramePool: {}"</span>, e.to_string())))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>shared_handler_data = Arc::new(
@@ -539,7 +545,9 @@
             <span class="kw">let </span>frame_id = frame_handler_data.frame_id_counter.fetch_add(<span class="number">1</span>, atomic::Ordering::AcqRel);
             <span class="kw">let </span>impl_video_frame = WindowsVideoFrame {
                 frame,
-                frame_id
+                frame_id,
+                frame_size: (width, height),
+                pixel_format
             };
             <span class="kw">let </span>video_frame = VideoFrame {
                 impl_video_frame
