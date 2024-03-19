@@ -2,14 +2,28 @@
 
 use half::f16;
 
-use crate::{platform::platform_impl::objc_wrap::CVPixelFormat, prelude::VideoFrame};
+
+use crate::prelude::VideoFrame;
 #[cfg(target_os = "macos")]
 use crate::platform::macos::frame::MacosVideoFrame;
+#[cfg(target_os = "macos")]
+use crate::platform::platform_impl::objc_wrap::CVPixelFormat;
+
 #[cfg(target_os = "windows")]
-use crate::platform::windows::frame::WindowsVideoFrame;
+use crate::feature::dxgi::{WindowsDxgiVideoFrame, WindowsDxgiVideoFrameError};
+#[cfg(target_os = "windows")]
+use windows::Win32::Graphics::Dxgi::{DXGI_MAPPED_RECT, DXGI_MAP_READ};
+#[cfg(target_os = "windows")]
+use windows::Graphics::DirectX::DirectXPixelFormat;
 
 pub struct FrameBitmapBgraUnorm8x4 {
     pub data: Box<[[u8; 4]]>,
+    pub width:  usize,
+    pub height: usize,
+}
+
+pub struct FrameBitmapRgbaUnormPacked1010102 {
+    pub data: Box<[u32]>,
     pub width:  usize,
     pub height: usize,
 }
@@ -36,6 +50,7 @@ pub struct FrameBitmapYCbCr {
 
 pub enum FrameBitmap {
     BgraUnorm8x4(FrameBitmapBgraUnorm8x4),
+    RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102),
     RgbaF16x4(FrameBitmapRgbaF16x4),
     YCbCr(FrameBitmapYCbCr),
 }
@@ -53,7 +68,54 @@ impl VideoFrameBitmap for VideoFrame {
     fn get_bitmap(&self) -> Result<FrameBitmap, VideoFrameBitmapError> {
         #[cfg(target_os = "windows")]
         {
-
+            let (width, height) = self.impl_video_frame.frame_size;
+            match self.get_dxgi_surface() {
+                Err(WindowsDxgiVideoFrameError::Other(x)) => Err(VideoFrameBitmapError::Other(x)),
+                Ok((surface, pixel_format)) => {
+                    let mut locked_map_rect = DXGI_MAPPED_RECT::default();
+                    unsafe {
+                        match surface.Map(&mut locked_map_rect as *mut _, DXGI_MAP_READ) {
+                            Ok(_) => {},
+                            Err(e) => return Err(VideoFrameBitmapError::Other(format!("Failed to map dxgi surface: {}", e.to_string()))),
+                        }
+                        match pixel_format {
+                            DirectXPixelFormat::B8G8R8A8UIntNormalized => {
+                                let mut image_data = vec![[0u8; 4]; width * height];
+                                let bpr = locked_map_rect.Pitch as usize;
+                                let surface_slice = std::slice::from_raw_parts(locked_map_rect.pBits as *const u8, bpr * height);
+                                for y in 0..height {
+                                    let source_slice = bytemuck::cast_slice::<_, [u8; 4]>(&surface_slice[(bpr * y)..(bpr * y + 4 * width)]);
+                                    image_data[(width * y)..(width * y + width)].copy_from_slice(source_slice);
+                                }
+                                let _ = surface.Unmap();
+                                Ok(FrameBitmap::BgraUnorm8x4(FrameBitmapBgraUnorm8x4 {
+                                    data: image_data.into_boxed_slice(),
+                                    width,
+                                    height,
+                                }))
+                            },
+                            DirectXPixelFormat::R10G10B10A2UIntNormalized => {
+                                let mut image_data = vec![0u32; width * height];
+                                let bpr = locked_map_rect.Pitch as usize;
+                                let surface_slice = std::slice::from_raw_parts(locked_map_rect.pBits as *const u8, bpr * height);
+                                for y in 0..height {
+                                    let source_slice = bytemuck::cast_slice::<_, u32>(&surface_slice[(bpr * y)..(bpr * y + 4 * width)]);
+                                    image_data[(width * y)..(width * y + width)].copy_from_slice(source_slice);
+                                }
+                                let _ = surface.Unmap();
+                                Ok(FrameBitmap::RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102 {
+                                    data: image_data.into_boxed_slice(),
+                                    width,
+                                    height,
+                                }))
+                            },
+                            _ => {
+                                Err(VideoFrameBitmapError::Other("Unknown or unsupported pixel format on DXGISurface".to_string()))
+                            }
+                        }
+                    }
+                }
+            }
         }
         #[cfg(target_os = "macos")]
         {

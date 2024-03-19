@@ -2,7 +2,7 @@
 #![cfg(feature = "dx11")]
 
 use futures::lock::Mutex;
-use windows::{Graphics::DirectX::Direct3D11::IDirect3DSurface, Win32::Graphics::Direct3D11::ID3D11Device};
+use windows::{Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::Graphics::Direct3D11::ID3D11Device};
 
 use crate::prelude::{CaptureStream, VideoFrame};
 
@@ -12,14 +12,15 @@ pub enum WindowsDx11VideoFrameError {
 }
 
 pub trait WindowsDx11VideoFrame {
-    fn get_dx11_surface(&self) -> Result<IDirect3DSurface, WindowsDx11VideoFrameError>;
+    fn get_dx11_surface(&self) -> Result<(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError>;
 }
 
 impl WindowsDx11VideoFrame for VideoFrame {
     /// Get the surface texture for this video frame
-    fn get_dx11_surface(&self) -> Result<IDirect3DSurface, WindowsDx11VideoFrameError> {
+    fn get_dx11_surface(&self) -> Result<(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError> {
         self.impl_video_frame.frame.Surface()
-            .map_err(|e| WindowsDxgiVideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))
+            .map_err(|e| WindowsDx11VideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))
+            .map(|surface| (surface, self.impl_video_frame.pixel_format))
     }
 }
 

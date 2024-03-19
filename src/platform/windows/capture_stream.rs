@@ -198,11 +198,13 @@ impl WindowsCaptureStream {
         let direct3d_device: IDirect3DDevice = direct3d_device_iinspectible.cast()
             .map_err(|_| StreamCreateError::Other("Failed to cast IInspectible to IDirect3DDevice".into()))?;
 
+        let (width, height) = ((config.output_size.width + 0.1) as usize, (config.output_size.height + 0.1) as usize);
+
         let frame_pool = Direct3D11CaptureFramePool::CreateFreeThreaded(
             &direct3d_device,
             pixel_format,
             config.buffer_count as i32,
-            SizeInt32 { Width: config.output_size.width as i32, Height: config.output_size.height as i32 },
+            SizeInt32 { Width: width as i32, Height: height as i32 },
         ).map_err(|e| StreamCreateError::Other(format!("Failed to create Direct3D11CaptureFramePool: {}", e.to_string())))?;
 
         let shared_handler_data = Arc::new(
@@ -244,7 +246,9 @@ impl WindowsCaptureStream {
             let frame_id = frame_handler_data.frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
             let impl_video_frame = WindowsVideoFrame {
                 frame,
-                frame_id
+                frame_id,
+                frame_size: (width, height),
+                pixel_format
             };
             let video_frame = VideoFrame {
                 impl_video_frame

@@ -4,6 +4,7 @@
 use crate::prelude::{CaptureStream, VideoFrame};
 
 use windows::core::ComInterface;
+use windows::Graphics::DirectX::DirectXPixelFormat;
 use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 use windows::Win32::Graphics::Direct3D11::ID3D11Texture2D;
 
@@ -14,11 +15,11 @@ pub enum WindowsDxgiVideoFrameError {
 
 pub trait WindowsDxgiVideoFrame {
     /// Get the surface texture for this video frame
-    fn get_dxgi_surface(&self) -> Result<windows::Win32::Graphics::Dxgi::IDXGISurface, WindowsDxgiVideoFrameError>; 
+    fn get_dxgi_surface(&self) -> Result<(windows::Win32::Graphics::Dxgi::IDXGISurface, DirectXPixelFormat), WindowsDxgiVideoFrameError>; 
 }
 
 impl WindowsDxgiVideoFrame for VideoFrame {
-    fn get_dxgi_surface(&self) -> Result<windows::Win32::Graphics::Dxgi::IDXGISurface, WindowsDxgiVideoFrameError> {
+    fn get_dxgi_surface(&self) -> Result<(windows::Win32::Graphics::Dxgi::IDXGISurface, DirectXPixelFormat), WindowsDxgiVideoFrameError> {
         let d3d11_surface = self.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDxgiVideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))?;
         let interface_access: IDirect3DDxgiInterfaceAccess = d3d11_surface.cast()
@@ -27,6 +28,7 @@ impl WindowsDxgiVideoFrame for VideoFrame {
             interface_access.GetInterface::<ID3D11Texture2D>()
         }.map_err(|e| WindowsDxgiVideoFrameError::Other(format!("Failed to get ID3D11Texture2D interface from to IDirect3DSurface(IDirect3DDxgiInterfaceAccess): {}", e.to_string())))?;
         d3d11_texture.cast().map_err(|e| WindowsDxgiVideoFrameError::Other(format!("Failed to cast ID3D11Texture2D to IDXGISurface: {}", e.to_string())))
+            .map(|texture| (texture, self.impl_video_frame.pixel_format))
     }
 }
 
