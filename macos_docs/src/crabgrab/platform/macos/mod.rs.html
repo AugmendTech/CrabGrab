@@ -20,10 +20,10 @@
 <a href="#20" id="20">20</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 
-</span><span class="kw">mod </span>capture_stream;
-<span class="kw">mod </span>frame;
-<span class="kw">mod </span>capturable_content;
-<span class="kw">mod </span>objc_wrap;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>capture_stream;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>frame;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>capturable_content;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>objc_wrap;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosCaptureStream <span class="kw">as </span>ImplCaptureStream;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosAudioCaptureConfig <span class="kw">as </span>ImplAudioCaptureConfig;
