@@ -8,12 +8,16 @@ iosurface = []
 metal = ["dep:metal"]
 dxgi = []
 dx11 = ["dxgi"]
-image = ["dep:image"]
+bitmap = ["dep:bytemuck", "dep:half"]
+
+[target.'cfg(target_os = "window")'.features]
+bitmap = ["dxgi"]
 
 [dependencies]
 futures = "0.3"
 parking_lot = "0.12"
-image = { version = "0.24", optional = true }
+half = { version = "2.4", optional = true }
+bytemuck = { version = "1.15", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa-foundation = "0.1.0"

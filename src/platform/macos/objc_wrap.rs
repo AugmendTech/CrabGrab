@@ -13,7 +13,7 @@
 #[link(name = "AVFoundation", kind = "framework")]
 extern "C" {}
 
-use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, sync::Arc, time::{Duration, Instant}};
+use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut}, sync::Arc, time::{Duration, Instant}};
 
 use block::{Block, ConcreteBlock, RcBlock};
 use cocoa::{base::NO, foundation::NSData};
@@ -22,7 +22,7 @@ use objc::{class, declare::MethodImplementation, msg_send, runtime::{objc_copyPr
 use objc2::runtime::Bool;
 use mach2::mach_time::{mach_timebase_info, mach_timebase_info_data_t};
 
-use crate::prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError};
+use crate::{feature::iosurface::IoSurface, prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -184,6 +184,27 @@ extern "C" {
 
     pub(crate) fn IOSurfaceIncrementUseCount(r: IOSurfaceRef);
     pub(crate) fn IOSurfaceDecrementUseCount(r: IOSurfaceRef);
+
+    fn IOSurfaceGetPixelFormat(surface: IOSurfaceRef) -> OSType;
+    fn IOSurfaceGetPlaneCount(surface: IOSurfaceRef) -> usize;
+
+    fn IOSurfaceGetWidth(surface: IOSurfaceRef) -> usize;
+    fn IOSurfaceGetHeight(surface: IOSurfaceRef) -> usize;
+
+    fn IOSurfaceLock(surface: IOSurfaceRef, options: u32, seed: *mut u32) -> i32;
+    fn IOSurfaceUnlock(surface: IOSurfaceRef, options: u32, seed: *mut u32) -> i32;
+
+    fn IOSurfaceGetBaseAddressOfPlane(surface: IOSurfaceRef, plane: usize) -> *mut c_void;
+    fn IOSurfaceGetBaseAddress(surface: IOSurfaceRef) -> *mut c_void;
+
+    fn IOSurfaceGetBytesPerRow(surface: IOSurfaceRef) -> usize;
+    fn IOSurfaceGetBytesPerRowOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
+
+    fn IOSurfaceGetHeightOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
+    
+    fn IOSurfaceGetElementWidthOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
+    fn IOSurfaceGetBytesPerElementOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
+    fn IOSurfaceGetNumberOfComponentsOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
 
     static mut _dispatch_queue_attr_concurrent: c_void;
 
@@ -1196,7 +1217,7 @@ pub enum SCStreamOutputType {
 }
 
 impl SCStreamOutputType {
-    pub fn to_encoded(&self) -> SCStreamOutputTypeEncoded {
+    fn to_encoded(&self) -> SCStreamOutputTypeEncoded {
         SCStreamOutputTypeEncoded(match *self {
             Self::Screen => 0,
             Self::Audio => 1,
@@ -1966,19 +1987,158 @@ impl Drop for CGDisplayStream {
     }
 }
 
+
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum CVPixelFormat {
+    RGB888,
+    BGR888,
+    ARGB8888,
+    BGRA8888,
+    ABGR8888,
+    RGBA8888,
+    V420,
+    F420,
+    Other,
+}
+
+impl CVPixelFormat {
+    pub(crate) fn from_ostype(ostype: &OSType) -> Option<Self> {
+        unsafe {
+            let value = std::mem::transmute::<_, u32>(*ostype);
+            Some(match value {
+                0x00000018 => Self::RGB888,
+                0x32344247 => Self::BGR888,
+                0x00000020 => Self::ARGB8888,
+                0x42475241 => Self::BGRA8888,
+                0x41424752 => Self::ABGR8888,
+                0x52474241 => Self::RGBA8888,
+                0x34323076 => Self::V420,
+                _ => {
+                    return None;
+                }
+            })
+        }
+    }
+}
+
 pub(crate) struct IOSurface(pub(crate) IOSurfaceRef);
+
+const IOSURFACELOCK_READONLY  : u32 = 1;
+const IOSURFACELOCK_AVOIDSYNC : u32 = 2;
+
+const SYS_IOKIT              : i32 = 0x38 << 26;
+const SUB_IOKIT_COMMON       : i32 = 0;
+const KIO_RETURN_CANNOT_LOCK : i32 = SYS_IOKIT | SUB_IOKIT_COMMON | 0x2cc;
+
+pub enum IOSurfaceLockError {
+    CannotLock,
+    Other
+}
+
+pub struct IOSurfaceLockGaurd(IOSurfaceRef, u32);
+
+impl IOSurfaceLockGaurd {
+    pub(crate) fn get_base_address_of_plane(&self, plane: usize) -> Option<*const c_void> {
+        unsafe { 
+            let ptr = IOSurfaceGetBaseAddressOfPlane(self.0, plane);
+            if ptr.is_null() {
+                None
+            } else {
+                Some(ptr)
+            }
+        }
+    }
+
+    pub(crate) fn get_base_address(&self) -> Option<*const c_void> {
+        unsafe {
+            let ptr = IOSurfaceGetBaseAddress(self.0);
+            if ptr.is_null() {
+                None
+            } else {
+                Some(ptr)
+            }
+        }
+    }
+}
+
+impl Drop for IOSurfaceLockGaurd {
+    fn drop(&mut self) {
+        unsafe {
+            let mut seed = 0u32;
+            IOSurfaceUnlock(self.0, self.1, &mut seed as *mut _);
+        }
+    }
+}
 
 impl IOSurface {
     fn from_ref_unretained(r: IOSurfaceRef) -> Self {
-        unsafe { CFRetain(r); }
+        unsafe { IOSurfaceIncrementUseCount(r); }
         Self(r)
+    }
+
+    pub(crate) fn get_pixel_format(&self) -> Option<CVPixelFormat> {
+        unsafe {
+            let pixel_format_ostype = IOSurfaceGetPixelFormat(self.0);
+            CVPixelFormat::from_ostype(&pixel_format_ostype)
+        }
+    }
+
+    pub(crate) fn get_bytes_per_row(&self) -> usize {
+        unsafe {
+            IOSurfaceGetBytesPerRow(self.0)
+        }
+    }
+
+    pub(crate) fn get_bytes_per_row_of_plane(&self, plane: usize) -> usize {
+        unsafe {
+            IOSurfaceGetBytesPerRowOfPlane(self.0, plane)
+        }
+    }
+
+    pub(crate) fn get_width(&self) -> usize {
+        unsafe {
+            IOSurfaceGetWidth(self.0)
+        }
+    }
+
+    pub(crate) fn get_height(&self) -> usize {
+        unsafe {
+            IOSurfaceGetHeight(self.0)
+        }
+    }
+
+    pub(crate) fn get_height_of_plane(&self, plane: usize) -> usize {
+        unsafe {
+            IOSurfaceGetHeightOfPlane(self.0, plane)
+        }
+    }
+
+    pub(crate) fn lock(&self, read_only: bool, avoid_sync: bool) -> Result<IOSurfaceLockGaurd, IOSurfaceLockError> {
+        unsafe {
+            let options = 
+                if read_only  { IOSURFACELOCK_READONLY  } else { 0 } |
+                if avoid_sync { IOSURFACELOCK_AVOIDSYNC } else { 0 }
+            ;
+            match IOSurfaceLock(self.0, options, std::ptr::null_mut()) {
+                0                      => Ok(IOSurfaceLockGaurd(self.0, options)),
+                KIO_RETURN_CANNOT_LOCK => Err(IOSurfaceLockError::CannotLock),
+                _                      => Err(IOSurfaceLockError::Other)
+            }
+        }
+    }
+}
+
+impl Clone for IOSurface {
+    fn clone(&self) -> Self {
+        Self::from_ref_unretained(self.0)
     }
 }
 
 impl Drop for IOSurface {
     fn drop(&mut self) {
         unsafe {
-            CFRelease(self.0);
+            IOSurfaceDecrementUseCount(self.0);
         }
     }
 }
@@ -2220,6 +2380,17 @@ impl CVPixelBuffer {
                 None
             } else {
                 Some(iosurface_ptr)
+            }
+        }
+    }
+
+    pub fn get_iosurface(&self) -> Option<IOSurface> {
+        unsafe {
+            let iosurface_ptr = CVPixelBufferGetIOSurface(self.0);
+            if iosurface_ptr.is_null() {
+                None
+            } else {
+                Some(IOSurface::from_ref_unretained(iosurface_ptr))
             }
         }
     }

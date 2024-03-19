@@ -21,6 +21,8 @@ pub(crate) struct MacosCGDisplayStreamVideoFrame {
     pub(crate) frame_id: u64,
     pub(crate) source_rect: Rect,
     pub(crate) dest_size: Size,
+    #[cfg(feature = "metal")]
+    pub(crate) metal_device: metal::Device,
 }
 
 impl MacosSCStreamVideoFrame {
