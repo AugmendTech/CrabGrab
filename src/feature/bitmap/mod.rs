@@ -8,13 +8,13 @@ use crate::platform::macos::frame::MacosVideoFrame;
 #[cfg(target_os = "windows")]
 use crate::platform::windows::frame::WindowsVideoFrame;
 
-struct FrameBitmapBgraUnorm8x4 {
+pub struct FrameBitmapBgraUnorm8x4 {
     pub data: Box<[[u8; 4]]>,
     pub width:  usize,
     pub height: usize,
 }
 
-struct FrameBitmapRgbaF16x4 {
+pub struct FrameBitmapRgbaF16x4 {
     pub data: Box<[[f16; 4]]>,
     pub width:  usize,
     pub height: usize,
@@ -25,7 +25,7 @@ pub enum VideoRange {
     Full,
 }
 
-struct FrameBitmapYCbCr {
+pub struct FrameBitmapYCbCr {
     pub luma_data: Box<[u8]>,
     pub chroma_data: Box<[[u8; 2]]>,
     pub width: usize,
@@ -53,7 +53,7 @@ impl VideoFrameBitmap for VideoFrame {
     fn get_bitmap(&self) -> Result<FrameBitmap, VideoFrameBitmapError> {
         #[cfg(target_os = "windows")]
         {
-            
+
         }
         #[cfg(target_os = "macos")]
         {
