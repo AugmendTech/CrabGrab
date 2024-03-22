@@ -11,7 +11,7 @@ dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half"]
 
 [target.'cfg(target_os = "window")'.features]
-bitmap = ["dxgi"]
+bitmap = ["dx11"]
 
 [dependencies]
 futures = "0.3"

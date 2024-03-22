@@ -1,8 +1,9 @@
-use windows::Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32};
+use windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
 
 use crate::{prelude::{AudioCaptureFrame, VideoCaptureFrame}, util::{Point, Rect, Size}};
 
 pub struct WindowsVideoFrame {
+    pub(crate) device: ID3D11Device,
     pub(crate) frame: Direct3D11CaptureFrame,
     pub(crate) frame_size: (usize, usize),
     pub(crate) pixel_format: DirectXPixelFormat,

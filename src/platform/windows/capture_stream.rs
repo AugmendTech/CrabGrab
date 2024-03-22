@@ -191,12 +191,14 @@ impl WindowsCaptureStream {
             }
         };
 
-        let dxgi_device: IDXGIDevice = d3d11_device.cast()
+        let dxgi_device: IDXGIDevice = d3d11_device.clone().cast()
             .map_err(|_| StreamCreateError::Other("Failed to cast ID3D11Device to IDXGIDevice".into()))?;
         let direct3d_device_iinspectible = unsafe { CreateDirect3D11DeviceFromDXGIDevice(&dxgi_device) }
             .map_err(|_| StreamCreateError::Other("Failed to create IDirect3DDevice from IDXGIDevice".into()))?;
         let direct3d_device: IDirect3DDevice = direct3d_device_iinspectible.cast()
             .map_err(|_| StreamCreateError::Other("Failed to cast IInspectible to IDirect3DDevice".into()))?;
+
+        let callback_direct3d_device = d3d11_device.clone();
 
         let (width, height) = ((config.output_size.width + 0.1) as usize, (config.output_size.height + 0.1) as usize);
 
@@ -245,6 +247,7 @@ impl WindowsCaptureStream {
             };
             let frame_id = frame_handler_data.frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
             let impl_video_frame = WindowsVideoFrame {
+                device: callback_direct3d_device.clone(),
                 frame,
                 frame_id,
                 frame_size: (width, height),
