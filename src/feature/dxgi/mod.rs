@@ -3,6 +3,9 @@
 
 use crate::prelude::{CaptureStream, VideoFrame};
 
+use std::error::Error;
+use std::fmt::Display;
+
 use windows::core::ComInterface;
 use windows::Graphics::DirectX::DirectXPixelFormat;
 use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
@@ -11,6 +14,28 @@ use windows::Win32::Graphics::Direct3D11::ID3D11Texture2D;
 #[derive(Debug, Clone)]
 pub enum WindowsDxgiVideoFrameError {
     Other(String),
+}
+
+impl Display for WindowsDxgiVideoFrameError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Other(error) => f.write_fmt(format_args!("WindowsDxgiVideoFrameError::Other(\"{}\")", error)),
+        }
+    }
+}
+
+impl Error for WindowsDxgiVideoFrameError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
 }
 
 pub trait WindowsDxgiVideoFrame {

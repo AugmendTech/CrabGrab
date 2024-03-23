@@ -3,6 +3,9 @@
 
 use std::os::raw::c_void;
 
+use std::error::Error;
+use std::fmt::Display;
+
 use crate::{platform::{macos::{frame::MacosVideoFrame, objc_wrap::IOSurfaceRef}, platform_impl::objc_wrap::{IOSurfaceDecrementUseCount, IOSurfaceIncrementUseCount}}, prelude::VideoFrame};
 
 /// A Macos IOSurface instance
@@ -38,9 +41,33 @@ pub trait MacosIoSurfaceVideoFrame {
     fn get_iosurface(&self) -> Result<IoSurface, GetIoSurfaceError>;
 }
 
+#[derive(Debug)]
 pub enum GetIoSurfaceError{
     NoImageBuffer,
     NoIoSurface
+}
+
+impl Display for GetIoSurfaceError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NoImageBuffer => f.write_str("GetIoSurfaceError::NoImageBuffer"),
+            Self::NoIoSurface => f.write_str("GetIoSurfaceError::NoIoSurface"),
+        }
+    }
+}
+
+impl Error for GetIoSurfaceError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
 }
 
 impl MacosIoSurfaceVideoFrame for VideoFrame {

@@ -1,7 +1,9 @@
 #![cfg(feature = "bitmap")]
 
+use std::error::Error;
+use std::fmt::Display;
+
 use half::f16;
-use windows::Win32::Graphics::Direct3D11::{D3D11_STANDARD_MULTISAMPLE_QUALITY_LEVELS, D3D11_USAGE_DYNAMIC};
 
 use crate::prelude::VideoFrame;
 #[cfg(target_os = "macos")]
@@ -23,6 +25,8 @@ use windows::Win32::Graphics::Direct3D11::{D3D11_BOX, D3D11_CPU_ACCESS_READ, D3D
 use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_SAMPLE_DESC};
 #[cfg(target_os = "windows")]
 use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
+#[cfg(target_os = "windows")]
+use windows::Win32::Graphics::Direct3D11::{D3D11_STANDARD_MULTISAMPLE_QUALITY_LEVELS, D3D11_USAGE_DYNAMIC};
 
 pub struct FrameBitmapBgraUnorm8x4 {
     pub data: Box<[[u8; 4]]>,
@@ -70,6 +74,28 @@ pub trait VideoFrameBitmap {
 #[derive(Clone, Debug)]
 pub enum VideoFrameBitmapError {
     Other(String),
+}
+
+impl Display for VideoFrameBitmapError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Other(error) => f.write_fmt(format_args!("VideoFrameBitmapError::Other(\"{}\")", error)),
+        }
+    }
+}
+
+impl Error for VideoFrameBitmapError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
 }
 
 impl VideoFrameBitmap for VideoFrame {

@@ -4,11 +4,36 @@
 use futures::lock::Mutex;
 use windows::{Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::Graphics::Direct3D11::ID3D11Device};
 
+use std::error::Error;
+use std::fmt::Display;
+
 use crate::prelude::{CaptureStream, VideoFrame};
 
 #[derive(Debug, Clone)]
 pub enum WindowsDx11VideoFrameError {
     Other(String),
+}
+
+impl Display for WindowsDx11VideoFrameError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Other(error) => f.write_fmt(format_args!("WindowsDx11VideoFrameError::Other(\"{}\")", error)),
+        }
+    }
+}
+
+impl Error for WindowsDx11VideoFrameError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
 }
 
 pub trait WindowsDx11VideoFrame {
