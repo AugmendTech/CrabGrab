@@ -9,6 +9,7 @@ metal = ["dep:metal"]
 dxgi = []
 dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half"]
+wgpu = []
 
 [target.'cfg(target_os = "window")'.features]
 bitmap = ["dx11"]

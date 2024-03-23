@@ -12,3 +12,5 @@ pub mod dx11;
 pub mod iosurface;
 #[cfg(feature = "bitmap")]
 pub mod bitmap;
+#[cfg(feature = "wgpu")]
+pub mod wgpu;

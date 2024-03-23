@@ -2407,6 +2407,18 @@
 <a href="#2407" id="2407">2407</a>
 <a href="#2408" id="2408">2408</a>
 <a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
+<a href="#2413" id="2413">2413</a>
+<a href="#2414" id="2414">2414</a>
+<a href="#2415" id="2415">2415</a>
+<a href="#2416" id="2416">2416</a>
+<a href="#2417" id="2417">2417</a>
+<a href="#2418" id="2418">2418</a>
+<a href="#2419" id="2419">2419</a>
+<a href="#2420" id="2420">2420</a>
+<a href="#2421" id="2421">2421</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 #![allow(non_upper_case_globals)]
 
@@ -2431,7 +2443,7 @@
 <span class="kw">use </span>objc2::runtime::Bool;
 <span class="kw">use </span>mach2::mach_time::{mach_timebase_info, mach_timebase_info_data_t};
 
-<span class="kw">use crate</span>::{feature::iosurface::IoSurface, prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
+<span class="kw">use crate</span>::{prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
 
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>parking_lot::Mutex;
@@ -3798,20 +3810,32 @@
 
     <span class="kw">pub fn </span>start(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(|error: <span class="kw-2">*mut </span>Object| {
-                <span class="kw">if </span>!error.is_null() {
-                    <span class="kw">let </span>error =  NSError::from_id_unretained(error);
-                    <span class="macro">println!</span>(<span class="string">&quot;startCaptureWithCompletionHandler error: {:?}, reason: {:?}&quot;</span>, error.description(), error.reason());
-                } <span class="kw">else </span>{
-                    <span class="macro">println!</span>(<span class="string">&quot;startCaptureWithCompletionHandler success!&quot;</span>);
-                }
-            })).copy()];
+            <span class="kw">let </span>instance = SendObjPtr(<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>c_void <span class="kw">as </span>usize);
+            std::thread::spawn(<span class="kw">move </span>|| {
+                <span class="kw">let </span>SendObjPtr(instance) = instance;
+                <span class="kw">let </span>instance = instance <span class="kw">as </span><span class="kw-2">*mut </span>Object;
+                <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[instance, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
+                    |error: <span class="kw-2">*mut </span>Object| {
+                        <span class="kw">if </span>!error.is_null() {
+                            <span class="kw">let </span>error =  NSError::from_id_unretained(error);
+                            <span class="macro">println!</span>(<span class="string">&quot;startCaptureWithCompletionHandler error: {:?}, reason: {:?}&quot;</span>, error.description(), error.reason());
+                        } <span class="kw">else </span>{
+                            <span class="macro">println!</span>(<span class="string">&quot;startCaptureWithCompletionHandler success!&quot;</span>);
+                        }
+                    }
+                )).copy()];
+            });
         }
     }
 
     <span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
     }
 }
+
+<span class="kw">struct </span>SendObjPtr(usize);
+
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>SendObjPtr {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SendObjPtr {}
 
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CMSampleBuffer(CMSampleBufferRef);

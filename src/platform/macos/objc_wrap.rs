@@ -22,7 +22,7 @@ use objc::{class, declare::MethodImplementation, msg_send, runtime::{objc_copyPr
 use objc2::runtime::Bool;
 use mach2::mach_time::{mach_timebase_info, mach_timebase_info_data_t};
 
-use crate::{feature::iosurface::IoSurface, prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
+use crate::{prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -1389,20 +1389,32 @@ impl SCStream {
 
     pub fn start(&mut self) {
         unsafe {
-            let _: () = msg_send![self.0, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(|error: *mut Object| {
-                if !error.is_null() {
-                    let error =  NSError::from_id_unretained(error);
-                    println!("startCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
-                } else {
-                    println!("startCaptureWithCompletionHandler success!");
-                }
-            })).copy()];
+            let instance = SendObjPtr(self.0 as *mut c_void as usize);
+            std::thread::spawn(move || {
+                let SendObjPtr(instance) = instance;
+                let instance = instance as *mut Object;
+                let _: () = msg_send![instance, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
+                    |error: *mut Object| {
+                        if !error.is_null() {
+                            let error =  NSError::from_id_unretained(error);
+                            println!("startCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
+                        } else {
+                            println!("startCaptureWithCompletionHandler success!");
+                        }
+                    }
+                )).copy()];
+            });
         }
     }
 
     pub fn stop(&mut self) {
     }
 }
+
+struct SendObjPtr(usize);
+
+unsafe impl Send for SendObjPtr {}
+unsafe impl Sync for SendObjPtr {}
 
 #[repr(C)]
 pub(crate) struct CMSampleBuffer(CMSampleBufferRef);
