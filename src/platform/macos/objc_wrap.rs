@@ -630,6 +630,12 @@ impl SCWindow {
     }
 }
 
+unsafe impl Encode for SCWindow {
+    fn encode() -> Encoding {
+        unsafe { Encoding::from_str("^\"@SCWindow\"") }
+    }
+}
+
 impl Clone for SCWindow {
     fn clone(&self) -> Self {
         unsafe { let _: () = msg_send![self.0, retain]; }
@@ -802,10 +808,10 @@ pub(crate) enum SCStreamPixelFormat {
 impl SCStreamPixelFormat {
     pub(crate) fn to_ostype(&self) -> OSType {
         match self {
-            Self::BGRA8888 => OSType(['B' as u8, 'G' as u8, 'R' as u8, 'A' as u8]),
-            Self::L10R     => OSType(['l' as u8, '1' as u8, '0' as u8, 'r' as u8]),
-            Self::V420     => OSType(['4' as u8, '2' as u8, '0' as u8, 'v' as u8]),
-            Self::F420     => OSType(['4' as u8, '2' as u8, '0' as u8, 'f' as u8]),
+            Self::BGRA8888 => OSType(['A' as u8, 'R' as u8, 'G' as u8, 'B' as u8]),
+            Self::L10R     => OSType(['r' as u8, '0' as u8, '1' as u8, 'l' as u8]),
+            Self::V420     => OSType(['v' as u8, '0' as u8, '2' as u8, '4' as u8]),
+            Self::F420     => OSType(['f' as u8, '0' as u8, '2' as u8, '4' as u8]),
         }
     }
 }
@@ -857,10 +863,12 @@ impl SCStreamConfiguration {
     }
 
     pub(crate) fn set_size(&mut self, size: CGSize) {
-        let CGSize { x, y } = size;
+        let dest_rect = CGRect {
+            size,
+            origin: CGPoint::ZERO,
+        };
         unsafe {
-            let _: () = msg_send![self.0, setWidth: x];
-            let _: () = msg_send![self.0, setHeight: y];
+            let _: () = msg_send![self.0, setDestinationRect: dest_rect];
         }
     }
 
@@ -878,7 +886,9 @@ impl SCStreamConfiguration {
 
     pub(crate) fn set_pixel_format(&mut self, format: SCStreamPixelFormat) {
         unsafe {
-            let _: () = msg_send![self.0, setPixelFormat: format.to_ostype().as_u32()];
+            let old_pf: OSType = *(*self.0).get_ivar("_pixelFormat");
+            println!("old pixel format: {:?}", old_pf);
+            (*self.0).set_ivar("_pixelFormat", format.to_ostype());
         }
     }
 
@@ -1153,10 +1163,10 @@ unsafe impl Send for SCContentFilter {}
 unsafe impl Sync for SCContentFilter {}
 
 impl SCContentFilter {
-    pub(crate) fn new_with_desktop_independent_window(window: SCWindow) -> Self {
+    pub(crate) fn new_with_desktop_independent_window(window: &SCWindow) -> Self {
         unsafe {
             let id: *mut Object = msg_send![class!(SCContentFilter), alloc];
-            let _: *mut Object = msg_send![id, initWithDesktopIndependentWindow: window.0];
+            let _: *mut Object = msg_send![id, initWithDesktopIndependentWindow: window.clone()];
             Self(id)
         }
     }
@@ -1167,6 +1177,12 @@ impl SCContentFilter {
             let id: *mut Object = msg_send![id, initWithDisplay: display.0 excludingApplications: excluded_applications.0 exceptingWindows: excepting_windows.0];
             Self(id)
         }
+    }
+}
+
+unsafe impl Encode for SCContentFilter {
+    fn encode() -> Encoding {
+        unsafe { Encoding::from_str("@\"SCContentFilter\"") }
     }
 }
 
@@ -1389,32 +1405,22 @@ impl SCStream {
 
     pub fn start(&mut self) {
         unsafe {
-            let instance = SendObjPtr(self.0 as *mut c_void as usize);
-            std::thread::spawn(move || {
-                let SendObjPtr(instance) = instance;
-                let instance = instance as *mut Object;
-                let _: () = msg_send![instance, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
-                    |error: *mut Object| {
-                        if !error.is_null() {
-                            let error =  NSError::from_id_unretained(error);
-                            println!("startCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
-                        } else {
-                            println!("startCaptureWithCompletionHandler success!");
-                        }
+            let _: () = msg_send![self.0, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
+                |error: *mut Object| {
+                    if !error.is_null() {
+                        let error =  NSError::from_id_unretained(error);
+                        println!("startCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
+                    } else {
+                        println!("startCaptureWithCompletionHandler success!");
                     }
-                )).copy()];
-            });
+                }
+            )).copy()];
         }
     }
 
     pub fn stop(&mut self) {
     }
 }
-
-struct SendObjPtr(usize);
-
-unsafe impl Send for SendObjPtr {}
-unsafe impl Sync for SendObjPtr {}
 
 #[repr(C)]
 pub(crate) struct CMSampleBuffer(CMSampleBufferRef);

@@ -5,7 +5,7 @@ use objc::runtime::Object;
 use parking_lot::Mutex;
 
 use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, StreamStopError, VideoFrame}, util::{Rect, Size}};
-use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat}};
+use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
 
 pub type MacosPixelFormat = SCStreamPixelFormat;
 
@@ -179,10 +179,17 @@ impl MacosCaptureStream {
                     y: window.rect().size.height * 2.0,
                 });
                 config.set_scales_to_fit(false);
-                config.set_pixel_format(SCStreamPixelFormat::V420);
-                config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
-                config.set_capture_audio(false);
-                config.set_scales_to_fit(false);
+                let (pixel_format, set_color_matrix) = match capture_config.pixel_format {
+                    CapturePixelFormat::Bgra8888 =>    (SCStreamPixelFormat::BGRA8888, false),
+                    CapturePixelFormat::Argb2101010 => (SCStreamPixelFormat::L10R, false),
+                    CapturePixelFormat::V420 =>        (SCStreamPixelFormat::V420, true),
+                    CapturePixelFormat::F420 =>        (SCStreamPixelFormat::F420, true),
+                };
+                if set_color_matrix {
+                    config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
+                }
+                config.set_pixel_format(pixel_format);
+                config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| 1.0 / x).unwrap_or(1.0 / 120.0) as f64, 240));
                 config.set_source_rect(CGRect {
                     origin: CGPoint {
                         x: 0.0, y: 0.0
@@ -192,10 +199,32 @@ impl MacosCaptureStream {
                         y: window.rect().size.height
                     }
                 });
+                config.set_queue_depth(capture_config.impl_capture_config.queue_depth as isize);
+                match capture_config.capture_audio {
+                    Some(audio_config) => {
+                        config.set_capture_audio(true);
+                        let channel_count = match audio_config.channel_count {
+                            crate::prelude::AudioChannelCount::Mono => 1,
+                            crate::prelude::AudioChannelCount::Stereo => 2,
+                        };
+                        config.set_channel_count(channel_count);
+                        config.set_exclude_current_process_audio(audio_config.impl_capture_audio_config.exclude_current_process_audio);
+                        let sample_rate = match audio_config.sample_rate {
+                            crate::prelude::AudioSampleRate::Hz8000 =>  SCStreamSampleRate::R8000,
+                            crate::prelude::AudioSampleRate::Hz16000 => SCStreamSampleRate::R16000,
+                            crate::prelude::AudioSampleRate::Hz24000 => SCStreamSampleRate::R24000,
+                            crate::prelude::AudioSampleRate::Hz48000 => SCStreamSampleRate::R48000,
+                        };
+                        config.set_sample_rate(sample_rate);
+                    },
+                    None => {
+                        config.set_capture_audio(false);
+                    }
+                }
 
-                let filter = SCContentFilter::new_with_desktop_independent_window(window.impl_capturable_window.window);
+                let filter = SCContentFilter::new_with_desktop_independent_window(&window.impl_capturable_window.window);
 
-                let handler_queue = DispatchQueue::make_serial("com.augmend.crabgrab.window_capture".into());
+                let handler_queue = DispatchQueue::make_concurrent("com.augmend.crabgrab.window_capture".into());
 
                 let mut audio_frame_id_counter = AtomicU64::new(0);
                 let mut video_frame_id_counter = AtomicU64::new(0);
