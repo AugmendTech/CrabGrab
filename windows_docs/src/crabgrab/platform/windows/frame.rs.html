@@ -77,11 +77,13 @@
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>windows::Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32};
+<a href="#79" id="79">79</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
 
 <span class="kw">use crate</span>::{prelude::{AudioCaptureFrame, VideoCaptureFrame}, util::{Point, Rect, Size}};
 
 <span class="kw">pub struct </span>WindowsVideoFrame {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) device: ID3D11Device,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame: Direct3D11CaptureFrame,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_size: (usize, usize),
     <span class="kw">pub</span>(<span class="kw">crate</span>) pixel_format: DirectXPixelFormat,

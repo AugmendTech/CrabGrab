@@ -297,6 +297,9 @@
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc};
 
 <span class="kw">use crate</span>::{prelude::{Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
@@ -490,12 +493,14 @@
             </span>}
         };
 
-        <span class="kw">let </span>dxgi_device: IDXGIDevice = d3d11_device.cast()
+        <span class="kw">let </span>dxgi_device: IDXGIDevice = d3d11_device.clone().cast()
             .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to cast ID3D11Device to IDXGIDevice"</span>.into()))<span class="question-mark">?</span>;
         <span class="kw">let </span>direct3d_device_iinspectible = <span class="kw">unsafe </span>{ CreateDirect3D11DeviceFromDXGIDevice(<span class="kw-2">&amp;</span>dxgi_device) }
             .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to create IDirect3DDevice from IDXGIDevice"</span>.into()))<span class="question-mark">?</span>;
         <span class="kw">let </span>direct3d_device: IDirect3DDevice = direct3d_device_iinspectible.cast()
             .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to cast IInspectible to IDirect3DDevice"</span>.into()))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>callback_direct3d_device = d3d11_device.clone();
 
         <span class="kw">let </span>(width, height) = ((config.output_size.width + <span class="number">0.1</span>) <span class="kw">as </span>usize, (config.output_size.height + <span class="number">0.1</span>) <span class="kw">as </span>usize);
 
@@ -544,6 +549,7 @@
             };
             <span class="kw">let </span>frame_id = frame_handler_data.frame_id_counter.fetch_add(<span class="number">1</span>, atomic::Ordering::AcqRel);
             <span class="kw">let </span>impl_video_frame = WindowsVideoFrame {
+                device: callback_direct3d_device.clone(),
                 frame,
                 frame_id,
                 frame_size: (width, height),
