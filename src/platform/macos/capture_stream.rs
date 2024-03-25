@@ -200,6 +200,7 @@ impl MacosCaptureStream {
                     }
                 });
                 config.set_queue_depth(capture_config.impl_capture_config.queue_depth as isize);
+                config.set_show_cursor(capture_config.show_cursor);
                 match capture_config.capture_audio {
                     Some(audio_config) => {
                         config.set_capture_audio(true);
@@ -260,11 +261,12 @@ impl MacosCaptureStream {
                                     if attachments.len() == 0 {
                                         return;
                                     }
-                                    let status_int_ptr = unsafe { attachments[0].get_value(SCStreamFrameInfoStatus) };
-                                    if status_int_ptr.is_null() {
+                                    let status_nsnumber_ptr = unsafe { attachments[0].get_value(SCStreamFrameInfoStatus) };
+                                    if status_nsnumber_ptr.is_null() {
                                         return;
                                     }
-                                    let status_opt = SCFrameStatus::from_i32(unsafe { *(status_int_ptr as *mut i32) });
+                                    let status_i32 = unsafe { NSNumber::from_id_unretained(status_nsnumber_ptr as *mut Object).as_i32() };
+                                    let status_opt = SCFrameStatus::from_i32(status_i32);
                                     if status_opt.is_none() {
                                         return;
                                     }

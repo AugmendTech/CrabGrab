@@ -114,6 +114,7 @@ pub(crate) fn debug_objc_object(obj: *mut Object) {
 extern "C" {
 
     static kCFAllocatorNull: CFTypeRef;
+    static kCFAllocatorDefault: CFTypeRef;
 
     fn CFRetain(x: CFTypeRef) -> CFTypeRef;
     fn CFRelease(x: CFTypeRef);
@@ -201,6 +202,7 @@ extern "C" {
     fn IOSurfaceGetBytesPerRowOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
 
     fn IOSurfaceGetHeightOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
+    fn IOSurfaceGetWidthOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
     
     fn IOSurfaceGetElementWidthOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
     fn IOSurfaceGetBytesPerElementOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
@@ -1239,6 +1241,14 @@ impl SCStreamOutputType {
             Self::Audio => 1,
         })
     }
+
+    fn from_encoded(x: usize) -> Option<Self> {
+        match x {
+            0 => Some(Self::Screen),
+            1 => Some(Self::Audio),
+            _ => None
+        }
+    }
 }
 
 #[repr(C)]
@@ -1265,14 +1275,21 @@ unsafe impl Encode for SCStreamEncoded {
 
 extern fn sc_stream_output_did_output_sample_buffer_of_type(this: &Object, _sel: Sel, stream: SCStream, buffer: CMSampleBufferRef, output_type: SCStreamOutputTypeEncoded) {
     unsafe {
-        println!("sc_stream_output_did_output_sample_buffer_of_type(this: {:?}, stream: {:?}, buffer: {:?}, output_type: {:?})", this, stream.0, buffer, output_type.0);
+        let callback_container: &mut SCStreamCallbackContainer = &mut *(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCStreamCallbackContainer);
+        if let Ok(sample_buffer) = CMSampleBuffer::copy_from_ref(buffer) {
+            let output_type = SCStreamOutputType::from_encoded(output_type.0).unwrap();
+            callback_container.call_output(sample_buffer, output_type);
+        } else {
+            callback_container.call_error(SCStreamCallbackError::SampleBufferCopyFailed);
+        }
         std::mem::forget(stream);
     }
 }
 
 extern fn sc_stream_handler_did_stop_with_error(this: &Object, _sel: Sel, stream: SCStream, error: NSError) -> () {
     unsafe {
-        println!("sc_stream_handler_did_stop_with_error(this: {:?}, stream: {:?}, error: {:?})", this, stream.0, error.0);
+        let callback_container: &mut SCStreamCallbackContainer = &mut *(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCStreamCallbackContainer);
+        callback_container.call_error(SCStreamCallbackError::StreamStopped);
         std::mem::forget(error);
         std::mem::forget(stream);
     }
@@ -1280,7 +1297,8 @@ extern fn sc_stream_handler_did_stop_with_error(this: &Object, _sel: Sel, stream
 
 extern fn sc_stream_handler_dealloc(this: &mut Object, _sel: Sel) {
     unsafe {
-        println!("sc_stream_handler_dealloc(this: {:?})", this);
+        let callback_container: Box<SCStreamCallbackContainer> = Box::from_raw(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCStreamCallbackContainer);
+        drop(callback_container);
     }
 }
 
@@ -1429,7 +1447,7 @@ impl CMSampleBuffer {
     pub(crate) fn copy_from_ref(r: CMSampleBufferRef) -> Result<Self, ()> {
         unsafe { 
             let mut new_ref: CMSampleBufferRef = std::ptr::null();
-            let status = CMSampleBufferCreateCopy(kCFAllocatorNull, r, &mut new_ref as *mut _);
+            let status = CMSampleBufferCreateCopy(kCFAllocatorDefault, r, &mut new_ref as *mut _);
             if status != 0 {
                 Err(())
             } else {
@@ -2132,6 +2150,12 @@ impl IOSurface {
         }
     }
 
+    pub(crate) fn get_width_of_plane(&self, plane: usize) -> usize {
+        unsafe {
+            IOSurfaceGetWidthOfPlane(self.0, plane)
+        }
+    }
+
     pub(crate) fn lock(&self, read_only: bool, avoid_sync: bool) -> Result<IOSurfaceLockGaurd, IOSurfaceLockError> {
         unsafe {
             let options = 
@@ -2304,6 +2328,13 @@ impl NSNumber {
             Self(id)
         }
     }
+
+    pub(crate) fn as_i32(&self) -> i32 {
+        unsafe {
+            msg_send![self.0, intValue]
+        }
+    }
+
 }
 
 impl Clone for NSNumber {

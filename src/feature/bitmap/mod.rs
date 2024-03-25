@@ -53,9 +53,10 @@ pub enum VideoRange {
 
 pub struct FrameBitmapYCbCr {
     pub luma_data: Box<[u8]>,
-    pub chroma_data: Box<[[u8; 2]]>,
-    pub width: usize,
+    pub luma_width: usize,
     pub luma_height: usize,
+    pub chroma_data: Box<[[u8; 2]]>,
+    pub chroma_width: usize,
     pub chroma_height: usize,
     pub range: VideoRange,
 }
@@ -214,35 +215,38 @@ impl VideoFrameBitmap for VideoFrame {
                     },
                     Some(CVPixelFormat::V420) |
                     Some(CVPixelFormat::F420) => {
-                        let width = iosurface.get_width();
 
                         let luma_bpr = iosurface.get_bytes_per_row_of_plane(0);
                         let luma_height = iosurface.get_height_of_plane(0);
-                        let mut luma_image_data = vec![0u8; width * luma_height];
+                        let luma_width = iosurface.get_width_of_plane(0);
+
+                        let mut luma_image_data = vec![0u8; luma_width * luma_height];
                         let luma_base_address = lock_gaurd.get_base_address_of_plane(0).ok_or(VideoFrameBitmapError::Other("Failed to get base address of iosurface".into()))?;
                         let luma_iosurface_slice = unsafe { std::slice::from_raw_parts(luma_base_address as *const u8, luma_bpr * luma_height) };
 
                         for y in 0..luma_height {
-                            let luma_source_slice = &luma_iosurface_slice[(luma_bpr * y)..(luma_bpr * y * width)];
-                            luma_image_data[(width * y)..(width * y + width)].copy_from_slice(luma_source_slice);                            
+                            let luma_source_slice = &luma_iosurface_slice[(luma_bpr * y)..(luma_bpr * y + luma_width)];
+                            luma_image_data[(luma_width * y)..(luma_width * y + luma_width)].copy_from_slice(luma_source_slice);                            
                         }
 
                         let chroma_bpr = iosurface.get_bytes_per_row_of_plane(1);
                         let chroma_height = iosurface.get_height_of_plane(1);
-                        let mut chroma_image_data = vec![[0u8; 2]; width * chroma_height];
+                        let chroma_width = iosurface.get_width_of_plane(1);
+                        let mut chroma_image_data = vec![[0u8; 2]; chroma_width * chroma_height];
                         let chroma_base_address = lock_gaurd.get_base_address_of_plane(1).ok_or(VideoFrameBitmapError::Other("Failed to get base address of iosurface".into()))?;
                         let chroma_iosurface_slice = unsafe { std::slice::from_raw_parts(chroma_base_address as *const u8, chroma_bpr * chroma_height) };
 
                         for y in 0..chroma_height {
-                            let chroma_source_slice = bytemuck::cast_slice::<_, [u8; 2]>(&chroma_iosurface_slice[(chroma_bpr * y)..(chroma_bpr * y + 2 * width)]);
-                            chroma_image_data[(width * y)..(width * y + width)].copy_from_slice(chroma_source_slice);
+                            let chroma_source_slice = bytemuck::cast_slice::<_, [u8; 2]>(&chroma_iosurface_slice[(chroma_bpr * y)..(chroma_bpr * y + 2 * chroma_width)]);
+                            chroma_image_data[(chroma_width * y)..(chroma_width * y + chroma_width)].copy_from_slice(chroma_source_slice);
                         }
 
                         Ok(FrameBitmap::YCbCr(FrameBitmapYCbCr {
                             luma_data: luma_image_data.into_boxed_slice(),
                             chroma_data: chroma_image_data.into_boxed_slice(),
-                            width,
+                            luma_width,
                             luma_height,
+                            chroma_width,
                             chroma_height,
                             range: if pixel_format == Some(CVPixelFormat::F420) { VideoRange::Full } else { VideoRange::Video }
                         }))
