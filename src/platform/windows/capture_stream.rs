@@ -238,6 +238,7 @@ impl WindowsCaptureStream {
                 return Ok(());
             }
             let mut callback = frame_handler_data.callback.lock();
+            //let window_rect = RECT::default();
             let frame = match frame_pool.TryGetNextFrame() {
                 Ok(frame) => frame,
                 Err(e) => {
@@ -245,6 +246,7 @@ impl WindowsCaptureStream {
                     return Ok(());
                 }
             };
+
             let frame_id = frame_handler_data.frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
             let impl_video_frame = WindowsVideoFrame {
                 device: callback_direct3d_device.clone(),

@@ -1,8 +1,10 @@
 use std::{cell::{Ref, RefCell}, marker::PhantomData, time::{Duration, Instant}};
 
+use objc::runtime::Object;
+
 use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioSampleRate}, util::{Rect, Size}};
 
-use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CMBlockBuffer, CMSampleBuffer, IOSurface};
+use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
 pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) sample_buffer: CMSampleBuffer,
@@ -42,17 +44,40 @@ pub(crate) enum MacosVideoFrame {
 }
 
 impl VideoCaptureFrame for MacosVideoFrame {
-    fn logical_frame(&self) -> Rect {
+    fn size(&self) -> Size {
         match self {
-            MacosVideoFrame::SCStream(sc_frame) => todo!(),
-            MacosVideoFrame::CGDisplayStream(cgd_frame) => cgd_frame.source_rect.scaled_2d((cgd_frame.source_rect.size.width / cgd_frame.dest_size.width, cgd_frame.source_rect.size.height / cgd_frame.dest_size.height))
+            MacosVideoFrame::SCStream(sc_frame) => {
+                sc_frame.sample_buffer.get_image_buffer().map(|image_buffer| {
+                    Size {
+                        width: image_buffer.get_width() as f64,
+                        height: image_buffer.get_height() as f64,
+                    }
+                }).unwrap_or(Size { width: 0.0, height: 0.0})
+            }
+            MacosVideoFrame::CGDisplayStream(cgd_frame) => cgd_frame.dest_size
         }
     }
 
-    fn physical_frame(&self) -> Rect {
+    fn dpi(&self) -> f64 {
         match self {
-            MacosVideoFrame::SCStream(sc_frame) => todo!(),
-            MacosVideoFrame::CGDisplayStream(cgd_frame) => cgd_frame.source_rect
+            MacosVideoFrame::SCStream(sc_frame) => {
+                let info_dict = sc_frame.get_info_dict();
+                let scale_factor_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoScaleFactor) };
+                let scale_factor = unsafe { NSNumber::from_id_unretained(scale_factor_ptr as *mut Object).as_f64() };
+                let screen_rect_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoScreenRect) };
+                let screen_rect_dict = unsafe { NSDictionary::from_id_unretained(screen_rect_ptr as *mut Object) };
+                let frame_screen_rect = unsafe { CGRect::create_from_dictionary_representation(&screen_rect_dict) };
+                let mut dpi = 72.0f64;
+                for screen in NSScreen::screens() {
+                    let screen_rect = screen.frame();
+                    if screen_rect.contains(frame_screen_rect.origin) {
+                        dpi = screen.dpi();
+                        break;
+                    }
+                }
+                dpi
+            },
+            MacosVideoFrame::CGDisplayStream(cgd_frame) => todo!()
         }
     }
 

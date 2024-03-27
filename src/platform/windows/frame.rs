@@ -11,18 +11,15 @@ pub struct WindowsVideoFrame {
 }
 
 impl VideoCaptureFrame for WindowsVideoFrame {
-    fn logical_frame(&self) -> Rect {
+    fn size(&self) -> Size {
         let size = self.frame.ContentSize().unwrap_or(SizeInt32::default());
-        Rect {
-            size: Size {
-                width: size.Width as f64,
-                height: size.Height as f64,
-            },
-            origin: Point::ZERO
+        Size {
+            width: size.Width as f64,
+            height: size.Height as f64,
         }
     }
 
-    fn physical_frame(&self) -> Rect {
+    fn dpi(&self) -> f64 {
         todo!()
     }
 

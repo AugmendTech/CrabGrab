@@ -16,7 +16,6 @@ extern "C" {}
 use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut}, sync::Arc, time::{Duration, Instant}};
 
 use block::{Block, ConcreteBlock, RcBlock};
-use cocoa::{base::NO, foundation::NSData};
 use libc::{c_void, strlen};
 use objc::{class, declare::MethodImplementation, msg_send, runtime::{objc_copyProtocolList, objc_getProtocol, Class, Object, Protocol, Sel, BOOL}, sel, sel_impl, Encode, Encoding, Message};
 use objc2::runtime::Bool;
@@ -127,6 +126,8 @@ extern "C" {
 
     fn CGColorGetConstantColor(color_name: CFStringRef) -> CGColorRef;
 
+    pub(crate) fn CGRectMakeWithDictionaryRepresentation(dictionary: CGDictionaryRef, rect: *mut CGRect) -> bool;
+
     static kCGColorBlack: CFStringRef;
     static kCGColorWhite: CFStringRef;
     static kCGColorClear: CFStringRef;
@@ -163,11 +164,15 @@ extern "C" {
     fn CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sbuf: CMSampleBufferRef, buffer_list_size_needed_out: *mut usize, buffer_list_out: *mut AudioBufferList, buffer_list_size: usize, block_buffer_structure_allocator: CFAllocatorRef, block_buffer_block_allocator: CFAllocatorRef, flags: u32, block_buffer_out: *mut CMBlockBufferRef) -> OSStatus;
     fn CMSampleBufferGetImageBuffer(sbuffer: CMSampleBufferRef) -> CVPixelBufferRef;
     fn CVPixelBufferGetIOSurface(pixel_buffer: CVPixelBufferRef) -> IOSurfaceRef;
+    fn CVPixelBufferGetWidth(pixel_buffer: CVPixelBufferRef) -> usize;
+    fn CVPixelBufferGetHeight(pixel_buffer: CVPixelBufferRef) -> usize;
     fn CVBufferRetain(buffer: CVPixelBufferRef) -> CVPixelBufferRef;
     fn CVBufferRelease(buffer: CVPixelBufferRef) -> CVPixelBufferRef;
 
     fn CFArrayGetCount(array: CFArrayRef) -> i32;
     fn CFArrayGetValueAtIndex(array: CFArrayRef, index: i32) -> CFTypeRef;
+
+    fn CFStringCreateWithBytes(allocator: CFTypeRef, bytes: *const u8, byte_count: isize, encoding: u32, contains_byte_order_marker: bool) -> CFStringRef;
 
     fn CFDictionaryGetValue(dict: CFDictionaryRef, value: CFTypeRef) -> CFTypeRef;
 
@@ -180,6 +185,8 @@ extern "C" {
     fn CGDisplayStreamStop(stream: CGDisplayStreamRef) -> i32;
 
     fn CGMainDisplayID() -> u32;
+    
+    fn CGDisplayScreenSize(display: u32) -> CGSize;
 
     fn CGRectCreateDictionaryRepresentation(rect: CGRect) -> CFDictionaryRef;
 
@@ -236,6 +243,7 @@ extern "C" {
     static kCGDisplayStreamYCbCrMatrix_ITU_R_601_4     : CFStringRef;
     static kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995 : CFStringRef;
 
+    static NSDeviceSize: CFStringRef;
 }
 
 const SCSTREAM_ERROR_CODE_USER_STOPPED: isize = -3817;
@@ -255,6 +263,8 @@ pub const kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment: u32 = 1 << 
 
 pub const kCMSampleBufferError_ArrayTooSmall: i32 = -12737;
 
+pub const kCFStringEncodingUTF8: u32 = 0x08000100;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct CGColorRef(CFTypeRef);
@@ -269,6 +279,14 @@ unsafe impl Encode for CGColorRef {
 pub(crate) struct NSString(pub(crate) *mut Object);
 
 impl NSString {
+    pub(crate) fn new(s: &str) -> Self {
+        unsafe {
+            let bytes = s.as_bytes();
+            let instance = CFStringCreateWithBytes(std::ptr::null(), bytes.as_ptr(), bytes.len() as isize, kCFStringEncodingUTF8, false);
+            NSString(instance as *mut Object)
+        }
+    }
+
     pub(crate) fn from_ref_unretained(r: CFStringRef) -> Self {
         unsafe { CFRetain(r); }
         Self(r as *mut Object)
@@ -568,6 +586,14 @@ impl CGRect {
     pub(crate) fn create_dicitonary_representation(&self) -> NSDictionary {
         unsafe {
             NSDictionary::from_ref_unretained(CGRectCreateDictionaryRepresentation(*self))
+        }
+    }
+
+    pub(crate) fn create_from_dictionary_representation(dictionary: &NSDictionary) -> Self {
+        unsafe {
+            let mut rect = CGRect::default();
+            CGRectMakeWithDictionaryRepresentation(dictionary.0 as *const c_void, &mut rect as *mut _);
+            return rect;
         }
     }
 }
@@ -2335,6 +2361,12 @@ impl NSNumber {
         }
     }
 
+    pub(crate) fn as_f64(&self) -> f64 {
+        unsafe {
+            msg_send![self.0, doubleValue]
+        }
+    }
+
 }
 
 impl Clone for NSNumber {
@@ -2443,6 +2475,18 @@ impl CVPixelBuffer {
             }
         }
     }
+
+    pub fn get_width(&self) -> usize {
+        unsafe {
+            CVPixelBufferGetWidth(self.0)
+        }
+    }
+
+    pub fn get_height(&self) -> usize {
+        unsafe {
+            CVPixelBufferGetHeight(self.0)
+        }
+    }
 }
 
 impl Clone for CVPixelBuffer {
@@ -2454,5 +2498,85 @@ impl Clone for CVPixelBuffer {
 impl Drop for CVPixelBuffer {
     fn drop(&mut self) {
         unsafe { CFRelease(self.0); }
+    }
+}
+
+
+#[repr(C)]
+struct NSValue(*mut Object);
+
+#[allow(unused)]
+impl NSValue {
+    fn from_id(id: *mut Object) -> Self {
+        Self(id)
+    }
+
+    fn size_value(&self) -> CGSize {
+        unsafe {
+            msg_send![self.0, sizeValue]
+        }
+    }
+
+    fn unsigned_int_value(&self) -> u32 {
+        unsafe {
+            msg_send![self.0, unsignedIntValue]
+        }
+    }
+}
+
+impl Drop for NSValue {
+    fn drop(&mut self) {
+        unsafe { let _: () = msg_send![self.0, release]; }
+    }
+}
+
+#[repr(C)]
+pub struct NSScreen(*mut Object);
+
+impl NSScreen {
+    pub(crate) fn screens() -> Vec<NSScreen> {
+        unsafe {
+            let screens_ns_array = NSArray::from_id_retained(msg_send![class!(NSScreen), screens]);
+            let mut screens_out = Vec::new();
+            for i in 0..screens_ns_array.count() {
+                let screen: *mut Object = screens_ns_array.obj_at_index(i);
+                screens_out.push(NSScreen(screen));
+            }
+            return screens_out;
+        }
+    }
+
+    fn device_description(&self) -> NSDictionary {
+        unsafe { NSDictionary::from_id_retained(msg_send![self.0, deviceDescription]) }
+    }
+
+    pub(crate) fn dpi(&self) -> f64 {
+        let ns_screen_number_string = NSString::new("NSScreenNumber");
+        let device_description = self.device_description();
+        let pixel_size_value = NSValue(unsafe { device_description.value_for_key(NSDeviceSize) });
+        if pixel_size_value.0.is_null() {
+            std::mem::forget(pixel_size_value);
+            return 72.0;
+        }
+        let pixel_size = pixel_size_value.size_value();
+        let screen_number_ptr = device_description.value_for_key(ns_screen_number_string.0 as CFStringRef);
+        if screen_number_ptr.is_null() {
+            return 72.0;
+        }
+        let screen_number_num = NSNumber::from_id_unretained(screen_number_ptr);
+        let screen_number = screen_number_num.as_i32() as u32;
+        let physical_size = unsafe { CGDisplayScreenSize(screen_number) };
+        let mut backing_scale_factor: f32 = unsafe { msg_send![self.0, backingScaleFactor] };
+        if backing_scale_factor == 0.0 {
+            backing_scale_factor = 1.0;
+        }
+        std::mem::forget(pixel_size_value);
+        std::mem::forget(screen_number_num);
+        std::mem::forget(device_description);
+        (pixel_size.x / physical_size.x) * 25.4 * backing_scale_factor as f64
+    }
+
+    pub(crate) fn frame(&self) -> CGRect {
+        unsafe { msg_send![self.0, frame] }
     }
 }
