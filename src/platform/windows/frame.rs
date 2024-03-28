@@ -8,6 +8,7 @@ pub struct WindowsVideoFrame {
     pub(crate) frame_size: (usize, usize),
     pub(crate) pixel_format: DirectXPixelFormat,
     pub(crate) frame_id: u64,
+    pub(crate) dpi: u32,
 }
 
 impl VideoCaptureFrame for WindowsVideoFrame {
@@ -22,8 +23,8 @@ impl VideoCaptureFrame for WindowsVideoFrame {
         }
     }
 
-    fn physical_frame(&self) -> Rect {
-        todo!()
+    fn dpi(&self) -> f64 {
+        self.dpi as f64
     }
 
     fn duration(&self) -> std::time::Duration {
