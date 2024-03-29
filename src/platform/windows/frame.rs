@@ -3,23 +3,23 @@ use windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelF
 use crate::{prelude::{AudioCaptureFrame, VideoCaptureFrame}, util::{Point, Rect, Size}};
 
 pub struct WindowsVideoFrame {
-    pub(crate) device: ID3D11Device,
-    pub(crate) frame: Direct3D11CaptureFrame,
-    pub(crate) frame_size: (usize, usize),
-    pub(crate) pixel_format: DirectXPixelFormat,
-    pub(crate) frame_id: u64,
-    pub(crate) dpi: u32,
+    pub(crate) device       : ID3D11Device,
+    pub(crate) frame        : Direct3D11CaptureFrame,
+    pub(crate) frame_size   : (usize, usize),
+    pub(crate) pixel_format : DirectXPixelFormat,
+    pub(crate) frame_id     : u64,
+    pub(crate) dpi          : u32,
+    pub(crate) t_capture    : std::time::Instant,
+    pub(crate) t_origin     : std::time::Duration,
+    pub(crate) duration     : std::time::Duration,
 }
 
 impl VideoCaptureFrame for WindowsVideoFrame {
-    fn logical_frame(&self) -> Rect {
+    fn size(&self) -> Size {
         let size = self.frame.ContentSize().unwrap_or(SizeInt32::default());
-        Rect {
-            size: Size {
-                width: size.Width as f64,
-                height: size.Height as f64,
-            },
-            origin: Point::ZERO
+        Size {
+            width: size.Width as f64,
+            height: size.Height as f64,
         }
     }
 
@@ -28,15 +28,15 @@ impl VideoCaptureFrame for WindowsVideoFrame {
     }
 
     fn duration(&self) -> std::time::Duration {
-        todo!()
+        self.duration
     }
 
     fn origin_time(&self) -> std::time::Duration {
-        todo!()
+        self.t_origin
     }
 
     fn capture_time(&self) -> std::time::Instant {
-        todo!()
+        self.t_capture
     }
 
     fn frame_id(&self) -> u64 {
@@ -45,7 +45,7 @@ impl VideoCaptureFrame for WindowsVideoFrame {
 }
 
 pub struct WindowsAudioFrame {
-
+    
 }
 
 impl AudioCaptureFrame for WindowsAudioFrame {

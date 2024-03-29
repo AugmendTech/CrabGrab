@@ -1,9 +1,9 @@
-use std::sync::{atomic::{self, AtomicBool, AtomicU64}, Arc};
+use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
 
 use crate::{prelude::{Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
 
 use parking_lot::Mutex;
-use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow}}};
+use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
 
 use super::frame::WindowsVideoFrame;
 
@@ -165,6 +165,8 @@ impl WindowsCaptureStream {
         let interop: IGraphicsCaptureItemInterop = windows::core::factory::<GraphicsCaptureItem, IGraphicsCaptureItemInterop>()
             .map_err(|_| StreamCreateError::Other("Failed to create IGraphicsCaptureInterop factory".into()))?;
 
+        let callback_target = config.target.clone();
+
         let graphics_capture_item: GraphicsCaptureItem = unsafe {
             match config.target {
                 Capturable::Window(window) =>
@@ -229,6 +231,9 @@ impl WindowsCaptureStream {
             Ok(())
         });
 
+        let mut t_first_frame = None;
+        let mut t_last_frame = None;
+
         let frame_handler = TypedEventHandler::new(move |frame_pool: &Option<Direct3D11CaptureFramePool>, _: &Option<IInspectable>| {
             if frame_pool.is_none() {
                 return Ok(());
@@ -237,8 +242,23 @@ impl WindowsCaptureStream {
             if frame_handler_data.closed.load(atomic::Ordering::Acquire) {
                 return Ok(());
             }
+            let t_capture = Instant::now();
+            let t_origin = match t_first_frame {
+                Some(t_first_frame) => t_capture - t_first_frame,
+                None => {
+                    t_first_frame = Some(t_capture);
+                    Duration::ZERO
+                }
+            };
+            let duration = match t_last_frame {
+                Some(t_last_frame) => t_capture - t_last_frame,
+                None => {
+                    t_last_frame = Some(t_capture);
+                    Duration::ZERO
+                }
+            };
             let dpi = unsafe { 
-                match config.target {
+                match &callback_target {
                     Capturable::Window(window) => GetDpiForWindow(window.impl_capturable_window.0),
                     Capturable::Display(display) => {
                         let mut dpi_x = 0u32;
@@ -249,6 +269,7 @@ impl WindowsCaptureStream {
                 }
             };
             let mut callback = frame_handler_data.callback.lock();
+            //let window_rect = RECT::default();
             let frame = match frame_pool.TryGetNextFrame() {
                 Ok(frame) => frame,
                 Err(e) => {
@@ -256,6 +277,7 @@ impl WindowsCaptureStream {
                     return Ok(());
                 }
             };
+
             let frame_id = frame_handler_data.frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
             let impl_video_frame = WindowsVideoFrame {
                 device: callback_direct3d_device.clone(),
@@ -264,6 +286,9 @@ impl WindowsCaptureStream {
                 frame_size: (width, height),
                 pixel_format,
                 dpi,
+                t_capture,
+                t_origin,
+                duration,
             };
             let video_frame = VideoFrame {
                 impl_video_frame

@@ -88,8 +88,8 @@ impl AudioFrame {
 }
 
 pub(crate) trait VideoCaptureFrame {
-    fn logical_frame(&self) -> Rect;
-    fn physical_frame(&self) -> Rect;
+    fn size(&self) -> Size;
+    fn dpi(&self) -> f64;
     fn duration(&self) -> Duration;
     fn origin_time(&self) -> Duration;
     fn capture_time(&self) -> Instant;
@@ -100,6 +100,9 @@ pub(crate) trait VideoCaptureFrame {
 pub struct VideoFrame {
     pub(crate) impl_video_frame: ImplVideoFrame,
 }
+
+unsafe impl Send for VideoFrame {}
+unsafe impl Sync for VideoFrame {}
 
 impl VideoFrame {
     /// Get the sequence id of this video frame (monotonically increasing)
@@ -119,14 +122,12 @@ impl VideoFrame {
         self.impl_video_frame.origin_time()
     }
 
-    /// Get the rectangle in system space physical pixels representing the captured area
-    pub fn physical_frame(&self) -> Rect {
-        self.impl_video_frame.physical_frame()
+    pub fn size(&self) -> Size {
+        self.impl_video_frame.size()
     }
 
-    /// Get the rectangle in system space logical pixels representing the captured area
-    pub fn logical_frame(&self) -> Rect {
-        self.impl_video_frame.logical_frame()
+    pub fn dpi(&self) -> f64 {
+        self.impl_video_frame.dpi()
     }
 }
 
