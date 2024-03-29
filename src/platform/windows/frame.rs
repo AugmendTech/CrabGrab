@@ -1,6 +1,8 @@
+use std::{marker::PhantomData, time::Duration};
+
 use windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
 
-use crate::{prelude::{AudioCaptureFrame, VideoCaptureFrame}, util::{Point, Rect, Size}};
+use crate::{prelude::{AudioBufferError, AudioCaptureFrame, AudioChannelCount, AudioChannelDataSamples, AudioSampleRate, VideoCaptureFrame}, util::Size};
 
 pub struct WindowsVideoFrame {
     pub(crate) device       : ID3D11Device,
@@ -45,36 +47,57 @@ impl VideoCaptureFrame for WindowsVideoFrame {
 }
 
 pub struct WindowsAudioFrame {
-    
+    pub(crate) data: Box<[i16]>,
+    pub(crate) channel_count: AudioChannelCount,
+    pub(crate) sample_rate: AudioSampleRate,
+    pub(crate) duration: Duration,
+    pub(crate) origin_time: Duration,
+    pub(crate) frame_id: u64,
 }
 
 impl AudioCaptureFrame for WindowsAudioFrame {
     fn sample_rate(&self) -> crate::prelude::AudioSampleRate {
-        todo!()
+        self.sample_rate
     }
 
     fn channel_count(&self) -> crate::prelude::AudioChannelCount {
-        todo!()
+        self.channel_count
     }
 
     fn audio_channel_buffer(&mut self, channel: usize) -> Result<crate::prelude::AudioChannelData<'_>, crate::prelude::AudioBufferError> {
-        todo!()
+        let element_stride = match self.channel_count {
+            AudioChannelCount::Mono => {
+                if channel != 0 {
+                    return Err(AudioBufferError::InvalidChannel)
+                }
+                0
+            },
+            AudioChannelCount::Stereo => {
+                if channel > 1 {
+                    return Err(AudioBufferError::InvalidChannel)
+                }
+                channel
+            },
+        };
+        let data = &self.data[element_stride] as *const i16 as *const u8;
+        Ok(crate::prelude::AudioChannelData::I16(AudioChannelDataSamples {
+            data,
+            stride: element_stride / 2,
+            length: self.data.len() / element_stride,
+            phantom_lifetime: PhantomData
+        }))
     }
 
     fn duration(&self) -> std::time::Duration {
-        todo!()
+        self.duration
     }
 
     fn origin_time(&self) -> std::time::Duration {
-        todo!()
-    }
-
-    fn capture_time(&self) -> std::time::Instant {
-        todo!()
+        self.origin_time
     }
 
     fn frame_id(&self) -> u64 {
-        todo!()
+        self.frame_id
     }
 }
 

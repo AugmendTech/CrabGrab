@@ -20,9 +20,27 @@ pub enum AudioChannelCount {
 
 /// Represents audio channel data in an audio frame
 pub enum AudioChannelData<'data> {
-    F32(*const f32, usize, PhantomData<&'data ()>),
-    I32(*const i32, usize, PhantomData<&'data ()>),
-    I16(*const i16, usize, PhantomData<&'data ()>)
+    F32(AudioChannelDataSamples<'data, f32>),
+    I32(AudioChannelDataSamples<'data, i32>),
+    I16(AudioChannelDataSamples<'data, i16>),
+}
+
+pub struct AudioChannelDataSamples<'data, T> {
+    pub(crate) data: *const u8,
+    pub(crate) stride: usize,
+    pub(crate) length: usize,
+    pub(crate) phantom_lifetime: PhantomData<&'data T>,
+}
+
+impl<T: Copy> AudioChannelDataSamples<'_, T> {
+    fn get(&self, i: usize) -> T {
+        let ptr = self.data.wrapping_add(self.stride * i);
+        unsafe { *(ptr as *const T) }
+    }
+
+    fn length(&self) -> usize {
+        self.length
+    }
 }
 
 /// Represents an error getting the data for an audio channel
@@ -38,7 +56,6 @@ pub(crate) trait AudioCaptureFrame {
     fn audio_channel_buffer(&mut self, channel: usize) -> Result<AudioChannelData<'_>, AudioBufferError>;
     fn duration(&self) -> Duration;
     fn origin_time(&self) -> Duration;
-    fn capture_time(&self) -> Instant;
     fn frame_id(&self) -> u64;
 }
 

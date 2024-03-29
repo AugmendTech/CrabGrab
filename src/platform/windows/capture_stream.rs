@@ -1,11 +1,11 @@
 use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
 
-use crate::{prelude::{Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
+use crate::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
 
 use parking_lot::Mutex;
 use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
 
-use super::frame::WindowsVideoFrame;
+use super::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::WindowsVideoFrame, frame::WindowsAudioFrame};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum WindowsPixelFormat {
@@ -80,12 +80,14 @@ pub struct WindowsCaptureStream {
     pub(crate) capture_session: GraphicsCaptureSession,
     should_couninit: bool,
     shared_handler_data: Arc<SharedHandlerData>,
+    audio_stream: Option<WindowsAudioCaptureStream>,
 }
 
-struct SharedHandlerData {
+pub(crate) struct SharedHandlerData {
     callback: Mutex<Box<dyn FnMut(Result<StreamEvent, StreamError>) + Send + 'static>>,
     closed: AtomicBool,
     frame_id_counter: AtomicU64,
+    audio_frame_id_counter: AtomicU64,
 }
 
 impl WindowsCaptureStream {
@@ -216,11 +218,13 @@ impl WindowsCaptureStream {
                 callback: Mutex::new(callback),
                 closed: AtomicBool::new(false),
                 frame_id_counter: AtomicU64::new(0),
+                audio_frame_id_counter: AtomicU64::new(0),
             }
         );
 
         let close_handler_data = shared_handler_data.clone();
         let frame_handler_data = shared_handler_data.clone();
+        let audio_handler_data = shared_handler_data.clone();
 
         let close_handler = TypedEventHandler::new(move |_, _| {
             let alread_closed = close_handler_data.closed.fetch_and(true, atomic::Ordering::AcqRel);
@@ -303,6 +307,45 @@ impl WindowsCaptureStream {
         let capture_session = frame_pool.CreateCaptureSession(&graphics_capture_item)
             .map_err(|_| StreamCreateError::Other("Failed to create GraphicsCaptureSession".into()))?;
 
+        let audio_stream = if let Some(audio_config) = config.capture_audio {
+            let handler_config = audio_config.clone();
+            let audio_handler = Box::new(move |audio_result: Result<WindowsAudioCaptureStreamPacket<'_>, WindowsAudioCaptureStreamError>| {
+                if audio_handler_data.closed.load(atomic::Ordering::Acquire) {
+                    return;
+                }
+                match audio_result {
+                    Ok(packet) => {
+                        let audio_frame_id = audio_handler_data.audio_frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
+                        let event = StreamEvent::Audio(AudioFrame {
+                            impl_audio_frame: WindowsAudioFrame {
+                                data: packet.data.to_owned().into_boxed_slice(),
+                                channel_count: handler_config.channel_count,
+                                sample_rate: handler_config.sample_rate,
+                                duration: packet.duration,
+                                origin_time: packet.origin_time,
+                                frame_id: audio_frame_id
+                            }
+                        });
+                        (*audio_handler_data.callback.lock())(Ok(event));
+                    },
+                    Err(e) => {
+                        (*audio_handler_data.callback.lock())(Err(StreamError::Other("Audio stream error".to_string())));
+                    }
+                }
+            });
+
+            match WindowsAudioCaptureStream::new(audio_config, audio_handler) {
+                Ok(audio_stream) => {
+                    Some(audio_stream)
+                },
+                Err(_) => {
+                    return Err(StreamCreateError::Other("Failed to create audio stream".into()))
+                }
+            }
+        } else {
+            None
+        };
+
         capture_session.StartCapture().map_err(|_| StreamCreateError::Other("Failed to start capture".into()))?;
 
         let stream = WindowsCaptureStream {
@@ -312,7 +355,8 @@ impl WindowsCaptureStream {
             frame_pool,
             capture_session,
             should_couninit,
-            shared_handler_data
+            shared_handler_data,
+            audio_stream
         };
 
         Ok(stream)
@@ -331,6 +375,9 @@ impl WindowsCaptureStream {
 impl Drop for WindowsCaptureStream {
     fn drop(&mut self) {
         let _ = self.stop();
+        if let Some(audio_stream) = &mut self.audio_stream {
+            audio_stream.stop();
+        }
         if self.should_couninit {
             unsafe { CoUninitialize(); }
         }

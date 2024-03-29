@@ -4,6 +4,8 @@ use windows::{core::Interface, Win32::{Media::Audio::{eConsole, eRender, IAudioC
 
 use crate::prelude::{AudioCaptureConfig, AudioChannelCount, AudioSampleRate};
 
+use super::capture_stream::SharedHandlerData;
+
 pub struct WindowsAudioCaptureStream {
     should_couninit: bool,
     audio_client: IAudioClient,
@@ -24,11 +26,11 @@ pub enum WindowsAudioCaptureStreamError {
 }
 
 pub struct WindowsAudioCaptureStreamPacket<'a> {
-    data: &'a [u16],
-    channel_count: u32,
-    origin_time: Duration,
-    duration: Duration,
-    sample_index: u64,
+    pub(crate) data: &'a [i16],
+    pub(crate) channel_count: u32,
+    pub(crate) origin_time: Duration,
+    pub(crate) duration: Duration,
+    pub(crate) sample_index: u64,
 }
 
 struct SendCaptureClient(*mut c_void);
@@ -47,7 +49,7 @@ impl SendCaptureClient {
 }
 
 impl WindowsAudioCaptureStream {
-    pub fn new(config: AudioCaptureConfig, end_flag: Arc<AtomicBool>, mut callback: Box<dyn FnMut(Result<WindowsAudioCaptureStreamPacket<'_>, WindowsAudioCaptureStreamError>) + Send + 'static>) -> Result<Self, WindowsAudioCaptureStreamCreateError> {
+    pub fn new(config: AudioCaptureConfig, mut callback: Box<dyn for <'a> FnMut(Result<WindowsAudioCaptureStreamPacket<'a>, WindowsAudioCaptureStreamError>) + Send + 'static>) -> Result<Self, WindowsAudioCaptureStreamCreateError> {
         unsafe {
             let should_couninit = CoInitializeEx(None, COINIT_MULTITHREADED).is_ok();
 
@@ -103,10 +105,6 @@ impl WindowsAudioCaptureStream {
                     loop {
                         std::thread::sleep(half_buffer_duration);
 
-                        if !end_flag.load(atomic::Ordering::Acquire) {
-                            break;
-                        }
-
                         let buffered_count = match capture_client.GetNextPacketSize() {
                             Ok(count) => count,
                             Err(_) => {
@@ -124,7 +122,7 @@ impl WindowsAudioCaptureStream {
                         match capture_client.GetBuffer(&mut data_ptr as *mut _, &mut num_frames as *mut _, &mut flags as *mut _, Some(&mut device_position as *mut _), None) {
                             Ok(_) => {
                                 let packet = WindowsAudioCaptureStreamPacket {
-                                    data: std::slice::from_raw_parts(data_ptr as *const u16, num_frames as usize * 2),
+                                    data: std::slice::from_raw_parts(data_ptr as *const i16, num_frames as usize * 2),
                                     channel_count: callback_format.nChannels as u32,
                                     origin_time: Duration::from_nanos(device_position as u64 * 100),
                                     duration: Duration::from_nanos((device_position - last_device_position) as u64),
@@ -156,6 +154,12 @@ impl WindowsAudioCaptureStream {
                 should_couninit,
                 audio_client
             })
+        }
+    }
+
+    pub fn stop(&mut self) {
+        unsafe {
+            let _ = self.audio_client.Stop();
         }
     }
 }
