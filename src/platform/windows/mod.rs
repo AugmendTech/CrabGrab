@@ -3,6 +3,7 @@ use windows::Win32::Foundation::HANDLE;
 
 mod capture_stream;
 mod capturable_content;
+mod audio_capture_stream;
 pub(crate) mod frame;
 
 pub(crate) struct AutoHandle(HANDLE);
@@ -11,7 +12,6 @@ impl Drop for AutoHandle {
         unsafe { let _ = CloseHandle(self.0); }
     }
 }
-
 
 pub use capturable_content::WindowsCapturableApplication as ImplCapturableApplication;
 pub use capturable_content::WindowsCapturableDisplay as ImplCapturableDisplay;
