@@ -37,11 +37,11 @@ impl Error for WindowsDx11VideoFrameError {
 }
 
 pub trait WindowsDx11VideoFrame {
+    /// Get the DX11 surface representing the video frame's texture memory, as well as the pixel format
     fn get_dx11_surface(&self) -> Result<(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError>;
 }
 
 impl WindowsDx11VideoFrame for VideoFrame {
-    /// Get the surface texture for this video frame
     fn get_dx11_surface(&self) -> Result<(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError> {
         self.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDx11VideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))
@@ -50,6 +50,7 @@ impl WindowsDx11VideoFrame for VideoFrame {
 }
 
 pub trait WindowsDx11CaptureStream {
+    /// Get the underlying D3D11 device used for frame capture
     fn get_dx11_device(&self) -> ID3D11Device;
 }
 

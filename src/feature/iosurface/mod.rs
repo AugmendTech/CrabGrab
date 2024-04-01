@@ -37,7 +37,7 @@ impl Drop for IoSurface {
 }
 
 pub trait MacosIoSurfaceVideoFrame {
-    /// Get the iosurface of the video frame
+    /// Get the iosurface representing the video frame's texture
     fn get_iosurface(&self) -> Result<IoSurface, GetIoSurfaceError>;
 }
 

@@ -2,7 +2,7 @@ use std::{cell::{Ref, RefCell}, marker::PhantomData, time::{Duration, Instant}};
 
 use objc::runtime::Object;
 
-use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioSampleRate}, util::{Rect, Size}};
+use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate}, util::{Rect, Size}};
 
 use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
@@ -169,7 +169,13 @@ impl AudioCaptureFrame for MacosAudioFrame {
         }
         let stride = pcm_audio_buffer_ref.stride();
         if let Some(f32_ptr) = pcm_audio_buffer_ref.f32_buffer(channel) {
-            return Ok(AudioChannelData::F32(f32_ptr, stride, PhantomData));
+            let data_samples = AudioChannelDataSamples {
+                data: f32_ptr as *const u8,
+                stride,
+                length: pcm_audio_buffer_ref.frame_capacity(),
+                phantom_lifetime: PhantomData
+            };
+            return Ok(AudioChannelData::F32(data_samples));
         }
         return Err(AudioBufferError::Other("Failed to get audio buffer".into()))
     }
@@ -180,10 +186,6 @@ impl AudioCaptureFrame for MacosAudioFrame {
 
     fn origin_time(&self) -> std::time::Duration {
         std::time::Duration::from_secs_f64(self.sample_buffer.get_presentation_timestamp().seconds_f64())
-    }
-
-    fn capture_time(&self) -> std::time::Instant {
-        self.capture_time
     }
 
     fn frame_id(&self) -> u64 {

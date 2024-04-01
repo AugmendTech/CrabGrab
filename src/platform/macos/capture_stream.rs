@@ -37,31 +37,25 @@ pub(crate) struct MacosCaptureStream {
 }
 
 pub trait MacosCaptureConfigExt {
-    fn with_output_size(self, size: Size) -> Self;
     fn with_scale_to_fit(self, scale_to_fit: bool) -> Self;
     fn with_maximum_fps(self, maximum_fps: Option<f32>) -> Self;
-    fn with_queue_depth(self, queue_depth: usize) -> Self;
     #[cfg(feature = "metal")]
     fn with_metal_device(self, metal_device: metal::Device) -> Self;
 }
 
 #[derive(Clone, Debug)]
 pub(crate) struct MacosCaptureConfig {
-    output_size: Size,
     scale_to_fit: bool,
     maximum_fps: Option<f32>,
-    queue_depth: usize,
     #[cfg(feature = "metal")]
     metal_device: Option<metal::Device>,
 }
 
 impl MacosCaptureConfig {
-    pub fn new(source_rect: Rect) -> Self {
+    pub fn new() -> Self {
         Self {
-            output_size: source_rect.size,
             scale_to_fit: true,
             maximum_fps: None,
-            queue_depth: 3,
             #[cfg(feature = "metal")]
             metal_device: None,
         }
@@ -69,16 +63,6 @@ impl MacosCaptureConfig {
 }
 
 impl MacosCaptureConfigExt for CaptureConfig {
-    fn with_output_size(self, output_size: Size) -> Self {
-        Self {
-            impl_capture_config: MacosCaptureConfig {
-                output_size,
-                ..self.impl_capture_config
-            },
-            ..self
-        }
-    }
-
     fn with_scale_to_fit(self, scale_to_fit: bool) -> Self {
         Self {
             impl_capture_config: MacosCaptureConfig {
@@ -93,16 +77,6 @@ impl MacosCaptureConfigExt for CaptureConfig {
         Self {
             impl_capture_config: MacosCaptureConfig {
                 maximum_fps,
-                ..self.impl_capture_config
-            },
-            ..self
-        }
-    }
-
-    fn with_queue_depth(self, queue_depth: usize) -> Self {
-        Self {
-            impl_capture_config: MacosCaptureConfig {
-                queue_depth,
                 ..self.impl_capture_config
             },
             ..self
@@ -192,14 +166,19 @@ impl MacosCaptureStream {
                 config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| 1.0 / x).unwrap_or(1.0 / 120.0) as f64, 240));
                 config.set_source_rect(CGRect {
                     origin: CGPoint {
-                        x: 0.0, y: 0.0
+                        x: capture_config.source_rect.origin.x,
+                        y: capture_config.source_rect.origin.y,
                     },
                     size: CGSize {
-                        x: window.rect().size.width,
-                        y: window.rect().size.height
+                        x: capture_config.source_rect.size.width,
+                        y: capture_config.source_rect.size.height
                     }
                 });
-                config.set_queue_depth(capture_config.impl_capture_config.queue_depth as isize);
+                config.set_size(CGSize {
+                    x: capture_config.output_size.width,
+                    y: capture_config.output_size.height,
+                });
+                config.set_queue_depth(capture_config.buffer_count as isize);
                 config.set_show_cursor(capture_config.show_cursor);
                 match capture_config.capture_audio {
                     Some(audio_config) => {

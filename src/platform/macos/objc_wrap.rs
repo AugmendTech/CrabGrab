@@ -1754,6 +1754,10 @@ impl AVAudioPCMBuffer {
         unsafe { msg_send![self.0, stride] }
     }
 
+    pub fn frame_capacity(&self) -> usize {
+        unsafe { msg_send![self.0, frameCapacity] }
+    }
+
     pub fn channel_count(&self) -> usize {
         unsafe { msg_send![self.0, stride] }
     }

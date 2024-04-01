@@ -37,7 +37,7 @@ pub struct WindowsCaptureConfig {
 }
 
 impl WindowsCaptureConfig {
-    pub fn new(rect: Rect) -> Self {
+    pub fn new() -> Self {
         Self {
             dxgi_adapter: None,
             d3d11_device: None,

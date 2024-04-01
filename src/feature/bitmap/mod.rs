@@ -51,6 +51,11 @@ pub enum VideoRange {
     Full,
 }
 
+/// A YCbCr image, corresponding to either V420 or F420 pixel formats.
+/// 
+/// Dual-planar, with luma (Y) in one plane, and chroma (CbCr) in another.
+/// Note that each plane may have a different size, as with V420 format, where
+/// the chroma plane is 2x2 blocks, but luma is per-pixel
 pub struct FrameBitmapYCbCr {
     pub luma_data: Box<[u8]>,
     pub luma_width: usize,
@@ -61,6 +66,7 @@ pub struct FrameBitmapYCbCr {
     pub range: VideoRange,
 }
 
+/// A bitmap image
 pub enum FrameBitmap {
     BgraUnorm8x4(FrameBitmapBgraUnorm8x4),
     RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102),
@@ -68,7 +74,10 @@ pub enum FrameBitmap {
     YCbCr(FrameBitmapYCbCr),
 }
 
+/// A video frame which can produce a bitmap
 pub trait VideoFrameBitmap {
+    /// Create a bitmap image from this frame. This usually involves a memory transfer from VRAM to system RAM,
+    /// and is an expensive operation.
     fn get_bitmap(&self) -> Result<FrameBitmap, VideoFrameBitmapError>;
 }
 

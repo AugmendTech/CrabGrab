@@ -142,11 +142,11 @@ impl MetalVideoFrame for VideoFrame {
 }
 
 pub trait MetalCaptureStream {
+    /// Get the metal device used for frame capture
     fn get_metal_device(&self) -> metal::Device;
 }
 
 impl MetalCaptureStream for CaptureStream {
-    /// Get the metal device used for the capture stream
     fn get_metal_device(&self) -> metal::Device {
         self.impl_capture_stream.metal_device.clone()
     }

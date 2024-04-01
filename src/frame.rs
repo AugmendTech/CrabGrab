@@ -1,3 +1,4 @@
+#![allow(unused)]
 use std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
 
 use crate::{platform::platform_impl::{ImplAudioFrame, ImplVideoFrame}, util::*};
@@ -139,10 +140,14 @@ impl VideoFrame {
         self.impl_video_frame.origin_time()
     }
 
+    /// Get the raw size of the frame
+    /// 
+    /// For planar image formats, this is the size of the largest plane
     pub fn size(&self) -> Size {
         self.impl_video_frame.size()
     }
 
+    /// Get the dpi of the contents of the frame (accounting for capture scaling)
     pub fn dpi(&self) -> f64 {
         self.impl_video_frame.dpi()
     }

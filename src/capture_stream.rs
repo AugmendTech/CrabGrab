@@ -1,9 +1,9 @@
 use std::fmt::Debug;
 use std::{error::Error, fmt::Display};
 
-use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplAudioFrame, ImplCaptureConfig, ImplCaptureStream, ImplVideoFrame, ImplPixelFormat};
+use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplCaptureConfig, ImplCaptureStream};
 use crate::capturable_content::Capturable;
-use crate::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoCaptureFrame, VideoFrame};
+use crate::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoFrame};
 use crate::util::{Point, Rect, Size};
 
 /// Represents an event in a capture stream
@@ -171,7 +171,7 @@ impl CaptureConfig {
             },
             output_size: rect.size,
             show_cursor: false,
-            impl_capture_config: ImplCaptureConfig::new(rect),
+            impl_capture_config: ImplCaptureConfig::new(),
             capture_audio: None,
             buffer_count: 3,
         })
@@ -188,13 +188,39 @@ impl CaptureConfig {
                     x: 0.0,
                     y: 0.0,
                 },
-                size: rect.size.scaled(2.0)
+                size: rect.size
             },
             output_size: rect.size,
             show_cursor: false,
-            impl_capture_config: ImplCaptureConfig::new(rect),
+            impl_capture_config: ImplCaptureConfig::new(),
             capture_audio: None,
             buffer_count: 3,
+        }
+    }
+
+    /// Configure the buffer count - the number of frames in the capture queue.
+    /// 
+    /// Higher numbers mean higher latency, but smoother performance
+    pub fn with_buffer_count(self, buffer_count: usize) -> Self {
+        Self {
+            buffer_count,
+            ..self
+        }
+    }
+
+    /// Configure whether the cursor is visible in the capture
+    pub fn with_show_cursor(self, show_cursor: bool) -> Self {
+        Self {
+            show_cursor,
+            ..self
+        }
+    }
+
+    /// Configure the output texture size - by default, this will match the captured content at the time of enumeration
+    pub fn set_output_size(self, output_size: Size) -> Self {
+        Self {
+            output_size,
+            ..self
         }
     }
 }
