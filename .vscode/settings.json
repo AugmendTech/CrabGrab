@@ -1,0 +1,4 @@
+{
+    "rust-analyzer.check.features": ["dxgi", "dx11", "bitmap", "metal","iosurface"],
+    "rust-analyzer.cargo.features": ["dxgi", "dx11", "bitmap", "metal","iosurface"],
+}
