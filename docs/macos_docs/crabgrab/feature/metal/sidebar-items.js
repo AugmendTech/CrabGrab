@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["MacosVideoFrameError","MetalVideoFramePlaneTexture"],"trait":["MetalCaptureStream","MetalVideoFrame"]};

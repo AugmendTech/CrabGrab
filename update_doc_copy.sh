@@ -1,3 +1,3 @@
-mkdir -p macos_docs
+mkdir -p docs/macos_docs
 cargo doc --no-deps --features metal,iosurface,bitmap
 cp -rf target/doc/** docs/macos_docs
