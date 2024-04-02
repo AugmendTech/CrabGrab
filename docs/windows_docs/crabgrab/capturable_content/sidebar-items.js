@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CapturableContentError"],"struct":["CapturableApplication","CapturableContent","CapturableContentFilter","CapturableDisplay","CapturableDisplayIterator","CapturableWindow","CapturableWindowFilter","CapturableWindowIterator"]};
