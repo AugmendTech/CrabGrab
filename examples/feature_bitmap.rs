@@ -18,7 +18,7 @@ fn main() {
         let content = CapturableContent::new(filter).await.unwrap();
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
-            app_identifier.to_lowercase().contains("firefox")
+            window.title().len() != 0 && app_identifier.to_lowercase().contains("firefox")
         }).next();
         match window {
             Some(window) => {
