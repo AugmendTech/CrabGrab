@@ -165,11 +165,40 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::{Ref, RefCell}, marker::PhantomData, time::{Duration, Instant}};
 
-<span class="kw">use crate</span>::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioSampleRate}, util::{Rect, Size}};
+<span class="kw">use </span>objc::runtime::Object;
 
-<span class="kw">use </span><span class="kw">super</span>::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CMBlockBuffer, CMSampleBuffer, IOSurface};
+<span class="kw">use crate</span>::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate}, util::{Rect, Size}};
+
+<span class="kw">use </span><span class="kw">super</span>::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosSCStreamVideoFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) sample_buffer: CMSampleBuffer,
@@ -209,17 +238,40 @@
 }
 
 <span class="kw">impl </span>VideoCaptureFrame <span class="kw">for </span>MacosVideoFrame {
-    <span class="kw">fn </span>logical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
         <span class="kw">match </span><span class="self">self </span>{
-            MacosVideoFrame::SCStream(sc_frame) =&gt; <span class="macro">todo!</span>(),
-            MacosVideoFrame::CGDisplayStream(cgd_frame) =&gt; cgd_frame.source_rect.scaled_2d((cgd_frame.source_rect.size.width / cgd_frame.dest_size.width, cgd_frame.source_rect.size.height / cgd_frame.dest_size.height))
+            MacosVideoFrame::SCStream(sc_frame) =&gt; {
+                sc_frame.sample_buffer.get_image_buffer().map(|image_buffer| {
+                    Size {
+                        width: image_buffer.get_width() <span class="kw">as </span>f64,
+                        height: image_buffer.get_height() <span class="kw">as </span>f64,
+                    }
+                }).unwrap_or(Size { width: <span class="number">0.0</span>, height: <span class="number">0.0</span>})
+            }
+            MacosVideoFrame::CGDisplayStream(cgd_frame) =&gt; cgd_frame.dest_size
         }
     }
 
-    <span class="kw">fn </span>physical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+    <span class="kw">fn </span>dpi(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
         <span class="kw">match </span><span class="self">self </span>{
-            MacosVideoFrame::SCStream(sc_frame) =&gt; <span class="macro">todo!</span>(),
-            MacosVideoFrame::CGDisplayStream(cgd_frame) =&gt; cgd_frame.source_rect
+            MacosVideoFrame::SCStream(sc_frame) =&gt; {
+                <span class="kw">let </span>info_dict = sc_frame.get_info_dict();
+                <span class="kw">let </span>scale_factor_ptr = <span class="kw">unsafe </span>{ info_dict.get_value(SCStreamFrameInfoScaleFactor) };
+                <span class="kw">let </span>scale_factor = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(scale_factor_ptr <span class="kw">as </span><span class="kw-2">*mut </span>Object).as_f64() };
+                <span class="kw">let </span>screen_rect_ptr = <span class="kw">unsafe </span>{ info_dict.get_value(SCStreamFrameInfoScreenRect) };
+                <span class="kw">let </span>screen_rect_dict = <span class="kw">unsafe </span>{ NSDictionary::from_id_unretained(screen_rect_ptr <span class="kw">as </span><span class="kw-2">*mut </span>Object) };
+                <span class="kw">let </span>frame_screen_rect = <span class="kw">unsafe </span>{ CGRect::create_from_dictionary_representation(<span class="kw-2">&amp;</span>screen_rect_dict) };
+                <span class="kw">let </span><span class="kw-2">mut </span>dpi = <span class="number">72.0f64</span>;
+                <span class="kw">for </span>screen <span class="kw">in </span>NSScreen::screens() {
+                    <span class="kw">let </span>screen_rect = screen.frame();
+                    <span class="kw">if </span>screen_rect.contains(frame_screen_rect.origin) {
+                        dpi = screen.dpi();
+                        <span class="kw">break</span>;
+                    }
+                }
+                dpi
+            },
+            MacosVideoFrame::CGDisplayStream(cgd_frame) =&gt; <span class="macro">todo!</span>()
         }
     }
 
@@ -311,7 +363,13 @@
         }
         <span class="kw">let </span>stride = pcm_audio_buffer_ref.stride();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(f32_ptr) = pcm_audio_buffer_ref.f32_buffer(channel) {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(AudioChannelData::F32(f32_ptr, stride, PhantomData));
+            <span class="kw">let </span>data_samples = AudioChannelDataSamples {
+                data: f32_ptr <span class="kw">as </span><span class="kw-2">*const </span>u8,
+                stride,
+                length: pcm_audio_buffer_ref.frame_capacity(),
+                phantom_lifetime: PhantomData
+            };
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(AudioChannelData::F32(data_samples));
         }
         <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">&quot;Failed to get audio buffer&quot;</span>.into()))
     }
@@ -322,10 +380,6 @@
 
     <span class="kw">fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; std::time::Duration {
         std::time::Duration::from_secs_f64(<span class="self">self</span>.sample_buffer.get_presentation_timestamp().seconds_f64())
-    }
-
-    <span class="kw">fn </span>capture_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; std::time::Instant {
-        <span class="self">self</span>.capture_time
     }
 
     <span class="kw">fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {

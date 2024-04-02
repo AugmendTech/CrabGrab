@@ -330,6 +330,16 @@
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
 
 <span class="kw">use </span>futures::executor::block_on;
@@ -337,7 +347,7 @@
 <span class="kw">use </span>parking_lot::Mutex;
 
 <span class="kw">use crate</span>::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, StreamStopError, VideoFrame}, util::{Rect, Size}};
-<span class="kw">use super</span>::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat}};
+<span class="kw">use super</span>::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
 
 <span class="kw">pub type </span>MacosPixelFormat = SCStreamPixelFormat;
 
@@ -369,31 +379,25 @@
 }
 
 <span class="kw">pub trait </span>MacosCaptureConfigExt {
-    <span class="kw">fn </span>with_output_size(<span class="self">self</span>, size: Size) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>with_scale_to_fit(<span class="self">self</span>, scale_to_fit: bool) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>with_maximum_fps(<span class="self">self</span>, maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn </span>with_queue_depth(<span class="self">self</span>, queue_depth: usize) -&gt; <span class="self">Self</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
     </span><span class="kw">fn </span>with_metal_device(<span class="self">self</span>, metal_device: metal::Device) -&gt; <span class="self">Self</span>;
 }
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCaptureConfig {
-    output_size: Size,
     scale_to_fit: bool,
     maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    queue_depth: usize,
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
     </span>metal_device: <span class="prelude-ty">Option</span>&lt;metal::Device&gt;,
 }
 
 <span class="kw">impl </span>MacosCaptureConfig {
-    <span class="kw">pub fn </span>new(source_rect: Rect) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            output_size: source_rect.size,
             scale_to_fit: <span class="bool-val">true</span>,
             maximum_fps: <span class="prelude-val">None</span>,
-            queue_depth: <span class="number">3</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
             </span>metal_device: <span class="prelude-val">None</span>,
         }
@@ -401,16 +405,6 @@
 }
 
 <span class="kw">impl </span>MacosCaptureConfigExt <span class="kw">for </span>CaptureConfig {
-    <span class="kw">fn </span>with_output_size(<span class="self">self</span>, output_size: Size) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            impl_capture_config: MacosCaptureConfig {
-                output_size,
-                ..<span class="self">self</span>.impl_capture_config
-            },
-            ..<span class="self">self
-        </span>}
-    }
-
     <span class="kw">fn </span>with_scale_to_fit(<span class="self">self</span>, scale_to_fit: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             impl_capture_config: MacosCaptureConfig {
@@ -425,16 +419,6 @@
         <span class="self">Self </span>{
             impl_capture_config: MacosCaptureConfig {
                 maximum_fps,
-                ..<span class="self">self</span>.impl_capture_config
-            },
-            ..<span class="self">self
-        </span>}
-    }
-
-    <span class="kw">fn </span>with_queue_depth(<span class="self">self</span>, queue_depth: usize) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            impl_capture_config: MacosCaptureConfig {
-                queue_depth,
                 ..<span class="self">self</span>.impl_capture_config
             },
             ..<span class="self">self
@@ -511,23 +495,58 @@
                     y: window.rect().size.height * <span class="number">2.0</span>,
                 });
                 config.set_scales_to_fit(<span class="bool-val">false</span>);
-                config.set_pixel_format(SCStreamPixelFormat::V420);
-                config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
-                config.set_capture_audio(<span class="bool-val">false</span>);
-                config.set_scales_to_fit(<span class="bool-val">false</span>);
+                <span class="kw">let </span>(pixel_format, set_color_matrix) = <span class="kw">match </span>capture_config.pixel_format {
+                    CapturePixelFormat::Bgra8888 =&gt;    (SCStreamPixelFormat::BGRA8888, <span class="bool-val">false</span>),
+                    CapturePixelFormat::Argb2101010 =&gt; (SCStreamPixelFormat::L10R, <span class="bool-val">false</span>),
+                    CapturePixelFormat::V420 =&gt;        (SCStreamPixelFormat::V420, <span class="bool-val">true</span>),
+                    CapturePixelFormat::F420 =&gt;        (SCStreamPixelFormat::F420, <span class="bool-val">true</span>),
+                };
+                <span class="kw">if </span>set_color_matrix {
+                    config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
+                }
+                config.set_pixel_format(pixel_format);
+                config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| <span class="number">1.0 </span>/ x).unwrap_or(<span class="number">1.0 </span>/ <span class="number">120.0</span>) <span class="kw">as </span>f64, <span class="number">240</span>));
                 config.set_source_rect(CGRect {
                     origin: CGPoint {
-                        x: <span class="number">0.0</span>, y: <span class="number">0.0
-                    </span>},
+                        x: capture_config.source_rect.origin.x,
+                        y: capture_config.source_rect.origin.y,
+                    },
                     size: CGSize {
-                        x: window.rect().size.width,
-                        y: window.rect().size.height
+                        x: capture_config.source_rect.size.width,
+                        y: capture_config.source_rect.size.height
                     }
                 });
+                config.set_size(CGSize {
+                    x: capture_config.output_size.width,
+                    y: capture_config.output_size.height,
+                });
+                config.set_queue_depth(capture_config.buffer_count <span class="kw">as </span>isize);
+                config.set_show_cursor(capture_config.show_cursor);
+                <span class="kw">match </span>capture_config.capture_audio {
+                    <span class="prelude-val">Some</span>(audio_config) =&gt; {
+                        config.set_capture_audio(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>channel_count = <span class="kw">match </span>audio_config.channel_count {
+                            <span class="kw">crate</span>::prelude::AudioChannelCount::Mono =&gt; <span class="number">1</span>,
+                            <span class="kw">crate</span>::prelude::AudioChannelCount::Stereo =&gt; <span class="number">2</span>,
+                        };
+                        config.set_channel_count(channel_count);
+                        config.set_exclude_current_process_audio(audio_config.impl_capture_audio_config.exclude_current_process_audio);
+                        <span class="kw">let </span>sample_rate = <span class="kw">match </span>audio_config.sample_rate {
+                            <span class="kw">crate</span>::prelude::AudioSampleRate::Hz8000 =&gt;  SCStreamSampleRate::R8000,
+                            <span class="kw">crate</span>::prelude::AudioSampleRate::Hz16000 =&gt; SCStreamSampleRate::R16000,
+                            <span class="kw">crate</span>::prelude::AudioSampleRate::Hz24000 =&gt; SCStreamSampleRate::R24000,
+                            <span class="kw">crate</span>::prelude::AudioSampleRate::Hz48000 =&gt; SCStreamSampleRate::R48000,
+                        };
+                        config.set_sample_rate(sample_rate);
+                    },
+                    <span class="prelude-val">None </span>=&gt; {
+                        config.set_capture_audio(<span class="bool-val">false</span>);
+                    }
+                }
 
-                <span class="kw">let </span>filter = SCContentFilter::new_with_desktop_independent_window(window.impl_capturable_window.window);
+                <span class="kw">let </span>filter = SCContentFilter::new_with_desktop_independent_window(<span class="kw-2">&amp;</span>window.impl_capturable_window.window);
 
-                <span class="kw">let </span>handler_queue = DispatchQueue::make_serial(<span class="string">&quot;com.augmend.crabgrab.window_capture&quot;</span>.into());
+                <span class="kw">let </span>handler_queue = DispatchQueue::make_concurrent(<span class="string">&quot;com.augmend.crabgrab.window_capture&quot;</span>.into());
 
                 <span class="kw">let </span><span class="kw-2">mut </span>audio_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>video_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
@@ -563,11 +582,12 @@
                                     <span class="kw">if </span>attachments.len() == <span class="number">0 </span>{
                                         <span class="kw">return</span>;
                                     }
-                                    <span class="kw">let </span>status_int_ptr = <span class="kw">unsafe </span>{ attachments[<span class="number">0</span>].get_value(SCStreamFrameInfoStatus) };
-                                    <span class="kw">if </span>status_int_ptr.is_null() {
+                                    <span class="kw">let </span>status_nsnumber_ptr = <span class="kw">unsafe </span>{ attachments[<span class="number">0</span>].get_value(SCStreamFrameInfoStatus) };
+                                    <span class="kw">if </span>status_nsnumber_ptr.is_null() {
                                         <span class="kw">return</span>;
                                     }
-                                    <span class="kw">let </span>status_opt = SCFrameStatus::from_i32(<span class="kw">unsafe </span>{ <span class="kw-2">*</span>(status_int_ptr <span class="kw">as </span><span class="kw-2">*mut </span>i32) });
+                                    <span class="kw">let </span>status_i32 = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(status_nsnumber_ptr <span class="kw">as </span><span class="kw-2">*mut </span>Object).as_i32() };
+                                    <span class="kw">let </span>status_opt = SCFrameStatus::from_i32(status_i32);
                                     <span class="kw">if </span>status_opt.is_none() {
                                         <span class="kw">return</span>;
                                     }

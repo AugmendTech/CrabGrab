@@ -295,12 +295,12 @@
 }
 
 <span class="kw">pub trait </span>MetalCaptureStream {
-    <span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device;
+    <span class="doccomment">/// Get the metal device used for frame capture
+    </span><span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device;
 }
 
 <span class="kw">impl </span>MetalCaptureStream <span class="kw">for </span>CaptureStream {
-    <span class="doccomment">/// Get the metal device used for the capture stream
-    </span><span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device {
+    <span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device {
         <span class="self">self</span>.impl_capture_stream.metal_device.clone()
     }
 }

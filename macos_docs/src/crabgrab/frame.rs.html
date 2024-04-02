@@ -135,7 +135,31 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+</pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
+</span><span class="kw">use </span>std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use crate</span>::{platform::platform_impl::{ImplAudioFrame, ImplVideoFrame}, util::<span class="kw-2">*</span>};
 
@@ -157,9 +181,27 @@
 
 <span class="doccomment">/// Represents audio channel data in an audio frame
 </span><span class="kw">pub enum </span>AudioChannelData&lt;<span class="lifetime">&#39;data</span>&gt; {
-    F32(<span class="kw-2">*const </span>f32, usize, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>()&gt;),
-    I32(<span class="kw-2">*const </span>i32, usize, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>()&gt;),
-    I16(<span class="kw-2">*const </span>i16, usize, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>()&gt;)
+    F32(AudioChannelDataSamples&lt;<span class="lifetime">&#39;data</span>, f32&gt;),
+    I32(AudioChannelDataSamples&lt;<span class="lifetime">&#39;data</span>, i32&gt;),
+    I16(AudioChannelDataSamples&lt;<span class="lifetime">&#39;data</span>, i16&gt;),
+}
+
+<span class="kw">pub struct </span>AudioChannelDataSamples&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) data: <span class="kw-2">*const </span>u8,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) stride: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) length: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) phantom_lifetime: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T&gt;,
+}
+
+<span class="kw">impl</span>&lt;T: Copy&gt; AudioChannelDataSamples&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; T {
+        <span class="kw">let </span>ptr = <span class="self">self</span>.data.wrapping_add(<span class="self">self</span>.stride * i);
+        <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(ptr <span class="kw">as </span><span class="kw-2">*const </span>T) }
+    }
+
+    <span class="kw">fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.length
+    }
 }
 
 <span class="doccomment">/// Represents an error getting the data for an audio channel
@@ -175,7 +217,6 @@
     <span class="kw">fn </span>audio_channel_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel: usize) -&gt; <span class="prelude-ty">Result</span>&lt;AudioChannelData&lt;<span class="lifetime">&#39;_</span>&gt;, AudioBufferError&gt;;
     <span class="kw">fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration;
     <span class="kw">fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration;
-    <span class="kw">fn </span>capture_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Instant;
     <span class="kw">fn </span>frame_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 }
 
@@ -225,8 +266,8 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>VideoCaptureFrame {
-    <span class="kw">fn </span>logical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect;
-    <span class="kw">fn </span>physical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect;
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size;
+    <span class="kw">fn </span>dpi(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64;
     <span class="kw">fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration;
     <span class="kw">fn </span>origin_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration;
     <span class="kw">fn </span>capture_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Instant;
@@ -237,6 +278,9 @@
 </span><span class="kw">pub struct </span>VideoFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_video_frame: ImplVideoFrame,
 }
+
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>VideoFrame {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>VideoFrame {}
 
 <span class="kw">impl </span>VideoFrame {
     <span class="doccomment">/// Get the sequence id of this video frame (monotonically increasing)
@@ -256,14 +300,16 @@
         <span class="self">self</span>.impl_video_frame.origin_time()
     }
 
-    <span class="doccomment">/// Get the rectangle in system space physical pixels representing the captured area
-    </span><span class="kw">pub fn </span>physical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
-        <span class="self">self</span>.impl_video_frame.physical_frame()
+    <span class="doccomment">/// Get the raw size of the frame
+    /// 
+    /// For planar image formats, this is the size of the largest plane
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
+        <span class="self">self</span>.impl_video_frame.size()
     }
 
-    <span class="doccomment">/// Get the rectangle in system space logical pixels representing the captured area
-    </span><span class="kw">pub fn </span>logical_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
-        <span class="self">self</span>.impl_video_frame.logical_frame()
+    <span class="doccomment">/// Get the dpi of the contents of the frame (accounting for capture scaling)
+    </span><span class="kw">pub fn </span>dpi(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.impl_video_frame.dpi()
     }
 }
 
