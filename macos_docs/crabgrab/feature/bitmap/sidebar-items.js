@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["FrameBitmap","VideoFrameBitmapError","VideoRange"],"struct":["FrameBitmapBgraUnorm8x4","FrameBitmapRgbaF16x4","FrameBitmapRgbaUnormPacked1010102","FrameBitmapYCbCr"],"trait":["VideoFrameBitmap"]};

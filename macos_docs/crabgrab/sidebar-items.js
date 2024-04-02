@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["capturable_content","capture_stream","feature","frame","platform","prelude","util"]};
