@@ -23,7 +23,7 @@ fn main() {
         match window {
             Some(window) => {
                 println!("capturing window: {}", window.title()); 
-                let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[3]).unwrap();
+                let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[0]).unwrap();
                 let mut stream = CaptureStream::new(config, |stream_event| {
                     match stream_event {
                         Ok(event) => {
