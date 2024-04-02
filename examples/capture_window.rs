@@ -18,12 +18,12 @@ fn main() {
         let content = CapturableContent::new(filter).await.unwrap();
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
-            app_identifier.to_lowercase().contains("finder") || app_identifier.to_lowercase().contains("explorer")
+            window.title().len() != 0 && (app_identifier.to_lowercase().contains("finder") || app_identifier.to_lowercase().contains("explorer"))
         }).next();
         match window {
             Some(window) => {
                 println!("capturing window: {}", window.title()); 
-                let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[3]).unwrap();
+                let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[0]).unwrap();
                 let mut stream = CaptureStream::new(config, |stream_event| {
                     match stream_event {
                         Ok(event) => {

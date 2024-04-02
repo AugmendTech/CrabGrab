@@ -173,7 +173,7 @@ impl WindowsCaptureStream {
             match config.target {
                 Capturable::Window(window) =>
                     interop.CreateForWindow(window.impl_capturable_window.0)
-                        .map_err(|_| StreamCreateError::Other("Failed to create graphics capture item from HWND".into()))?,
+                        .map_err(|e| StreamCreateError::Other(format!("Failed to create graphics capture item from HWND: {}", e.to_string())))?,
                 Capturable::Display(display) => 
                     interop.CreateForMonitor(display.impl_capturable_display.0)
                         .map_err(|_| StreamCreateError::Other("Failed to create graphics capture item from HMONITOR".into()))?,

@@ -9,11 +9,11 @@ use super::AutoHandle;
 #[derive(Debug, Clone)]
 pub struct WindowsCapturableWindow(pub(crate) HWND);
 
-fn hwnd_process(hwnd: HWND) -> HANDLE {
+fn hwnd_pid(hwnd: HWND) -> u32 {
     unsafe {
         let mut pid = 0u32;
         GetWindowThreadProcessId(hwnd, Some(&mut pid as *mut _));
-        OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid).unwrap()
+        pid
     }
 }
 
@@ -55,7 +55,7 @@ impl WindowsCapturableWindow {
     }
 
     pub fn application(&self) -> WindowsCapturableApplication {
-        WindowsCapturableApplication(hwnd_process(self.0))
+        WindowsCapturableApplication(hwnd_pid(self.0))
     }
 }
 
@@ -82,17 +82,16 @@ impl WindowsCapturableDisplay {
 }
 
 #[derive(Clone, Debug)]
-pub struct WindowsCapturableApplication(pub(crate) HANDLE);
+pub struct WindowsCapturableApplication(pub(crate) u32);
 
 impl WindowsCapturableApplication {
-    pub fn from_impl(handle: HANDLE) -> Self {
-        Self(handle)
+    pub fn from_impl(pid: u32) -> Self {
+        Self(pid)
     }
 
     pub fn identifier(&self) -> String {
         unsafe {
-            let pid = GetProcessId(self.0);
-            let process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pid);
+            let process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, self.0);
             if process.is_err() {
                 return "".into();
             }
@@ -130,7 +129,6 @@ impl WindowsCapturableApplication {
 pub struct WindowsCapturableContent {
     pub(crate) windows: Vec<HWND>,
     pub(crate) displays: Vec<(HMONITOR, RECT)>,
-    pub(crate) applications: Vec<HANDLE>,
 }
 
 unsafe extern "system" fn enum_windows_callback(window: HWND, windows_ptr_raw: LPARAM) -> BOOL {
@@ -167,13 +165,9 @@ impl WindowsCapturableContent {
                 }).map(|hwnd| *hwnd).collect();
             }
         }
-        let applications = windows.iter().map(|hwnd| {
-            hwnd_process(*hwnd)
-        }).collect();
         Ok(WindowsCapturableContent {
             windows,
             displays,
-            applications,
         })
     }
 }
