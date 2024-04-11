@@ -44,6 +44,9 @@ type CGDictionaryRef = CFTypeRef;
 type CFBooleanRef = CFTypeRef;
 type CFNumberRef = CFTypeRef;
 type CVPixelBufferRef = CFTypeRef;
+type CGImageRef = CFTypeRef;
+type CGDataProviderRef = CFTypeRef;
+type CFDataRef = CFTypeRef;
 
 #[allow(unused)]
 fn debug_objc_class(name: &str) {
@@ -184,11 +187,28 @@ extern "C" {
     fn CGDisplayStreamStart(stream: CGDisplayStreamRef) -> i32;
     fn CGDisplayStreamStop(stream: CGDisplayStreamRef) -> i32;
 
-    fn CGMainDisplayID() -> u32;
+    pub(crate) fn CGMainDisplayID() -> u32;
     
     fn CGDisplayScreenSize(display: u32) -> CGSize;
 
     fn CGRectCreateDictionaryRepresentation(rect: CGRect) -> CFDictionaryRef;
+
+    pub(crate) fn CGWindowListCreateImage(screen_bounds: CGRect, options: u32, window_id: u32, image_options: u32) -> CGImageRef;
+
+    fn CGImageRetain(image: CGImageRef);
+    fn CGImageRelease(image: CGImageRef);
+    fn CGImageGetWidth(image: CGImageRef) -> usize;
+    fn CGImageGetHeight(image: CGImageRef) -> usize;
+    fn CGImageGetDataProvider(image: CGImageRef) -> CGDataProviderRef;
+    fn CGImageGetBitsPerComponent(image: CGImageRef) -> usize;
+    fn CGImageGetBitsPerPixel(image: CGImageRef) -> usize;
+    fn CGImageGetBytesPerRow(image: CGImageRef) -> usize;
+    fn CGImageGetPixelFormatInfo(image: CGImageRef) -> u32;
+    fn CGImageGetBitmapInfo(image: CGImageRef) -> u32;
+
+    fn CGDataProviderRetain(data_provider: CGDataProviderRef);
+    fn CGDataProviderRelease(data_provider: CGDataProviderRef);
+    fn CGDataProviderCopyData(data_provider: CGDataProviderRef) -> CFDataRef;
 
     pub(crate) fn IOSurfaceIncrementUseCount(r: IOSurfaceRef);
     pub(crate) fn IOSurfaceDecrementUseCount(r: IOSurfaceRef);
@@ -244,6 +264,9 @@ extern "C" {
     static kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995 : CFStringRef;
 
     static NSDeviceSize: CFStringRef;
+
+    pub(crate) static CGRectNull     : CGRect;
+    pub(crate) static CGRectInfinite : CGRect;
 }
 
 const SCSTREAM_ERROR_CODE_USER_STOPPED: isize = -3817;
@@ -320,6 +343,7 @@ unsafe impl Encode for NSString {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub(crate) struct NSError(*mut Object);
 unsafe impl Send for NSError {}
 
@@ -1185,6 +1209,7 @@ impl SCStreamSampleRate {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub(crate) struct SCContentFilter(pub(crate) *mut Object);
 
 unsafe impl Send for SCContentFilter {}
@@ -1380,6 +1405,7 @@ impl SCStreamHandler {
 
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct SCStream(*mut Object);
 
 unsafe impl Sync for SCStream {}
@@ -2584,3 +2610,474 @@ impl NSScreen {
         unsafe { msg_send![self.0, frame] }
     }
 }
+
+pub struct CGImage(CGImageRef);
+
+impl CGImage {
+    pub fn from_ref_unretained(r: CGImageRef) -> Self {
+        unsafe { CGImageRetain(r); }
+        Self(r)
+    }
+
+    pub fn from_ref_retained(r: CGImageRef) -> Self {
+        Self(r)
+    }
+
+    pub fn width(&self) -> usize {
+        unsafe { CGImageGetWidth(self.0) }
+    }
+
+    pub fn height(&self) -> usize {
+        unsafe { CGImageGetHeight(self.0) }
+    }
+
+    pub fn bits_per_component(&self) -> usize {
+        unsafe { CGImageGetBitsPerComponent(self.0) }
+    }
+
+    pub fn bits_per_pixel(&self) -> usize {
+        unsafe { CGImageGetBitsPerPixel(self.0) }
+    }
+
+    pub fn bytes_per_row(&self) -> usize {
+        unsafe { CGImageGetBytesPerRow(self.0) }
+    }
+
+    pub fn get_bitmap_info(&self) -> CGBitmapInfo {
+        unsafe {
+            let bitmap_info_raw = CGImageGetBitmapInfo(self.0);
+            CGBitmapInfo {
+                alpha: match bitmap_info_raw & kCGBitmapInfoAlphaMask {
+                    kCGImageAlphaFirst => Some(CGBitmapAlphaInfo::First),
+                    kCGImageAlphaLast => Some(CGBitmapAlphaInfo::Last),
+                    kCGImageAlphaNoneSkipFirst => Some(CGBitmapAlphaInfo::NoneSkipFirst),
+                    kCGImageAlphaNoneSkipLast => Some(CGBitmapAlphaInfo::NoneSkipLast),
+                    kCGImageAlphaPremultipliedFirst => Some(CGBitmapAlphaInfo::PremultipliedFirst),
+                    kCGImageAlphaPremultipliedLast => Some(CGBitmapAlphaInfo::PremultipliedLast),
+                    _ => None,
+                },
+                byte_order: match bitmap_info_raw & kCGBitmapInfoByteOrderMask {
+                    kCGBitmapInfoByteOrder16Little => CGBitmapByteOrder::B16Little,
+                    kCGBitmapInfoByteOrder16Big    => CGBitmapByteOrder::B16Big,
+                    kCGBitmapInfoByteOrder32Little => CGBitmapByteOrder::B32Little,
+                    kCGBitmapInfoByteOrder32Big    => CGBitmapByteOrder::B32Big,
+                    _                              => CGBitmapByteOrder::B8,
+                },
+                float: (bitmap_info_raw & kCGBitmapFloatInfoMask) != 0
+            }
+        }
+    }
+
+    pub fn get_pixel_format(&self) -> CGImagePixelFormat {
+        unsafe {
+            let pixel_format_raw = CGImageGetPixelFormatInfo(self.0);
+            match pixel_format_raw & kCGImagePixelFormatMask {
+                kCGImagePixelFormatRGB101010 => CGImagePixelFormat::Rgb101010,
+                kCGImagePixelFormatRGB555    => CGImagePixelFormat::Rgb555,
+                kCGImagePixelFormatRGB565    => CGImagePixelFormat::Rgb565,
+                kCGImagePixelFormatRGB101010 => CGImagePixelFormat::RgbCif10,
+                _                            => CGImagePixelFormat::Packed,
+            }
+        }
+    }
+
+    pub fn get_data_provider(&self) -> CGDataProvider {
+        unsafe {
+            let dataprovider_ref = CGImageGetDataProvider(self.0);
+            CGDataProvider::from_ref_unretained(dataprovider_ref)
+        }
+    }
+}
+
+impl Clone for CGImage {
+    fn clone(&self) -> Self {
+        Self::from_ref_unretained(self.0)
+    }
+}
+
+impl Drop for CGImage {
+    fn drop(&mut self) {
+        unsafe { CGImageRelease(self.0); }
+    }
+}
+
+const kCGBitmapInfoAlphaMask: u32 = 0x1F;
+const kCGBitmapInfoByteOrderMask: u32 = 7 << 12;
+const kCGBitmapFloatInfoMask: u32 = 0xF << 8;
+const kCGImagePixelFormatMask: u32 = 0xF << 16;
+
+const kCGBitmapInfoFloatComponents: u32 = 1 << 8;
+
+const kCGBitmapInfoByteOrder16Little: u32 = 1 << 12;
+const kCGBitmapInfoByteOrder16Big: u32 = 3 << 12;
+const kCGBitmapInfoByteOrder32Little: u32 = 2 << 12;
+const kCGBitmapInfoByteOrder32Big: u32 = 4 << 12;
+
+const kCGImageAlphaNone: u32 = 0;
+const kCGImageAlphaPremultipliedLast: u32 = 1;
+const kCGImageAlphaPremultipliedFirst: u32 = 2;
+const kCGImageAlphaLast: u32 = 3;
+const kCGImageAlphaFirst: u32 = 4;
+const kCGImageAlphaNoneSkipLast: u32 = 5;
+const kCGImageAlphaNoneSkipFirst: u32 = 6;
+const kCGImageAlphaOnly: u32 = 7;
+
+const kCGImagePixelFormatPacked    : u32 = 0 << 16;
+const kCGImagePixelFormatRGB555    : u32 = 1 << 16;
+const kCGImagePixelFormatRGB565    : u32 = 2 << 16;
+const kCGImagePixelFormatRGB101010 : u32 = 3 << 16;
+const kCGImagePixelFormatRGBCIF10  : u32 = 4 << 16;
+
+pub enum CGBitmapAlphaInfo {
+    PremultipliedLast,
+    PremultipliedFirst,
+    Last,
+    First,
+    NoneSkipLast,
+    NoneSkipFirst,
+    AlphaOnly
+}
+
+pub enum CGBitmapByteOrder {
+    B8,
+    B16Little,
+    B16Big,
+    B32Little,
+    B32Big,
+}
+
+pub enum CGImagePixelFormat {
+    Packed,
+    Rgb555,
+    Rgb565,
+    Rgb101010,
+    RgbCif10,
+}
+
+pub struct CGBitmapInfo {
+    alpha: Option<CGBitmapAlphaInfo>,
+    byte_order: CGBitmapByteOrder,
+    float: bool,
+}
+
+pub struct CGDataProvider(CGDataProviderRef);
+
+impl CGDataProvider {
+    fn from_ref_unretained(r: CGDataProviderRef) -> Self {
+        unsafe { CGDataProviderRetain(r); }
+        Self(r)
+    }
+
+    fn from_ref_retained(r: CGDataProviderRef) -> Self {
+        Self(r)
+    }
+
+    fn copy_data(&self) -> CFData {
+        unsafe {
+            let cfdata_ref = CGDataProviderCopyData(self.0);
+            CFData::from_ref_retained(cfdata_ref)
+        }
+    }
+}
+
+impl Clone for CGDataProvider {
+    fn clone(&self) -> Self {
+        Self::from_ref_unretained(self.0)
+    }
+}
+
+impl Drop for CGDataProvider {
+    fn drop(&mut self) {
+        unsafe { CGDataProviderRelease(self.0); }
+    }
+}
+
+struct CFData(CFDataRef);
+
+impl CFData {
+    fn from_ref_unretained(r: CGDataProviderRef) -> Self {
+        unsafe { CFRetain(r); }
+        Self(r)
+    }
+
+    fn from_ref_retained(r: CGDataProviderRef) -> Self {
+        Self(r)
+    }
+}
+
+impl Drop for CFData {
+    fn drop(&mut self) {
+        unsafe { CFRelease(self.0); }
+    }
+}
+
+pub const SCContentSharingPickerModeSingleWindow         : usize = 1 << 0;
+pub const SCContentSharingPickerModeMultipleWindows      : usize = 1 << 1;
+pub const SCContentSharingPickerModeSingleApplication    : usize = 1 << 2;
+pub const SCContentSharingPickerModeMultipleApplications : usize = 1 << 3;
+pub const SCContentSharingPickerModeSingleDisplay        : usize = 1 << 4;
+
+pub struct SCContentSharingPickerConfiguration(*mut Object);
+
+impl SCContentSharingPickerConfiguration {
+    pub fn new() -> Self {
+        unsafe {
+            let id: *mut Object = msg_send![class!(SCContentSharingPickerConfiguration), alloc];
+            let id: *mut Object = msg_send![id, init];
+            Self::from_id_retained(id)
+        }
+    }
+
+    pub fn from_id_retained(id: *mut Object) -> Self {
+        Self(id)
+    }
+
+    pub fn from_id_unretained(id: *mut Object) -> Self {
+        unsafe {
+            let _: () = msg_send![id, retain];
+        }
+        Self(id)
+    }
+
+    pub fn set_changing_selected_content_allowed(&self, allowed: bool) {
+        unsafe {
+            let _: () = msg_send![self.0, setAllowsChangingSelectedContent: allowed];
+        }
+    }
+
+    pub fn set_allowed_picker_modes(&self, allowed_picker_modes: usize) {
+        unsafe {
+            let _: () = msg_send![self.0, setAllowedPickerModes: allowed_picker_modes];
+        }
+    }
+    
+}
+
+impl Drop for SCContentSharingPickerConfiguration {
+    fn drop(&mut self) {
+        unsafe {
+            let _: () = msg_send![self.0, release];
+        }
+    }
+}
+
+impl Clone for SCContentSharingPickerConfiguration {
+    fn clone(&self) -> Self {
+        Self::from_id_unretained(self.0)
+    }
+}
+
+#[repr(C)]
+pub struct SCContentSharingPickerObserver(*mut Object);
+
+unsafe impl Message for SCContentSharingPickerObserver {}
+
+unsafe impl Encode for SCContentSharingPickerObserver {
+    fn encode() -> Encoding {
+        unsafe { Encoding::from_str("@\"<SCContentSharingPickerObserver>\"") }
+    }
+}
+
+extern fn sc_content_sharing_picker_observer_did_cancel_for_stream(this: &Object, _sel: Sel, picker: *mut Object, stream: *mut Object) {
+    println!("sc_content_sharing_picker_observer_did_cancel_for_stream");
+}
+
+extern fn sc_content_sharing_picker_observer_did_update_filter_for_stream(this: &Object, _sel: Sel, picker: *mut Object, filter: *mut Object, stream: *mut Object) {
+    println!("sc_content_sharing_picker_observer_did_update_filter_for_stream");
+    debug_objc_object(filter);
+}
+
+extern fn sc_content_sharing_picker_observer_start_did_fail_with_error(this: &Object, _sel: Sel, error: *mut Object) {
+    println!("sc_content_sharing_picker_observer_start_did_fail_with_error");
+}
+
+extern fn sc_content_sharing_picker_observer_dealloc(this: &mut Object, _sel: Sel) {
+    unsafe {
+        let callback_container: Box<SCContentSharingPickerCallbackContainer> = Box::from_raw(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCContentSharingPickerCallbackContainer);
+        drop(callback_container);
+    }
+}
+
+impl SCContentSharingPickerObserver {
+    fn get_class() -> &'static Class {
+        unsafe {
+            let class_name = CString::new("SCContentSharingPickerObserverImpl").unwrap();
+            let class_ptr = objc::runtime::objc_getClass(class_name.as_ptr());
+            if !class_ptr.is_null() {
+                &*class_ptr
+            } else if let Some(mut class) = objc::declare::ClassDecl::new("SCContentSharingPickerObserverImpl", class!(NSObject)) {
+                class.add_method(sel!(contentSharingPicker:didCancelForStream:), sc_content_sharing_picker_observer_did_cancel_for_stream as extern fn (&Object, Sel, *mut Object, *mut Object));
+                class.add_method(sel!(contentSharingPicker:didUpdateWithFilter:forStream:), sc_content_sharing_picker_observer_did_update_filter_for_stream as extern fn (&Object, Sel, *mut Object, *mut Object, *mut Object));
+                class.add_method(sel!(contentSharingPickerStartDidFailWithError:), sc_content_sharing_picker_observer_start_did_fail_with_error as extern fn (&Object, Sel, *mut Object));
+                class.add_method(sel!(dealloc), sc_content_sharing_picker_observer_dealloc as extern fn (&mut Object, Sel));
+
+                class.add_ivar::<*mut c_void>("callback_container_ptr");
+
+                let sc_content_sharing_picker_observer_name = CString::new("SCContentSharingPickerObserver").unwrap();
+                class.add_protocol(&*objc::runtime::objc_getProtocol(sc_content_sharing_picker_observer_name.as_ptr()));
+                
+                class.register()
+            } else {
+                panic!("Failed to register SCContentSharingPickerObserver");
+            }
+        }
+    }
+
+    pub fn from_id_retained(id: *mut Object) -> Self {
+        Self(id)
+    }
+
+    pub fn from_id_unretained(id: *mut Object) -> Self {
+        unsafe {
+            let _: () = msg_send![id, retain];
+        }
+        Self(id)
+    }
+
+    pub fn new(callback: impl FnMut(Result<SCContentSharingPickerEvent, NSError>) + Send + 'static) -> Self {
+        unsafe {
+            let callback_container = Box::new(SCContentSharingPickerCallbackContainer::new(callback));
+            let callback_container_ptr = Box::leak(callback_container) as *mut _ as *mut c_void;
+
+            let class = Self::get_class();
+            let id: *mut Object = msg_send![class, alloc];
+            let id: *mut Object = msg_send![id, init];
+            (*id).set_ivar("callback_container_ptr", callback_container_ptr);
+
+            Self(id)
+        }
+    }
+}
+
+impl Drop for SCContentSharingPickerObserver {
+    fn drop(&mut self) {
+        unsafe {
+            let _: () = msg_send![self.0, release];
+        }
+    }
+}
+
+impl Clone for SCContentSharingPickerObserver {
+    fn clone(&self) -> Self {
+        Self::from_id_unretained(self.0)
+    }
+}
+
+#[derive(Debug)]
+pub enum SCContentSharingPickerEvent {
+    DidUpdate {filter: SCContentFilter, stream: Option<SCStream> },
+    Cancelled,
+}
+
+#[repr(C)]
+struct SCContentSharingPickerCallbackContainer {
+    callback: Box<dyn FnMut(Result<SCContentSharingPickerEvent, NSError>) + Send + 'static>
+}
+
+impl SCContentSharingPickerCallbackContainer {
+    pub fn new(callback: impl FnMut(Result<SCContentSharingPickerEvent, NSError>) + Send + 'static) -> Self {
+        Self {
+            callback: Box::new(callback)
+        }
+    }
+
+    pub fn call_cancelled(&mut self, picker: SCContentSharingPicker, stream: Option<SCStream>) {
+    }
+
+    pub fn call_did_update_with_filter(&mut self, picker: SCContentSharingPicker, filter: SCContentFilter, stream: Option<SCStream>) {
+    }
+
+    pub fn call_error(&mut self, error: NSError) {
+    }
+}
+
+pub enum SCShareableContentStyle {
+    Application,
+    Display,
+    Window,
+    None
+}
+
+pub struct SCContentSharingPicker(*mut Object);
+
+impl SCContentSharingPicker {
+    pub fn shared() -> Self {
+        unsafe {
+            let id: *mut Object = msg_send![class!(SCContentSharingPicker), sharedPicker];
+            Self::from_id_unretained(id)
+        }
+    }
+
+    fn from_id_retained(id: *mut Object) -> Self {
+        Self(id)
+    }
+
+    fn from_id_unretained(id: *mut Object) -> Self {
+        unsafe {
+            let _: () = msg_send![id, retain];
+        }
+        Self(id)
+    }
+
+    pub fn set_active(&self, active: bool) {
+        unsafe {
+            let _: () = msg_send![self.0, setActive: active];
+        }
+    }
+
+    pub fn add(&self, observer: SCContentSharingPickerObserver) {
+        unsafe {
+            let _: () = msg_send![self.0, addObserver: observer];
+        }
+    }
+
+    pub fn remove(&self, observer: SCContentSharingPickerObserver) {
+        unsafe {
+            let _: () = msg_send![self.0, removeObserver: observer];
+        }
+    }
+
+    pub fn present(&self) {
+        unsafe {
+            let _: () = msg_send![self.0, present];
+        }
+    }
+
+    pub fn present_using_content_style(&self, content_style: SCShareableContentStyle) {
+        let style: usize = match content_style {
+            SCShareableContentStyle::Application => 3,
+            SCShareableContentStyle::Window => 1,
+            SCShareableContentStyle::Display => 2,
+            SCShareableContentStyle::None => 0,
+        };
+        unsafe {
+            let _: () = msg_send![self.0, presentPickerUsingContentStyle: style];
+        }
+    }
+
+    pub fn set_configuration_for_stream(&self, configuration: SCContentSharingPickerConfiguration, for_stream: Option<&SCStream>) {
+        unsafe {
+            if let Some(stream) = for_stream {
+                let _: () = msg_send![self.0, setConfiguration: configuration.0 forStream: stream.0];
+            } else {
+                let _: () = msg_send![self.0, setConfiguration: configuration.0];
+            }
+        }
+    }
+}
+
+impl Drop for SCContentSharingPicker {
+    fn drop(&mut self) {
+        unsafe {
+            let _: () = msg_send![self.0, release];
+        }
+    }
+}
+
+impl Clone for SCContentSharingPicker {
+    fn clone(&self) -> Self {
+        Self::from_id_unretained(self.0)
+    }
+}
+
+

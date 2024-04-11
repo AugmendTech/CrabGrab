@@ -10,6 +10,8 @@ dxgi = []
 dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half"]
 wgpu = []
+screenshot = ["bitmap"]
+content_picker = []
 
 [target.'cfg(target_os = "windows")'.features]
 bitmap = ["dx11"]

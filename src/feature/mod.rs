@@ -14,3 +14,7 @@ pub mod iosurface;
 pub mod bitmap;
 #[cfg(feature = "wgpu")]
 pub mod wgpu;
+#[cfg(feature = "screenshot")]
+pub mod screenshot;
+#[cfg(feature = "content_picker")]
+pub mod content_picker;
