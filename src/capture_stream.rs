@@ -59,6 +59,30 @@ pub enum StreamCreateError {
 unsafe impl Send for StreamCreateError {}
 unsafe impl Sync for StreamCreateError {}
 
+
+impl Display for StreamCreateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Other(message) => f.write_fmt(format_args!("StreamCreateError::Other(\"{}\")", message)),
+            Self::UnsupportedPixelFormat => f.write_fmt(format_args!("StreamCreateError::UnsupportedPixelFormat"))
+        }
+    }
+}
+
+impl Error for StreamCreateError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
+}
+
 /// This represents an error while stopping a stream
 #[derive(Debug)]
 pub enum StreamStopError {
@@ -71,16 +95,16 @@ pub enum StreamStopError {
 unsafe impl Send for StreamStopError {}
 unsafe impl Sync for StreamStopError {}
 
-impl Display for StreamCreateError {
+impl Display for StreamStopError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Other(message) => f.write_fmt(format_args!("StreamCreateError::Other(\"{}\")", message)),
-            Self::UnsupportedPixelFormat => f.write_fmt(format_args!("SteamCreateError::UnsupportedPixelFormat")),
+            Self::Other(message) => f.write_fmt(format_args!("StreamStopError::Other(\"{}\")", message)),
+            Self::AlreadyStopped => f.write_fmt(format_args!("StreamStopError::AlreadyStopped")),
         }
     }
 }
 
-impl Error for StreamCreateError {
+impl Error for StreamStopError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
     }
@@ -153,6 +177,33 @@ pub enum CaptureConfigError {
     UnsupportedPixelFormat,
     /// The buffer count is out of the valid range for the implementation
     InvalidBufferCount,
+}
+
+
+unsafe impl Send for CaptureConfigError {}
+unsafe impl Sync for CaptureConfigError {}
+
+impl Display for CaptureConfigError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::UnsupportedPixelFormat => f.write_fmt(format_args!("CaptureConfigError::UnsupportedPixelFormat")),
+            Self::InvalidBufferCount => f.write_fmt(format_args!("CaptureConfigError::InvalidBufferCount")),
+        }
+    }
+}
+
+impl Error for CaptureConfigError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
 }
 
 impl CaptureConfig {
@@ -229,6 +280,8 @@ impl CaptureConfig {
 pub struct CaptureStream {
     pub(crate) impl_capture_stream: ImplCaptureStream,
 }
+
+unsafe impl Send for CaptureStream {}
 
 impl CaptureStream {
     /// Test whether the calling application has permission to capture content

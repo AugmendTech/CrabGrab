@@ -1482,8 +1482,6 @@ impl SCStream {
                     if !error.is_null() {
                         let error =  NSError::from_id_unretained(error);
                         println!("startCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
-                    } else {
-                        println!("startCaptureWithCompletionHandler success!");
                     }
                 }
             )).copy()];
@@ -1491,6 +1489,16 @@ impl SCStream {
     }
 
     pub fn stop(&mut self) {
+        unsafe {
+            let _: () = msg_send![self.0, stopCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
+                |error: *mut Object| {
+                    if !error.is_null() {
+                        let error =  NSError::from_id_unretained(error);
+                        println!("stopCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
+                    }
+                }
+            )).copy()];
+        }
     }
 }
 

@@ -271,7 +271,7 @@ impl MacosCaptureStream {
                                             (callback)(Ok(StreamEvent::Idle));
                                         },
                                         SCFrameStatus::Stopped => {
-                                            if callback_stopped_flag.fetch_and(true, atomic::Ordering::AcqRel) {
+                                            if callback_stopped_flag.fetch_or(true, atomic::Ordering::AcqRel) {
                                                 return;
                                             }
                                             (callback)(Ok(StreamEvent::End));
@@ -286,7 +286,7 @@ impl MacosCaptureStream {
                         Err(err) => {
                             let event = match err {
                                 SCStreamCallbackError::StreamStopped => {
-                                    if callback_stopped_flag.fetch_and(true, atomic::Ordering::AcqRel) {
+                                    if callback_stopped_flag.fetch_or(true, atomic::Ordering::AcqRel) {
                                         return;
                                     }
                                     Ok(StreamEvent::End)
@@ -320,8 +320,10 @@ impl MacosCaptureStream {
     pub(crate) fn stop(&mut self) -> Result<(), StreamStopError> {
         {
             let mut callback = self.shared_callback.lock();
-            if !self.stopped_flag.fetch_and(true, atomic::Ordering::AcqRel) {
+            if !self.stopped_flag.fetch_or(true, atomic::Ordering::AcqRel) {
                 (callback)(Ok(StreamEvent::End));
+            } else {
+                return Ok(());
             }
         }
         match &mut self.stream {
