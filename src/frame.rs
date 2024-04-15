@@ -65,6 +65,9 @@ pub struct AudioFrame {
     pub(crate) impl_audio_frame: ImplAudioFrame,
 }
 
+unsafe impl Send for AudioFrame {}
+unsafe impl Sync for AudioFrame {}
+
 impl Debug for AudioFrame {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AudioFrame").finish()

@@ -148,11 +148,6 @@ impl MacosCaptureStream {
         match capture_config.target {
             Capturable::Window(window) => {
                 let mut config = SCStreamConfiguration::new();
-                config.set_size(CGSize {
-                    x: window.rect().size.width * 2.0,
-                    y: window.rect().size.height * 2.0,
-                });
-                config.set_scales_to_fit(false);
                 let (pixel_format, set_color_matrix) = match capture_config.pixel_format {
                     CapturePixelFormat::Bgra8888 =>    (SCStreamPixelFormat::BGRA8888, false),
                     CapturePixelFormat::Argb2101010 => (SCStreamPixelFormat::L10R, false),
@@ -178,6 +173,7 @@ impl MacosCaptureStream {
                     x: capture_config.output_size.width,
                     y: capture_config.output_size.height,
                 });
+                config.set_scales_to_fit(capture_config.impl_capture_config.scale_to_fit);
                 config.set_queue_depth(capture_config.buffer_count as isize);
                 config.set_show_cursor(capture_config.show_cursor);
                 match capture_config.capture_audio {

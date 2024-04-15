@@ -66,6 +66,9 @@ pub struct CapturableContent {
     impl_capturable_content: ImplCapturableContent
 }
 
+unsafe impl Send for CapturableContent {}
+unsafe impl Sync for CapturableContent {}
+
 /// An iterator over capturable windows
 pub struct CapturableWindowIterator<'content> {
     content: &'content CapturableContent,
@@ -152,10 +155,13 @@ pub(crate) enum Capturable {
 }
 
 /// Represents a capturable application window
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct CapturableWindow {
     pub(crate) impl_capturable_window: ImplCapturableWindow
 }
+
+unsafe impl Send for CapturableWindow {}
+unsafe impl Sync for CapturableWindow {}
 
 impl CapturableWindow {
     /// Gets the title of the window
@@ -190,6 +196,9 @@ impl CapturableDisplay {
         self.impl_capturable_display.rect()
     }
 }
+
+unsafe impl Send for CapturableDisplay {}
+unsafe impl Sync for CapturableDisplay {}
 
 pub struct CapturableApplication {
     impl_capturable_application: ImplCapturableApplication

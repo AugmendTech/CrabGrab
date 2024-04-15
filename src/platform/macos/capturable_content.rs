@@ -95,6 +95,8 @@ impl Hash for MacosCapturableWindow {
     }
 }
 
+impl Eq for MacosCapturableWindow {}
+
 #[derive(Clone)]
 pub struct MacosCapturableDisplay {
     pub(crate) display: SCDisplay
@@ -121,6 +123,20 @@ impl MacosCapturableDisplay {
         }
     }
 }
+
+impl PartialEq for MacosCapturableDisplay {
+    fn eq(&self, other: &Self) -> bool {
+        self.display.raw_id() == other.display.raw_id()
+    }
+}
+
+impl Hash for MacosCapturableDisplay {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.display.raw_id().hash(state)
+    }
+}
+
+impl Eq for MacosCapturableDisplay {}
 
 impl Debug for MacosCapturableDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

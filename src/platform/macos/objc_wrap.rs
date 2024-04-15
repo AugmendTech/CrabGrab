@@ -2886,16 +2886,16 @@ unsafe impl Encode for SCContentSharingPickerObserver {
 }
 
 extern fn sc_content_sharing_picker_observer_did_cancel_for_stream(this: &Object, _sel: Sel, picker: *mut Object, stream: *mut Object) {
-    println!("sc_content_sharing_picker_observer_did_cancel_for_stream");
+    //println!("sc_content_sharing_picker_observer_did_cancel_for_stream");
 }
 
 extern fn sc_content_sharing_picker_observer_did_update_filter_for_stream(this: &Object, _sel: Sel, picker: *mut Object, filter: *mut Object, stream: *mut Object) {
-    println!("sc_content_sharing_picker_observer_did_update_filter_for_stream");
-    debug_objc_object(filter);
+    //println!("sc_content_sharing_picker_observer_did_update_filter_for_stream");
+    //debug_objc_object(filter);
 }
 
 extern fn sc_content_sharing_picker_observer_start_did_fail_with_error(this: &Object, _sel: Sel, error: *mut Object) {
-    println!("sc_content_sharing_picker_observer_start_did_fail_with_error");
+    //println!("sc_content_sharing_picker_observer_start_did_fail_with_error");
 }
 
 extern fn sc_content_sharing_picker_observer_dealloc(this: &mut Object, _sel: Sel) {

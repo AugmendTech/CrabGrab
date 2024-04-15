@@ -193,7 +193,7 @@ impl VideoFrameBitmap for VideoFrame {
         {
             let iosurface = match &self.impl_video_frame {
                 MacosVideoFrame::SCStream(sc_frame) => {
-                    match sc_frame.sample_buffer.get_image_buffer().map(|image_buffer| { println!("got image buffer..."); image_buffer.get_iosurface() }).flatten() {
+                    match sc_frame.sample_buffer.get_image_buffer().map(|image_buffer| image_buffer.get_iosurface()).flatten() {
                         Some(iosurface) => iosurface,
                         None => return Err(VideoFrameBitmapError::Other("Failed to get iosurface".to_string())),
                     }
