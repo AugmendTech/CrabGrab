@@ -16,8 +16,20 @@ pub struct SharableContentPickerConfig {
     pub excluded_apps: Vec<CapturableApplication>,
 }
 
+impl Default for SharableContentPickerConfig {
+    fn default() -> Self {
+        Self {
+            display: true,
+            window: true,
+            excluded_apps: vec![]
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum SharableContentPickerError {
     EmptyConfig,
+    ConfigFilteringUnsupported,
     Other(String),
 }
 

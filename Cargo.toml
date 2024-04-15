@@ -62,7 +62,9 @@ windows = { version = "0.52", features = [
     "Win32_System_Com_StructuredStorage",
     "Win32_System_Variant",
     "Foundation",
-    "Security_Authorization_AppCapabilityAccess"
+    "Security_Authorization_AppCapabilityAccess",
+    "UI_Core",
+    "ApplicationModel_Core",
 ] }
 
 [dev-dependencies]

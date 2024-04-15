@@ -1,4 +1,4 @@
-use std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}};
+use std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}, hash::Hash};
 
 use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, HWND, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible}};
 
@@ -59,6 +59,20 @@ impl WindowsCapturableWindow {
     }
 }
 
+impl Hash for WindowsCapturableWindow {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.0.hash(state);
+    }
+}
+
+impl PartialEq for WindowsCapturableWindow {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for WindowsCapturableWindow {}
+
 #[derive(Clone, Debug)]
 pub struct WindowsCapturableDisplay(pub(crate) HMONITOR, pub(crate) RECT);
 
@@ -80,6 +94,22 @@ impl WindowsCapturableDisplay {
         }
     }
 }
+
+
+
+impl Hash for WindowsCapturableDisplay {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.0.hash(state);
+    }
+}
+
+impl PartialEq for WindowsCapturableDisplay {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for WindowsCapturableDisplay {}
 
 #[derive(Clone, Debug)]
 pub struct WindowsCapturableApplication(pub(crate) u32);
