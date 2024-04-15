@@ -80,7 +80,7 @@ impl MetalVideoFrame for VideoFrame {
                 }
             },
             MacosVideoFrame::CGDisplayStream(frame) => {
-                Ok((frame.io_surface.clone(), frame.metal_device.clone()))
+                Ok((frame.io_surface.clone(), Some(frame.metal_device.clone())))
             }
         }?;
         let (iosurface, metal_device) = iosurface_and_metal_device;
@@ -95,7 +95,7 @@ impl MetalVideoFrame for VideoFrame {
                     _ => return Err(MacosVideoFrameError::InvalidVideoPlaneTexture),
                 }
                 unsafe {
-                    let device_ref = metal_device.as_ref();
+                    let device_ref = metal_device.as_ref().unwrap().as_ref();
                     let texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
                     texture_descriptor.set_pixel_format(metal::MTLPixelFormat::RGBA8Unorm);
@@ -119,7 +119,7 @@ impl MetalVideoFrame for VideoFrame {
                     _ => return Err(MacosVideoFrameError::InvalidVideoPlaneTexture),
                 };
                 unsafe {
-                    let device_ref = metal_device.as_ref();
+                    let device_ref = metal_device.as_ref().unwrap().as_ref();
                     let texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
                     texture_descriptor.set_pixel_format(texture_index);

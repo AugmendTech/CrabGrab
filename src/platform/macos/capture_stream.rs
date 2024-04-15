@@ -45,10 +45,10 @@ pub trait MacosCaptureConfigExt {
 
 #[derive(Clone, Debug)]
 pub(crate) struct MacosCaptureConfig {
-    scale_to_fit: bool,
-    maximum_fps: Option<f32>,
+    pub(crate) scale_to_fit: bool,
+    pub(crate) maximum_fps: Option<f32>,
     #[cfg(feature = "metal")]
-    metal_device: Option<metal::Device>,
+    pub(crate) metal_device: Option<metal::Device>,
 }
 
 impl MacosCaptureConfig {
@@ -262,7 +262,7 @@ impl MacosCaptureStream {
                                                     dictionary: RefCell::new(None),
                                                     frame_id,
                                                     #[cfg(feature = "metal")]
-                                                    metal_device: callback_metal_device.clone()
+                                                    metal_device: Some(callback_metal_device.clone())
                                                 })
                                             };
                                             (callback)(Ok(StreamEvent::Video(video_frame)));

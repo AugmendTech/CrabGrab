@@ -357,6 +357,10 @@ impl NSError {
         Self(id)
     }
 
+    /*pub(crate) fn new_with_domain_code_userinfo(domain: NSString, code: u32, userinfo: NSDictionary) -> Self {
+
+    }*/
+
     pub(crate) fn code(&self) -> isize {
         unsafe { msg_send![self.0, code] }
     }
@@ -938,8 +942,6 @@ impl SCStreamConfiguration {
 
     pub(crate) fn set_pixel_format(&mut self, format: SCStreamPixelFormat) {
         unsafe {
-            let old_pf: OSType = *(*self.0).get_ivar("_pixelFormat");
-            println!("old pixel format: {:?}", old_pf);
             (*self.0).set_ivar("_pixelFormat", format.to_ostype());
         }
     }
@@ -1493,7 +1495,10 @@ impl SCStream {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub(crate) struct CMSampleBuffer(CMSampleBufferRef);
+
+unsafe impl Send for CMSampleBuffer {}
 
 impl CMSampleBuffer {
     pub(crate) fn copy_from_ref(r: CMSampleBufferRef) -> Result<Self, ()> {
@@ -1567,7 +1572,6 @@ impl CMSampleBuffer {
             }
         }
     }
-
 }
 
 impl Clone for CMSampleBuffer {
@@ -2611,7 +2615,10 @@ impl NSScreen {
     }
 }
 
+#[derive(Debug)]
 pub struct CGImage(CGImageRef);
+
+unsafe impl Send for CGImage {}
 
 impl CGImage {
     pub fn from_ref_unretained(r: CGImageRef) -> Self {
@@ -3080,4 +3087,55 @@ impl Clone for SCContentSharingPicker {
     }
 }
 
+pub struct SCScreenshotManager();
+
+unsafe impl Send for SCScreenshotManager {}
+
+impl SCScreenshotManager {
+
+    pub fn capture_image_with_filter_and_configuration(filter: &SCContentFilter, config: &SCStreamConfiguration, completion_handler: impl FnMut(Result<CGImage, NSError>) + Send + 'static) {
+        let completion_handler = Mutex::new(completion_handler);
+        let completion_block = ConcreteBlock::new(move |image: CGImageRef, error: *mut Object| {
+            if error.is_null() {
+                (completion_handler.lock())(Ok(CGImage::from_ref_unretained(image)));
+            } else {
+                (completion_handler.lock())(Err(NSError::from_id_unretained(error)));
+            }
+        }).copy();
+        unsafe {
+            let _: () = msg_send![
+                class!(SCScreenshotManager),
+                captureImageWithFilter: filter.0
+                configuration: config.0
+                completionHandler: completion_block
+            ];
+        }
+    }
+
+    pub fn capture_samplebuffer_with_filter_and_configuration(filter: SCContentFilter, config: SCStreamConfiguration, completion_handler: impl FnMut(Result<CMSampleBuffer, String>) + Send + 'static) {
+        unsafe {
+            let completion_handler = Mutex::new(completion_handler);
+            let completion_block = ConcreteBlock::new(move |sample_buffer: CMSampleBufferRef, error: *mut Object| {
+                if error.is_null() {
+                    (completion_handler.lock())(
+                        CMSampleBuffer::copy_from_ref(sample_buffer)
+                            .map_err(|_| "Failed to copy sample buffer".to_string())
+                    );
+                } else {
+                    let error = NSError::from_id_unretained(error).description();
+                    (completion_handler.lock())(
+                        Err(error)
+                    );
+                }
+            }).copy();
+            let mut error: *mut Object = std::ptr::null_mut();
+            let _: () = msg_send![
+                class!(SCScreenshotManager),
+                captureSampleBufferWithFilter: filter.0
+                configuration: config.0
+                completionHandler: completion_block
+            ];
+        }
+    }
+}
 

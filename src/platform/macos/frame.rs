@@ -12,7 +12,7 @@ pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) dictionary: RefCell<Option<CFDictionary>>,
     pub(crate) frame_id: u64,
     #[cfg(feature = "metal")]
-    pub(crate) metal_device: metal::Device,
+    pub(crate) metal_device: Option<metal::Device>,
 }
 
 pub(crate) struct MacosCGDisplayStreamVideoFrame {

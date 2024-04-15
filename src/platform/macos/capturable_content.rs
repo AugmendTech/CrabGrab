@@ -1,4 +1,4 @@
-use std::{cell::Cell, fmt::Debug};
+use std::{cell::Cell, fmt::Debug, hash::Hash};
 
 use futures::channel::oneshot;
 use libc::getpid;
@@ -80,6 +80,18 @@ impl MacosCapturableWindow {
 impl Debug for MacosCapturableWindow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MacosCapturableWindow").field("window", &self.window.title()).finish()
+    }
+}
+
+impl PartialEq for MacosCapturableWindow {
+    fn eq(&self, other: &Self) -> bool {
+        self.window.id().0 == other.window.id().0
+    }
+}
+
+impl Hash for MacosCapturableWindow {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.window.id().0.hash(state);
     }
 }
 

@@ -1,10 +1,10 @@
-#[cfg(platform = "macos")]
+#[cfg(target_os = "macos")]
 mod macos;
-//#[cfg(platform = "macos")]
-//pub use macos::*;
+#[cfg(target_os = "macos")]
+pub use macos::take_screenshot;
 
-#[cfg(platform = "windows")]
+#[cfg(target_os = "windows")]
 mod windows;
 
-//#[cfg(platform = "windows")]
-//pub use windows::*;
+//#[cfg(target_os = "windows")]
+//pub use windows::take_screenshot;
