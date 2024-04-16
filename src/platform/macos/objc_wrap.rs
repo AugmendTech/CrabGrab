@@ -2018,15 +2018,14 @@ pub(crate) struct CGDisplayStream{
 
 impl CGDisplayStream {
     pub fn new(callback: impl Fn(CGDisplayStreamFrameStatus, Duration, IOSurface) + 'static, display_id: u32, size: (usize, usize), pixel_format: SCStreamPixelFormat, options_dict: NSDictionary, dispatch_queue: DispatchQueue) -> Self {
-        println!("CGDisplayStream::new(..)");
-        let absolute_time_start = RefCell::new(None);
+        let absolute_time_start = Mutex::new(None);
         let callback_block = ConcreteBlock::new(move |status: i32, display_time: u64, iosurface_ref: IOSurfaceRef, stream_update_ref: CGDisplayStreamUpdateRef| {
-            println!("CGDisplayStream callback_block");
             if let Some(status) = CGDisplayStreamFrameStatus::from_i32(status) {
-                let relative_time = if let Some(absolute_time_start) = *absolute_time_start.borrow() {
-                    display_time - absolute_time_start
+                let abs_time_start_opt = { *absolute_time_start.lock() };
+                let relative_time = if let Some(absolute_time_start) = abs_time_start_opt {
+                    display_time.saturating_sub(absolute_time_start)
                 } else {
-                    *absolute_time_start.borrow_mut() = Some(display_time);
+                    *absolute_time_start.lock() = Some(display_time);
                     0
                 };
                 unsafe {
@@ -2043,7 +2042,6 @@ impl CGDisplayStream {
             let pixel_format = pixel_format.to_ostype();
             let display_id = CGMainDisplayID();
             let stream_ref = CGDisplayStreamCreateWithDispatchQueue(display_id, size.0, size.1, pixel_format.as_i32(), std::ptr::null_mut(), dispatch_queue.0, &*callback_block as *const _ as *const c_void);
-            println!("CGDisplayStreamCreateWithDispatchQueue(display_id: {}, output_width: {}, output_height: {}, pixel_format: {:?}, options_dict: {:?}, dispatch_queue: {:?}, callback_block: {:?}): return value: {:?}", display_id, size.0, size.1, pixel_format, options_dict.0, dispatch_queue.0, &callback_block as *const _, stream_ref);
             Self {
                 stream_ref,
                 callback_block
@@ -2053,7 +2051,6 @@ impl CGDisplayStream {
 
     pub fn start(&self) -> Result<(), ()> {
         let error_code = unsafe { CGDisplayStreamStart(self.stream_ref) };
-        println!("CGDisplayStreamStart({:?}) return value: {:?}", self.stream_ref, error_code);
         if error_code == 0 {
             Ok(())
         } else {
