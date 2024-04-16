@@ -4,7 +4,7 @@ use futures::executor::block_on;
 use objc::runtime::Object;
 use parking_lot::Mutex;
 
-use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, feature::iosurface, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
+use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
 use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, IOSurface, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
 
 pub type MacosPixelFormat = SCStreamPixelFormat;
