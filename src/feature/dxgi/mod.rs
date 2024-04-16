@@ -38,6 +38,7 @@ impl Error for WindowsDxgiVideoFrameError {
     }
 }
 
+/// A video frame which can interoperate with DXGI
 pub trait WindowsDxgiVideoFrame {
     /// Get the surface texture for this video frame
     fn get_dxgi_surface(&self) -> Result<(windows::Win32::Graphics::Dxgi::IDXGISurface, DirectXPixelFormat), WindowsDxgiVideoFrameError>; 
@@ -57,6 +58,7 @@ impl WindowsDxgiVideoFrame for VideoFrame {
     }
 }
 
+/// A capture stream which can interoperate with DXGI
 pub trait WindowsDxgiCaptureStream {
     /// Get the dxgi adapter used by the capture stream for frame generation
     fn get_dxgi_adapter(&self) -> windows::Win32::Graphics::Dxgi::IDXGIAdapter;

@@ -49,6 +49,8 @@ pub(crate) struct MacosCaptureConfig {
     pub(crate) maximum_fps: Option<f32>,
     #[cfg(feature = "metal")]
     pub(crate) metal_device: Option<metal::Device>,
+    #[cfg(feature = "wgpu")]
+    pub(crate) wgpu_device: Option<Arc<wgpu::Device>>,
 }
 
 impl MacosCaptureConfig {
@@ -58,6 +60,8 @@ impl MacosCaptureConfig {
             maximum_fps: None,
             #[cfg(feature = "metal")]
             metal_device: None,
+            #[cfg(feature = "wgpu")]
+            wgpu_device: None,
         }
     }
 }
@@ -157,6 +161,10 @@ impl MacosCaptureStream {
         };
         #[cfg(feature = "metal")]
         let callback_metal_device = metal_device.clone();
+        #[cfg(feature = "wgpu")]
+        let wgpu_device = capture_config.impl_capture_config.wgpu_device.clone();
+        #[cfg(feature = "wgpu")]
+        let callback_wgpu_device = wgpu_device.clone();
         match capture_config.target {
             Capturable::Window(window) => {
                 let mut config = SCStreamConfiguration::new();
@@ -257,7 +265,9 @@ impl MacosCaptureStream {
                                                     dictionary: RefCell::new(None),
                                                     frame_id,
                                                     #[cfg(feature = "metal")]
-                                                    metal_device: Some(callback_metal_device.clone())
+                                                    metal_device: Some(callback_metal_device.clone()),
+                                                    #[cfg(feature = "wgpu")]
+                                                    wgpu_device: callback_wgpu_device.clone(),
                                                 })
                                             };
                                             (callback)(Ok(StreamEvent::Video(video_frame)));
@@ -360,7 +370,9 @@ impl MacosCaptureStream {
                                         },
                                         dest_size: Size { width: w as f64, height: h as f64 },
                                         #[cfg(feature = "metal")]
-                                        metal_device: callback_metal_device.clone()
+                                        metal_device: callback_metal_device.clone(),
+                                        #[cfg(feature = "wgpu")]
+                                        wgpu_device: callback_wgpu_device.clone(),
                                     }
                                 )
                             };

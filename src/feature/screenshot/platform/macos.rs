@@ -8,6 +8,7 @@ use crate::platform::macos::objc_wrap::{CGPoint, CGRect, CGSize, NSArray, SCCont
 use crate::platform::platform_impl::objc_wrap::CGMainDisplayID;
 use crate::prelude::{Capturable, CaptureConfig, CapturePixelFormat};
 
+// Take a screenshot of the capturable content given a configuration
 pub async fn take_screenshot(config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
     // Force core graphics initialization
     unsafe { CGMainDisplayID() };
@@ -47,6 +48,8 @@ pub async fn take_screenshot(config: CaptureConfig) -> Result<VideoFrame, Screen
     let mut tx = Some(tx);
     #[cfg(feature = "metal")]
     let callback_metal_device = config.impl_capture_config.metal_device.clone();
+    #[cfg(feature = "wgpu")]
+    let callback_wgpu_device = config.impl_capture_config.wgpu_device.clone();
     SCScreenshotManager::capture_samplebuffer_with_filter_and_configuration(filter, stream_config, move |result| {
         let screenshot_result = match result {
             Ok(sample_buffer) => {
@@ -59,7 +62,9 @@ pub async fn take_screenshot(config: CaptureConfig) -> Result<VideoFrame, Screen
                             dictionary: RefCell::new(None),
                             frame_id: 0,
                             #[cfg(feature = "metal")]
-                            metal_device: callback_metal_device.clone()
+                            metal_device: callback_metal_device.clone(),
+                            #[cfg(feature = "wgpu")]
+                            wgpu_device: callback_wgpu_device.clone(),
                         }
                     )
                 })

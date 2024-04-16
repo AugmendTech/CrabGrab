@@ -200,6 +200,7 @@ impl CapturableDisplay {
 unsafe impl Send for CapturableDisplay {}
 unsafe impl Sync for CapturableDisplay {}
 
+// Represents an application with capturable windows
 pub struct CapturableApplication {
     impl_capturable_application: ImplCapturableApplication
 }

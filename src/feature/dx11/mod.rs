@@ -36,6 +36,7 @@ impl Error for WindowsDx11VideoFrameError {
     }
 }
 
+/// A video frame which can yield a d3d11 surface
 pub trait WindowsDx11VideoFrame {
     /// Get the DX11 surface representing the video frame's texture memory, as well as the pixel format
     fn get_dx11_surface(&self) -> Result<(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError>;
@@ -49,6 +50,7 @@ impl WindowsDx11VideoFrame for VideoFrame {
     }
 }
 
+/// A capture stream which can interoperate with D3D11
 pub trait WindowsDx11CaptureStream {
     /// Get the underlying D3D11 device used for frame capture
     fn get_dx11_device(&self) -> ID3D11Device;

@@ -28,26 +28,32 @@ use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D11::{D3D11_STANDARD_MULTISAMPLE_QUALITY_LEVELS, D3D11_USAGE_DYNAMIC};
 
+/// A Bgra8888 format bitmap
 pub struct FrameBitmapBgraUnorm8x4 {
     pub data: Box<[[u8; 4]]>,
     pub width:  usize,
     pub height: usize,
 }
 
+/// A Rgba1010102 format bitmap
 pub struct FrameBitmapRgbaUnormPacked1010102 {
     pub data: Box<[u32]>,
     pub width:  usize,
     pub height: usize,
 }
 
+/// A RgbaF16x4 format bitmap
 pub struct FrameBitmapRgbaF16x4 {
     pub data: Box<[[f16; 4]]>,
     pub width:  usize,
     pub height: usize,
 }
 
+/// The video range for a YCbCr format bitmap
 pub enum VideoRange {
+    /// Luma: [16, 240], Chroma: [0, 255]
     Video,
+    /// Luma: [0, 255], Chroma: [0, 255]
     Full,
 }
 
@@ -66,7 +72,7 @@ pub struct FrameBitmapYCbCr {
     pub range: VideoRange,
 }
 
-/// A bitmap image
+/// A bitmap image of the selected format
 pub enum FrameBitmap {
     BgraUnorm8x4(FrameBitmapBgraUnorm8x4),
     RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102),

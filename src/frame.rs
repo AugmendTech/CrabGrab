@@ -26,6 +26,7 @@ pub enum AudioChannelData<'data> {
     I16(AudioChannelDataSamples<'data, i16>),
 }
 
+// Wraps a "slice" of audio data for one channel, handling interleaving/stride
 pub struct AudioChannelDataSamples<'data, T> {
     pub(crate) data: *const u8,
     pub(crate) stride: usize,
@@ -46,7 +47,9 @@ impl<T: Copy> AudioChannelDataSamples<'_, T> {
 
 /// Represents an error getting the data for an audio channel
 pub enum AudioBufferError {
+    // The audio sample format was not supported
     UnsupportedFormat,
+    // The requested channel number wasn't present
     InvalidChannel,
     Other(String)
 }

@@ -9,9 +9,12 @@ metal = ["dep:metal"]
 dxgi = []
 dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half"]
-wgpu = []
 screenshot = ["bitmap"]
 content_picker = []
+wgpu = ["dep:wgpu"]
+
+[target.'cfg(target_os = "macos")'.features]
+wgpu = ["metal"]
 
 [target.'cfg(target_os = "windows")'.features]
 bitmap = ["dx11"]
@@ -21,6 +24,7 @@ futures = "0.3"
 parking_lot = "0.12"
 half = { version = "2.4", optional = true }
 bytemuck = { version = "1.15", optional = true }
+wgpu = { version = "^0.19", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa-foundation = "0.1.0"

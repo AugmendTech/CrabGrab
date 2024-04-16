@@ -1,4 +1,4 @@
-use std::{cell::{Ref, RefCell}, marker::PhantomData, time::{Duration, Instant}};
+use std::{cell::{Ref, RefCell}, marker::PhantomData, sync::Arc, time::{Duration, Instant}};
 
 use objc::runtime::Object;
 
@@ -13,6 +13,8 @@ pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) frame_id: u64,
     #[cfg(feature = "metal")]
     pub(crate) metal_device: Option<metal::Device>,
+    #[cfg(feature = "wgpu")]
+    pub(crate) wgpu_device: Option<Arc<wgpu::Device>>,
 }
 
 pub(crate) struct MacosCGDisplayStreamVideoFrame {
@@ -25,6 +27,8 @@ pub(crate) struct MacosCGDisplayStreamVideoFrame {
     pub(crate) dest_size: Size,
     #[cfg(feature = "metal")]
     pub(crate) metal_device: metal::Device,
+    #[cfg(feature = "wgpu")]
+    pub(crate) wgpu_device: Option<Arc<wgpu::Device>>,
 }
 
 impl MacosSCStreamVideoFrame {

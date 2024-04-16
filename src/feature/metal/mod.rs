@@ -16,17 +16,24 @@ use std::fmt::Display;
 use crate::platform::macos::frame::MacosVideoFrame;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+// Identifies planes of a video frame
 pub enum MetalVideoFramePlaneTexture {
+    // The single RGBA plane for an RGBA format frame
     Rgba,
+    // The Luminance (brightness) plane for a YCbCr format frame
     Luminance,
+    // The Chroma (red/blue) plane for a YCbCr format frame
     Chroma
 }
 
 /// Represents an error getting the texture from a video frame
 #[derive(Clone, Debug)]
 pub enum MacosVideoFrameError {
+    // Could not retreive the IOSurface for this frame
     NoIoSurface,
+    // Could not retreive the image buffer for this frame
     NoImageBuffer,
+    // The requested plane isn't valid for this frame
     InvalidVideoPlaneTexture,
     Other(String)
 }
@@ -57,6 +64,7 @@ impl Error for MacosVideoFrameError {
     }
 }
 
+// A video frame which can be used to create metal textures
 pub trait MetalVideoFrame {
     /// Get the texture for the given plane of the video frame
     fn get_texture(&self, plane: MetalVideoFramePlaneTexture) -> Result<metal::Texture, MacosVideoFrameError>;
@@ -141,6 +149,7 @@ impl MetalVideoFrame for VideoFrame {
     }
 }
 
+// A capture stream which interoperates with Metal
 pub trait MetalCaptureStream {
     /// Get the metal device used for frame capture
     fn get_metal_device(&self) -> metal::Device;
