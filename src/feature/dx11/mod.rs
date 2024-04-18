@@ -2,7 +2,7 @@
 #![cfg(feature = "dx11")]
 
 use futures::lock::Mutex;
-use windows::{Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::Graphics::Direct3D11::ID3D11Device};
+use windows::{core::ComInterface, Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::{Graphics::Direct3D11::{ID3D11Device, ID3D11Texture2D}, System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess}};
 
 use std::error::Error;
 use std::fmt::Display;
@@ -40,6 +40,7 @@ impl Error for WindowsDx11VideoFrameError {
 pub trait WindowsDx11VideoFrame {
     /// Get the DX11 surface representing the video frame's texture memory, as well as the pixel format
     fn get_dx11_surface(&self) -> Result<(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError>;
+    fn get_dx11_texture(&self) -> Result<(ID3D11Texture2D, DirectXPixelFormat), WindowsDx11VideoFrameError>;
 }
 
 impl WindowsDx11VideoFrame for VideoFrame {
@@ -47,6 +48,15 @@ impl WindowsDx11VideoFrame for VideoFrame {
         self.impl_video_frame.frame.Surface()
             .map_err(|e| WindowsDx11VideoFrameError::Other(format!("Failed to get frame surface: {}", e.to_string())))
             .map(|surface| (surface, self.impl_video_frame.pixel_format))
+    }
+
+    fn get_dx11_texture(&self) -> Result<(ID3D11Texture2D, DirectXPixelFormat), WindowsDx11VideoFrameError> {
+        let (surface, pixel_format) = self.get_dx11_surface()?;
+        let dxgi_interface_access = surface.cast::<IDirect3DDxgiInterfaceAccess>()
+            .map_err(|e| WindowsDx11VideoFrameError::Other(format!("Failed to cast surface to dxgi interface access: {}", e.to_string())))?;
+        let texture = unsafe { dxgi_interface_access.GetInterface::<ID3D11Texture2D>() }
+            .map_err(|e| WindowsDx11VideoFrameError::Other(format!("Failed to get ID3D11Texture interface {}", e.to_string())))?;
+        Ok((texture, pixel_format))
     }
 }
 

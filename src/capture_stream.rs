@@ -268,7 +268,7 @@ impl CaptureConfig {
     }
 
     /// Configure the output texture size - by default, this will match the captured content at the time of enumeration
-    pub fn set_output_size(self, output_size: Size) -> Self {
+    pub fn with_output_size(self, output_size: Size) -> Self {
         Self {
             output_size,
             ..self

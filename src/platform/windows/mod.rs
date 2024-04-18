@@ -1,7 +1,7 @@
 use windows::Win32::Foundation::CloseHandle;
 use windows::Win32::Foundation::HANDLE;
 
-mod capture_stream;
+pub(crate) mod capture_stream;
 mod capturable_content;
 mod audio_capture_stream;
 pub(crate) mod frame;

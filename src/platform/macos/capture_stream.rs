@@ -43,14 +43,20 @@ pub trait MacosCaptureConfigExt {
     fn with_metal_device(self, metal_device: metal::Device) -> Self;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub(crate) struct MacosCaptureConfig {
     pub(crate) scale_to_fit: bool,
     pub(crate) maximum_fps: Option<f32>,
     #[cfg(feature = "metal")]
     pub(crate) metal_device: Option<metal::Device>,
     #[cfg(feature = "wgpu")]
-    pub(crate) wgpu_device: Option<Arc<wgpu::Device>>,
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device>>>,
+}
+
+impl Debug for MacosCaptureConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MacosCaptureConfig").field("scale_to_fit", &self.scale_to_fit).field("maximum_fps", &self.maximum_fps).field("metal_device", &self.metal_device).finish()
+    }
 }
 
 impl MacosCaptureConfig {

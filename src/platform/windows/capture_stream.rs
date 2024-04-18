@@ -1,4 +1,4 @@
-use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
+use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 use crate::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
 
@@ -30,10 +30,18 @@ impl WindowsAudioCaptureConfigExt for CaptureConfig {
 
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct WindowsCaptureConfig {
-    dxgi_adapter: Option<IDXGIAdapter>,
-    d3d11_device: Option<ID3D11Device>,
+    pub(crate) dxgi_adapter: Option<IDXGIAdapter>,
+    pub(crate) d3d11_device: Option<ID3D11Device>,
+    #[cfg(feature = "wgpu")]
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
+}
+
+impl Debug for WindowsCaptureConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WindowsCaptureConfig").field("dxgi_adapter", &self.dxgi_adapter).field("d3d11_device", &self.d3d11_device).finish()
+    }
 }
 
 impl WindowsCaptureConfig {
@@ -41,6 +49,8 @@ impl WindowsCaptureConfig {
         Self {
             dxgi_adapter: None,
             d3d11_device: None,
+            #[cfg(feature = "wgpu")]
+            wgpu_device: None,
         }
     }
 }
@@ -238,6 +248,9 @@ impl WindowsCaptureStream {
         let mut t_first_frame = None;
         let mut t_last_frame = None;
 
+        #[cfg(feature = "wgpu")]
+        let callback_wgpu_device = config.impl_capture_config.wgpu_device;
+
         let frame_handler = TypedEventHandler::new(move |frame_pool: &Option<Direct3D11CaptureFramePool>, _: &Option<IInspectable>| {
             if frame_pool.is_none() {
                 return Ok(());
@@ -293,6 +306,8 @@ impl WindowsCaptureStream {
                 t_capture,
                 t_origin,
                 duration,
+                #[cfg(feature = "wgpu")]
+                wgpu_device: callback_wgpu_device.clone()
             };
             let video_frame = VideoFrame {
                 impl_video_frame
