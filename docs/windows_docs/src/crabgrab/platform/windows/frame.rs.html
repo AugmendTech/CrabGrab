@@ -103,7 +103,9 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{marker::PhantomData, time::Duration};
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{marker::PhantomData, sync::Arc, time::Duration};
 
 <span class="kw">use </span>windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
 
@@ -119,6 +121,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) t_capture    : std::time::Instant,
     <span class="kw">pub</span>(<span class="kw">crate</span>) t_origin     : std::time::Duration,
     <span class="kw">pub</span>(<span class="kw">crate</span>) duration     : std::time::Duration,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device  : <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 }
 
 <span class="kw">impl </span>VideoCaptureFrame <span class="kw">for </span>WindowsVideoFrame {

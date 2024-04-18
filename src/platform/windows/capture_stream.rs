@@ -87,6 +87,8 @@ pub struct WindowsCaptureStream {
     pub(crate) dxgi_adapter_error: Option<String>,
     pub(crate) dxgi_device: IDXGIDevice,
     pub(crate) d3d11_device: ID3D11Device,
+    #[cfg(feature = "wgpu")]
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
     pub(crate) frame_pool: Direct3D11CaptureFramePool,
     pub(crate) capture_session: GraphicsCaptureSession,
     should_couninit: bool,
@@ -269,7 +271,9 @@ impl WindowsCaptureStream {
         let mut t_last_frame = None;
 
         #[cfg(feature = "wgpu")]
-        let callback_wgpu_device = config.impl_capture_config.wgpu_device;
+        let callback_wgpu_device = config.impl_capture_config.wgpu_device.clone();
+        #[cfg(feature = "wgpu")]
+        let wgpu_device = config.impl_capture_config.wgpu_device.clone();
 
         let frame_handler = TypedEventHandler::new(move |frame_pool: &Option<Direct3D11CaptureFramePool>, _: &Option<IInspectable>| {
             if frame_pool.is_none() {
@@ -388,6 +392,8 @@ impl WindowsCaptureStream {
             dxgi_adapter_error,
             dxgi_device,
             d3d11_device,
+            #[cfg(feature = "wgpu")]
+            wgpu_device,
             frame_pool,
             capture_session,
             should_couninit,

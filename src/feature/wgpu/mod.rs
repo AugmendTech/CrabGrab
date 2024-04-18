@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 use std::sync::Arc;
 use std::{error::Error, fmt::Display};
 
@@ -51,7 +52,7 @@ impl WgpuCaptureConfigExt for CaptureConfig {
         {
             unsafe {
                 if let Some(d3d11_device) = 
-                    AsRef::as_ref(&*device).as_hal::<wgpu::hal::api::Dx12, _, _>(move |device| {
+                    AsRef::<wgpu::Device>::as_ref(&*wgpu_device).as_hal::<wgpu::hal::api::Dx12, _, _>(move |device| {
                         device.map(|device| {
                             device.raw_device().AddRef();
                             let raw_device_ptr = device.raw_device().as_mut_ptr() as *mut c_void;
@@ -85,7 +86,7 @@ impl WgpuCaptureConfigExt for CaptureConfig {
                         Ok(Self {
                             impl_capture_config: WindowsCaptureConfig {
                                 d3d11_device: Some(d3d11_device),
-                                wgpu_device: Some(device),
+                                wgpu_device: Some(wgpu_device),
                                 dxgi_adapter: Some(dxgi_adapter),
                                 ..self.impl_capture_config
                             },
@@ -303,11 +304,15 @@ pub trait WgpuCaptureStreamExt {
 impl WgpuCaptureStreamExt for CaptureStream {
     fn get_wgpu_device(&self) -> Option<&wgpu::Device> {
         #[cfg(target_os = "macos")]
-        self.impl_capture_stream.wgpu_device.as_ref().map(|wgpu_device| AsRef::<wgpu::Device>::as_ref(wgpu_device.as_ref()))
+        { self.impl_capture_stream.wgpu_device.as_ref().map(|wgpu_device| AsRef::<wgpu::Device>::as_ref(wgpu_device.as_ref())) }
+        #[cfg(target_os = "windows")]
+        { self.impl_capture_stream.wgpu_device.as_ref().map(|wgpu_device| AsRef::<wgpu::Device>::as_ref(wgpu_device.as_ref())) }
     }
 
     fn get_wgpu_device_wrapper(&self) -> Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>> {
         #[cfg(target_os = "macos")]
-        self.impl_capture_stream.wgpu_device.clone()
+        { self.impl_capture_stream.wgpu_device.clone() }
+        #[cfg(target_os = "windows")]
+        { self.impl_capture_stream.wgpu_device.clone() }
     }
 }

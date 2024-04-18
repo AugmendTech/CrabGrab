@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CaptureConfigError","CapturePixelFormat","StreamCreateError","StreamError","StreamEvent","StreamStopError"],"struct":["AudioCaptureConfig","CaptureConfig","CaptureStream"]};
+window.SIDEBAR_ITEMS = {"enum":["CaptureConfigError","CapturePixelFormat","StreamCreateError","StreamError","StreamEvent","StreamStopError"],"struct":["AudioCaptureConfig","CaptureAccessToken","CaptureConfig","CaptureStream"]};

@@ -385,12 +385,54 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use crate</span>::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
 
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
+<span class="kw">use </span>windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
 
 <span class="kw">use super</span>::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::WindowsVideoFrame, frame::WindowsAudioFrame};
 
@@ -417,10 +459,18 @@
 
 }
 
-<span class="attr">#[derive(Clone, Debug)]
+<span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>WindowsCaptureConfig {
-    dxgi_adapter: <span class="prelude-ty">Option</span>&lt;IDXGIAdapter&gt;,
-    d3d11_device: <span class="prelude-ty">Option</span>&lt;ID3D11Device&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter: <span class="prelude-ty">Option</span>&lt;IDXGIAdapter&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) d3d11_device: <span class="prelude-ty">Option</span>&lt;ID3D11Device&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
+}
+
+<span class="kw">impl </span>Debug <span class="kw">for </span>WindowsCaptureConfig {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"WindowsCaptureConfig"</span>).field(<span class="string">"dxgi_adapter"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.dxgi_adapter).field(<span class="string">"d3d11_device"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.d3d11_device).finish()
+    }
 }
 
 <span class="kw">impl </span>WindowsCaptureConfig {
@@ -428,6 +478,8 @@
         <span class="self">Self </span>{
             dxgi_adapter: <span class="prelude-val">None</span>,
             d3d11_device: <span class="prelude-val">None</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+            </span>wgpu_device: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -460,9 +512,12 @@
 }
 
 <span class="kw">pub struct </span>WindowsCaptureStream {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter: IDXGIAdapter,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter: <span class="prelude-ty">Option</span>&lt;IDXGIAdapter&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter_error: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_device: IDXGIDevice,
     <span class="kw">pub</span>(<span class="kw">crate</span>) d3d11_device: ID3D11Device,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_pool: Direct3D11CaptureFramePool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) capture_session: GraphicsCaptureSession,
     should_couninit: bool,
@@ -477,6 +532,17 @@
     audio_frame_id_counter: AtomicU64,
 }
 
+<span class="attr">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WindowsCaptureAccessToken {
+    borderless: bool,
+}
+
+<span class="kw">impl </span>WindowsCaptureAccessToken {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allows_borderless(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.borderless
+    }
+}
+
 <span class="kw">impl </span>WindowsCaptureStream {
     <span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[CapturePixelFormat] {
         <span class="kw-2">&amp;</span>[
@@ -485,7 +551,7 @@
         ]
     }
 
-    <span class="kw">pub fn </span>check_access(borderless: bool) -&gt; bool {
+    <span class="kw">pub fn </span>check_access(borderless: bool) -&gt; <span class="prelude-ty">Option</span>&lt;WindowsCaptureAccessToken&gt; {
         <span class="kw">let </span>graphics_capture_capability = HSTRING::from(<span class="string">"graphicsCaptureProgrammatic"</span>);
         <span class="kw">let </span>programmatic_access = AppCapability::Create(<span class="kw-2">&amp;</span>graphics_capture_capability).map(|capability| {
             <span class="kw">match </span>capability.CheckAccess() {
@@ -500,10 +566,14 @@
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             }
         }).unwrap_or(<span class="bool-val">true</span>);
-        programmatic_access &amp;&amp; (!borderless || borderless_access)
+        <span class="kw">if </span>programmatic_access &amp;&amp; (!borderless || borderless_access) {
+            <span class="prelude-val">Some</span>(WindowsCaptureAccessToken { borderless: borderless || borderless_access })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">pub async fn </span>request_access(borderless: bool) -&gt; bool {
+    <span class="kw">pub async fn </span>request_access(borderless: bool) -&gt; <span class="prelude-ty">Option</span>&lt;WindowsCaptureAccessToken&gt; {
         <span class="kw">let </span>access_kind = <span class="kw">if </span>borderless {
             GraphicsCaptureAccessKind::Borderless
         } <span class="kw">else </span>{
@@ -511,14 +581,14 @@
         };
         <span class="kw">match </span>GraphicsCaptureAccess::RequestAccessAsync(access_kind) {
             <span class="prelude-val">Ok</span>(access_future) =&gt; <span class="kw">match </span>access_future.<span class="kw">await </span>{
-                <span class="prelude-val">Ok</span>(AppCapabilityAccessStatus::Allowed) =&gt; <span class="bool-val">true</span>,
-                <span class="kw">_ </span>=&gt; <span class="bool-val">false
+                <span class="prelude-val">Ok</span>(AppCapabilityAccessStatus::Allowed) =&gt; <span class="prelude-val">Some</span>(WindowsCaptureAccessToken { borderless }),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None
             </span>},
-            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>create_d3d11_device(dxgi_adapter: IDXGIAdapter) -&gt; <span class="prelude-ty">Result</span>&lt;(IDXGIAdapter, ID3D11Device), StreamCreateError&gt; {
+    <span class="kw">fn </span>create_d3d11_device(dxgi_adapter: IDXGIAdapter) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;IDXGIAdapter&gt;, <span class="prelude-ty">Option</span>&lt;String&gt;, ID3D11Device), StreamCreateError&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>d3d11_device = <span class="prelude-val">None</span>;
             <span class="kw">let </span>d3d11_device_result = D3D11CreateDevice(
@@ -533,16 +603,17 @@
                 <span class="prelude-val">None
             </span>);
             <span class="kw">match </span>d3d11_device_result {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; d3d11_device.map_or_else(|| <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">"Failed to create ID3D11Device"</span>.into())), |x| <span class="prelude-val">Ok</span>((dxgi_adapter, x))),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; d3d11_device.map_or_else(|| <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">"Failed to create ID3D11Device"</span>.into())), |x| <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(dxgi_adapter), <span class="prelude-val">None</span>, x))),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="macro">format!</span>(<span class="string">"Failed to create d3d11 device"</span>)))
                 ,
             }
         }
     }
 
-    <span class="kw">pub fn </span>new(config: CaptureConfig, callback: Box&lt;<span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
+    <span class="kw">pub fn </span>new(token: WindowsCaptureAccessToken, config: CaptureConfig, callback: Box&lt;<span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
+        <span class="kw">let _ </span>= token;
         <span class="kw">let </span>should_couninit = <span class="kw">unsafe </span>{
-            CoInitializeEx(<span class="prelude-val">None</span>, COINIT_MULTITHREADED).is_ok()
+            CoInitializeEx(<span class="prelude-val">None</span>, COINIT_APARTMENTTHREADED).is_ok()
         };
         
         <span class="kw">let </span>pixel_format = <span class="kw">match </span>config.pixel_format {
@@ -560,17 +631,20 @@
             <span class="kw">match </span>config.target {
                 Capturable::Window(window) =&gt;
                     interop.CreateForWindow(window.impl_capturable_window.<span class="number">0</span>)
-                        .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to create graphics capture item from HWND"</span>.into()))<span class="question-mark">?</span>,
+                        .map_err(|e| StreamCreateError::Other(<span class="macro">format!</span>(<span class="string">"Failed to create graphics capture item from HWND: {}"</span>, e.to_string())))<span class="question-mark">?</span>,
                 Capturable::Display(display) =&gt; 
                     interop.CreateForMonitor(display.impl_capturable_display.<span class="number">0</span>)
                         .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to create graphics capture item from HMONITOR"</span>.into()))<span class="question-mark">?</span>,
             }
         };
 
-        <span class="kw">let </span>(dxgi_adapter, d3d11_device) = <span class="kw">match </span>(config.impl_capture_config.dxgi_adapter, config.impl_capture_config.d3d11_device) {
+        <span class="kw">let </span>(dxgi_adapter, dxgi_adapter_error, d3d11_device) = <span class="kw">match </span>(config.impl_capture_config.dxgi_adapter, config.impl_capture_config.d3d11_device) {
             (<span class="kw">_</span>, <span class="prelude-val">Some</span>(d3d11_device)) =&gt; {
-                <span class="kw">let </span>dxgi_adapter = d3d11_device.cast().map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to create IDXGIAdapter from ID3D11Device"</span>.into()))<span class="question-mark">?</span>;
-                (dxgi_adapter, d3d11_device)
+                <span class="kw">let </span>dxgi_adapter = d3d11_device.cast().map_err(|error| <span class="macro">format!</span>(<span class="string">"Failed to create IDXGIAdapter from ID3D11Device: {}"</span>, error.to_string()));
+                <span class="kw">match </span>dxgi_adapter {
+                    <span class="prelude-val">Ok</span>(dxgi_adapter) =&gt; (<span class="prelude-val">Some</span>(dxgi_adapter), <span class="prelude-val">None</span>, d3d11_device),
+                    <span class="prelude-val">Err</span>(dxgi_adapter_error) =&gt; (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(dxgi_adapter_error), d3d11_device)
+                }
             },
             (<span class="prelude-val">Some</span>(dxgi_adapter), <span class="prelude-val">None</span>) =&gt; <span class="self">Self</span>::create_d3d11_device(dxgi_adapter)<span class="question-mark">?</span>,
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
@@ -624,6 +698,11 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>t_first_frame = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>t_last_frame = <span class="prelude-val">None</span>;
+
+        <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+        </span><span class="kw">let </span>callback_wgpu_device = config.impl_capture_config.wgpu_device.clone();
+        <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+        </span><span class="kw">let </span>wgpu_device = config.impl_capture_config.wgpu_device.clone();
 
         <span class="kw">let </span>frame_handler = TypedEventHandler::new(<span class="kw">move </span>|frame_pool: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Direct3D11CaptureFramePool&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;IInspectable&gt;| {
             <span class="kw">if </span>frame_pool.is_none() {
@@ -680,6 +759,8 @@
                 t_capture,
                 t_origin,
                 duration,
+                <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+                </span>wgpu_device: callback_wgpu_device.clone()
             };
             <span class="kw">let </span>video_frame = VideoFrame {
                 impl_video_frame
@@ -737,8 +818,11 @@
 
         <span class="kw">let </span>stream = WindowsCaptureStream {
             dxgi_adapter,
+            dxgi_adapter_error,
             dxgi_device,
             d3d11_device,
+            <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+            </span>wgpu_device,
             frame_pool,
             capture_session,
             should_couninit,

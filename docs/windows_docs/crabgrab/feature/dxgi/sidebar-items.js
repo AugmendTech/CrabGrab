@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["WindowsDxgiVideoFrameError"],"trait":["WindowsDxgiCaptureStream","WindowsDxgiVideoFrame"]};
+window.SIDEBAR_ITEMS = {"enum":["WindowsDxgiCaptureStreamError","WindowsDxgiVideoFrameError"],"trait":["WindowsDxgiCaptureStream","WindowsDxgiVideoFrame"]};

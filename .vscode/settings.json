@@ -1,4 +1,4 @@
 {
-    "rust-analyzer.check.features": ["dxgi", "dx11", "bitmap", "metal","iosurface", "content_picker", "screenshot", "wgpu"],
-    "rust-analyzer.cargo.features": ["dxgi", "dx11", "bitmap", "metal","iosurface", "content_picker", "screenshot", "wgpu"],
+    "rust-analyzer.check.features": ["dxgi", "dx11", "bitmap", "metal","iosurface", "screenshot", "wgpu"],
+    "rust-analyzer.cargo.features": ["dxgi", "dx11", "bitmap", "metal","iosurface", "screenshot", "wgpu"],
 }
