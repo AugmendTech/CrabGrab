@@ -108,6 +108,9 @@ pub(crate) struct WindowsCaptureAccessToken {
     borderless: bool,
 }
 
+unsafe impl Send for WindowsCaptureAccessToken {}
+unsafe impl Sync for WindowsCaptureAccessToken {}
+
 impl WindowsCaptureAccessToken {
     pub(crate) fn allows_borderless(&self) -> bool {
         self.borderless

@@ -139,6 +139,9 @@ impl MacosAudioCaptureConfigExt for AudioCaptureConfig {
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct MacosCaptureAccessToken();
 
+unsafe impl Send for MacosCaptureAccessToken {}
+unsafe impl Sync for MacosCaptureAccessToken {}
+
 impl MacosCaptureAccessToken {
     pub(crate) fn allows_borderless(&self) -> bool {
         true

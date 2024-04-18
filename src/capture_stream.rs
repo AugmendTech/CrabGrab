@@ -289,6 +289,9 @@ pub struct CaptureAccessToken {
     pub(crate) impl_capture_access_token: ImplCaptureAccessToken
 }
 
+unsafe impl Send for CaptureAccessToken {}
+unsafe impl Sync for CaptureAccessToken {}
+
 impl CaptureAccessToken {
     pub fn allows_borderless(&self) -> bool {
         self.impl_capture_access_token.allows_borderless()
