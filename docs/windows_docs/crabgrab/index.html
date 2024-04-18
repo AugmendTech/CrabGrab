@@ -22,10 +22,10 @@
 <span class="comment">// run our capture code in an async context
 </span><span class="kw">let </span>future = runtime.spawn(<span class="kw">async </span>{
     <span class="comment">// ensure we have priveleges to capture content
-    </span><span class="kw">if </span>!CaptureStream::test_access(<span class="bool-val">false</span>) {
-        CaptureStream::request_access(<span class="bool-val">false</span>).<span class="kw">await</span>;
-        <span class="macro">println!</span>(<span class="string">"Approve access and run again!"</span>);
-    }
+    </span><span class="kw">let </span>token = <span class="kw">match </span>CaptureStream::test_access(<span class="bool-val">false</span>) {
+        <span class="prelude-val">Some</span>(token) =&gt; token,
+        <span class="prelude-val">None </span>=&gt; CaptureStream::request_access(<span class="bool-val">false</span>).<span class="kw">await</span>.expect(<span class="string">"Expected capture access"</span>)
+    };
     <span class="comment">// create a filter for the windows we're interested in capturing
     </span><span class="kw">let </span>window_filter = CapturableWindowFilter {
         desktop_windows: <span class="bool-val">false</span>,
@@ -46,7 +46,7 @@
             <span class="comment">// create a captuere config using the first supported pixel format
             </span><span class="kw">let </span>config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[<span class="number">0</span>]).unwrap();
             <span class="comment">// create a capture stream with an event handler callback
-            </span><span class="kw">let </span><span class="kw-2">mut </span>stream = CaptureStream::new(config, |stream_event| {
+            </span><span class="kw">let </span><span class="kw-2">mut </span>stream = CaptureStream::new(token, config, |stream_event| {
                 <span class="kw">match </span>stream_event {
                     <span class="prelude-val">Ok</span>(event) =&gt; {
                         <span class="kw">match </span>event {
