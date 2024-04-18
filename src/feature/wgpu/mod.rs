@@ -28,25 +28,25 @@ pub trait WgpuCaptureConfigExt: Sized {
 }
 
 impl WgpuCaptureConfigExt for CaptureConfig {
-    fn with_wgpu_device(self, wgpu_device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String> {
+    fn with_wgpu_device(self, device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String> {
         #[cfg(target_os = "macos")]
         {
             unsafe {
-                let device = AsRef::as_ref(&*wgpu_device).as_hal::<wgpu::hal::api::Metal, _, _>(move |device| {
+                let device = AsRef::as_ref(&*device).as_hal::<wgpu::hal::api::Metal, _, _>(move |device| {
                     if let Some(device) = device {
                         Some(device.raw_device().lock().clone())
                     } else {
                         None
                     }
-                }).flatten().expect("Expected metal device underneath wgpu");
-                Ok(Self {
+                }).expect("Expected metal device underneath wgpu");
+                Self {
                     impl_capture_config: MacosCaptureConfig {
-                        metal_device: Some(device),
-                        wgpu_device: Some(wgpu_device),
+                        metal_device: device,
+                        wgpu_device: 
                         ..self.impl_capture_config
                     },
                     ..self
-                })
+                }
             }
         }
         #[cfg(target_os = "windows")]
@@ -218,7 +218,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                             metal_texture.mipmap_level_count() as u32,
                             wgpu::hal::CopyExtent { width: metal_texture.width() as u32, height: metal_texture.height() as u32, depth: metal_texture.depth() as u32 }
                         );
-                        Ok((&*wgpu_device).as_ref().create_texture_from_hal::<wgpu::hal::api::Metal>(wgpu_metal_texture, &descriptor))
+                        Ok(wgpu_device.create_texture_from_hal::<wgpu::hal::api::Metal>(wgpu_metal_texture, &descriptor))
                     }
                 },
                 Err(MacosVideoFrameError::InvalidVideoPlaneTexture) => Err(WgpuVideoFrameError::InvalidVideoPlaneTexture),
