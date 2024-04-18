@@ -26,10 +26,10 @@
 //! // run our capture code in an async context
 //! let future = runtime.spawn(async {
 //!     // ensure we have priveleges to capture content
-//!     if !CaptureStream::test_access(false) {
-//!         CaptureStream::request_access(false).await;
-//!         println!("Approve access and run again!");
-//!     }
+//!     let token = match CaptureStream::test_access(false) {
+//!         Some(token) => token,
+//!         None => CaptureStream::request_access(false).await.expect("Expected capture access")
+//!     };
 //!     // create a filter for the windows we're interested in capturing
 //!     let window_filter = CapturableWindowFilter {
 //!         desktop_windows: false,
@@ -50,7 +50,7 @@
 //!             // create a captuere config using the first supported pixel format
 //!             let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[0]).unwrap();
 //!             // create a capture stream with an event handler callback
-//!             let mut stream = CaptureStream::new(config, |stream_event| {
+//!             let mut stream = CaptureStream::new(token, config, |stream_event| {
 //!                 match stream_event {
 //!                     Ok(event) => {
 //!                         match event {
