@@ -9,6 +9,10 @@ use crate::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVid
 use crate::feature::metal::*;
 #[cfg(target_os = "macos")]
 use metal::MTLTextureUsage;
+use winapi::um::unknwnbase::IUnknown;
+use windows::Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_0;
+use windows::Win32::Graphics::Direct3D11::ID3D11Device;
+use windows::Win32::Graphics::Dxgi::IDXGIDevice;
 
 #[cfg(target_os = "windows")]
 use crate::platform::windows::capture_stream::WindowsCaptureConfig;
@@ -16,6 +20,8 @@ use crate::platform::windows::capture_stream::WindowsCaptureConfig;
 use crate::feature::dx11::*;
 #[cfg(target_os = "windows")]
 use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Direct3D11on12::ID3D11On12Device2, Direct3D11::ID3D11Texture2D, Direct3D::D3D_FEATURE_LEVEL_11_1, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
+
+use super::dxgi;
 
 pub trait WgpuCaptureConfigExt: Sized {
     fn with_wgpu_device(self, device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String>;
@@ -49,17 +55,19 @@ impl WgpuCaptureConfigExt for CaptureConfig {
                 if let Some(d3d11_device) = 
                     AsRef::as_ref(&*device).as_hal::<wgpu::hal::api::Dx12, _, _>(move |device| {
                         device.map(|device| {
+                            device.raw_device().AddRef();
                             let raw_device_ptr = device.raw_device().as_mut_ptr() as *mut c_void;
                             let d3d12_device = ID3D12Device::from_raw_borrowed(&raw_device_ptr).unwrap();
+                            device.raw_queue().AddRef();
                             let raw_queue_ptr = device.raw_queue().as_mut_ptr() as *mut c_void;
                             let d3d12_queue = ID3D12CommandQueue::from_raw_borrowed(&raw_queue_ptr).unwrap().to_owned();
                             let d3d12_queue_iunknown = d3d12_queue.cast().unwrap();
-                            let mut d3d11_device = None;
+                            let mut d3d11_device: Option<ID3D11Device> = None;
                             let mut d3d11_device_context = None;
                             D3D11On12CreateDevice(
                                 d3d12_device,
                                 D3D11_CREATE_DEVICE_BGRA_SUPPORT.0,
-                                Some(&[D3D_FEATURE_LEVEL_11_1]),
+                                Some(&[D3D_FEATURE_LEVEL_12_0]),
                                 Some(&[Some(d3d12_queue_iunknown)]),
                                 0,
                                 Some(&mut d3d11_device as *mut _),
@@ -69,13 +77,22 @@ impl WgpuCaptureConfigExt for CaptureConfig {
                             Result::<_, String>::Ok(d3d11_device.unwrap())
                         })
                     }).flatten() {
-                    Ok(Self {
-                        impl_capture_config: WindowsCaptureConfig {
-                            d3d11_device: Some(d3d11_device?),
-                            ..self.impl_capture_config
-                        },
-                        ..self
-                    })
+                        let d3d11_device = d3d11_device?;
+                        let d3d11on12_device: ID3D11On12Device2 = d3d11_device.cast()
+                            .map_err(|error| format!("Failed to cast d3d11 device to d3d11on12 device: {}", error.to_string()))?;
+                        let dxgi_device: IDXGIDevice = d3d11on12_device.cast()
+                            .map_err(|error| format!("Failed to cast d3d11on12 device to dxgi device: {}", error.to_string()))?;
+                        let dxgi_adapter = dxgi_device.GetAdapter()
+                            .map_err(|error| format!("Failed to get to dxgi adapter: {}", error.to_string()))?;
+                        Ok(Self {
+                            impl_capture_config: WindowsCaptureConfig {
+                                d3d11_device: Some(d3d11_device),
+                                wgpu_device: Some(device),
+                                dxgi_adapter: Some(dxgi_adapter),
+                                ..self.impl_capture_config
+                            },
+                            ..self
+                        })
                 } else {
                     Err("Unimplemented for wgpu's vulkan backend".into())
                 }   

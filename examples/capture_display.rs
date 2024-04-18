@@ -4,17 +4,15 @@ use crabgrab::prelude::*;
 
 #[tokio::main]
 async fn main() { 
-    if !CaptureStream::test_access(false) {
-        if !CaptureStream::request_access(false).await {
-            println!("Failed to get access!");
-            return;
-        };
-    }
+    let token = match CaptureStream::test_access(false) {
+        Some(token) => token,
+        None => CaptureStream::request_access(false).await.expect("Expected capture access")
+    };
     let filter = CapturableContentFilter { windows: None, displays: true };
     let content = CapturableContent::new(filter).await.unwrap();
     let config = CaptureConfig::with_display(content.displays().next().unwrap(), CapturePixelFormat::Bgra8888);
 
-    let mut stream = CaptureStream::new(config, |result| {
+    let mut stream = CaptureStream::new(token, config, |result| {
         println!("result: {:?}", result);
     }).unwrap();
 

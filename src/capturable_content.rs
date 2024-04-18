@@ -60,6 +60,43 @@ impl CapturableContentFilter {
             self.displays
         )
     }
+
+    pub const DISPLAYS: Self = CapturableContentFilter {
+        windows: None,
+        displays: true,
+    };
+
+    pub const ALL_WINDOWS: Self = CapturableContentFilter {
+        windows: Some(CapturableWindowFilter {
+            desktop_windows: true,
+            onscreen_only: false,
+        }),
+        displays: false,
+    };
+
+    pub const EVERYTHING: Self = CapturableContentFilter {
+        windows: Some(CapturableWindowFilter {
+            desktop_windows: true,
+            onscreen_only: false,
+        }),
+        displays: true,
+    };
+
+    pub const NORMAL_WINDOWS: Self = CapturableContentFilter {
+        windows: Some(CapturableWindowFilter {
+            desktop_windows: false,
+            onscreen_only: true
+        }),
+        displays: false,
+    };
+
+    pub const EVERYTHING_NORMAL: Self = CapturableContentFilter {
+        windows: Some(CapturableWindowFilter {
+            desktop_windows: false,
+            onscreen_only: true,
+        }),
+        displays: true,
+    };
 }
 
 pub struct CapturableContent {

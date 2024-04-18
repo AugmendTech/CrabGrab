@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "Launch example feature__wgpu",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/examples/feature_wgpu",
+            "args": [],
+        }
+    ],
+}

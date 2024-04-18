@@ -2,12 +2,12 @@ use futures::channel::oneshot;
 
 use crate::feature::screenshot::ScreenshotError;
 use crate::frame::VideoFrame;
-use crate::prelude::{CaptureConfig, CaptureStream, StreamEvent};
+use crate::prelude::{CaptureConfig, CaptureStream, StreamEvent, CaptureAccessToken};
 
-pub async fn take_screenshot(config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
+pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
     let (tx, rx) = oneshot::channel();
     let mut tx = Some(tx);
-    let mut capture_stream = CaptureStream::new(config, move |event_result| {
+    let mut capture_stream = CaptureStream::new(token, config, move |event_result| {
         match event_result {
             Ok(StreamEvent::Video(frame)) => {
                 if let Some(tx) = tx.take() {

@@ -3,10 +3,10 @@ use futures::executor::block_on;
  
 fn main() { 
     block_on(async {
-        if !CaptureStream::test_access(false) {
-            CaptureStream::request_access(false).await;
-            println!("Approve access and run again!");
-        }
+        let token = match CaptureStream::test_access(false) {
+            Some(token) => token,
+            None => CaptureStream::request_access(false).await.expect("Expected capture access")
+        };
         let window_filter = CapturableWindowFilter {
             desktop_windows: false,
             onscreen_only: true,
@@ -21,7 +21,7 @@ fn main() {
             Some(window) => {
                 println!("screenshotting window: {}", window.title()); 
                 let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[0]).unwrap();
-                match crabgrab::feature::screenshot::take_screenshot(config).await {
+                match crabgrab::feature::screenshot::take_screenshot(token, config).await {
                     Ok(frame) => { 
                         println!("Got frame: {}", frame.frame_id());
                         match frame.get_bitmap() {

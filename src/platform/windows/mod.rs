@@ -13,15 +13,16 @@ impl Drop for AutoHandle {
     }
 }
 
-pub use capturable_content::WindowsCapturableApplication as ImplCapturableApplication;
-pub use capturable_content::WindowsCapturableDisplay as ImplCapturableDisplay;
-pub use capturable_content::WindowsCapturableWindow as ImplCapturableWindow;
-pub use capturable_content::WindowsCapturableContent as ImplCapturableContent;
+pub(crate) use capturable_content::WindowsCapturableApplication as ImplCapturableApplication;
+pub(crate) use capturable_content::WindowsCapturableDisplay as ImplCapturableDisplay;
+pub(crate) use capturable_content::WindowsCapturableWindow as ImplCapturableWindow;
+pub(crate) use capturable_content::WindowsCapturableContent as ImplCapturableContent;
 
-pub use capture_stream::WindowsCaptureStream as ImplCaptureStream;
-pub use capture_stream::WindowsCaptureConfig as ImplCaptureConfig;
-pub use capture_stream::WindowsAudioCaptureConfig as ImplAudioCaptureConfig;
-pub use capture_stream::WindowsPixelFormat as ImplPixelFormat;
+pub(crate) use capture_stream::WindowsCaptureStream as ImplCaptureStream;
+pub(crate) use capture_stream::WindowsCaptureConfig as ImplCaptureConfig;
+pub(crate) use capture_stream::WindowsAudioCaptureConfig as ImplAudioCaptureConfig;
+pub(crate) use capture_stream::WindowsPixelFormat as ImplPixelFormat;
+pub(crate) use capture_stream::WindowsCaptureAccessToken as ImplCaptureAccessToken;
 
-pub use frame::WindowsVideoFrame as ImplVideoFrame;
-pub use frame::WindowsAudioFrame as ImplAudioFrame;
+pub(crate) use frame::WindowsVideoFrame as ImplVideoFrame;
+pub(crate) use frame::WindowsAudioFrame as ImplAudioFrame;

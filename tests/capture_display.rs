@@ -6,10 +6,10 @@ use parking_lot::Mutex;
 
 #[tokio::test]
 async fn capture_display() {
-    if !CaptureStream::test_access(false) {
-        let has_permission = CaptureStream::request_access(false).await;
-        assert!(has_permission);
-    }
+    let token = match CaptureStream::test_access(false) {
+        Some(token) => token,
+        None => CaptureStream::request_access(false).await.expect("Expected capture access")
+    };
     let content_filter = CapturableContentFilter {
         windows: None,
         displays: true
@@ -27,7 +27,7 @@ async fn capture_display() {
     let config = CaptureConfig::with_display(display, CapturePixelFormat::Bgra8888);
     let (tx, rx) = oneshot::channel();
     let tx = Arc::new(Mutex::new(Some(tx)));
-    let new_stream_result = CaptureStream::new(config, move |result| {
+    let new_stream_result = CaptureStream::new(token, config, move |result| {
         println!("stream result: {:?}", result);
         if let Some(tx) = tx.lock().take() {
             match result {

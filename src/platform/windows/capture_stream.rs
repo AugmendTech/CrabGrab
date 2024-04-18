@@ -3,7 +3,7 @@ use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, I
 use crate::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
 
 use parking_lot::Mutex;
-use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
+use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
 
 use super::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::WindowsVideoFrame, frame::WindowsAudioFrame};
 
@@ -83,7 +83,8 @@ impl WindowsCaptureConfigExt for CaptureConfig {
 }
 
 pub struct WindowsCaptureStream {
-    pub(crate) dxgi_adapter: IDXGIAdapter,
+    pub(crate) dxgi_adapter: Option<IDXGIAdapter>,
+    pub(crate) dxgi_adapter_error: Option<String>,
     pub(crate) dxgi_device: IDXGIDevice,
     pub(crate) d3d11_device: ID3D11Device,
     pub(crate) frame_pool: Direct3D11CaptureFramePool,
@@ -100,6 +101,17 @@ pub(crate) struct SharedHandlerData {
     audio_frame_id_counter: AtomicU64,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct WindowsCaptureAccessToken {
+    borderless: bool,
+}
+
+impl WindowsCaptureAccessToken {
+    pub(crate) fn allows_borderless(&self) -> bool {
+        self.borderless
+    }
+}
+
 impl WindowsCaptureStream {
     pub fn supported_pixel_formats() -> &'static [CapturePixelFormat] {
         &[
@@ -108,7 +120,7 @@ impl WindowsCaptureStream {
         ]
     }
 
-    pub fn check_access(borderless: bool) -> bool {
+    pub fn check_access(borderless: bool) -> Option<WindowsCaptureAccessToken> {
         let graphics_capture_capability = HSTRING::from("graphicsCaptureProgrammatic");
         let programmatic_access = AppCapability::Create(&graphics_capture_capability).map(|capability| {
             match capability.CheckAccess() {
@@ -123,10 +135,14 @@ impl WindowsCaptureStream {
                 _ => false,
             }
         }).unwrap_or(true);
-        programmatic_access && (!borderless || borderless_access)
+        if programmatic_access && (!borderless || borderless_access) {
+            Some(WindowsCaptureAccessToken { borderless: borderless || borderless_access })
+        } else {
+            None
+        }
     }
 
-    pub async fn request_access(borderless: bool) -> bool {
+    pub async fn request_access(borderless: bool) -> Option<WindowsCaptureAccessToken> {
         let access_kind = if borderless {
             GraphicsCaptureAccessKind::Borderless
         } else {
@@ -134,14 +150,14 @@ impl WindowsCaptureStream {
         };
         match GraphicsCaptureAccess::RequestAccessAsync(access_kind) {
             Ok(access_future) => match access_future.await {
-                Ok(AppCapabilityAccessStatus::Allowed) => true,
-                _ => false
+                Ok(AppCapabilityAccessStatus::Allowed) => Some(WindowsCaptureAccessToken { borderless }),
+                _ => None
             },
-            _ => false,
+            _ => None,
         }
     }
 
-    fn create_d3d11_device(dxgi_adapter: IDXGIAdapter) -> Result<(IDXGIAdapter, ID3D11Device), StreamCreateError> {
+    fn create_d3d11_device(dxgi_adapter: IDXGIAdapter) -> Result<(Option<IDXGIAdapter>, Option<String>, ID3D11Device), StreamCreateError> {
         unsafe {
             let mut d3d11_device = None;
             let d3d11_device_result = D3D11CreateDevice(
@@ -156,16 +172,17 @@ impl WindowsCaptureStream {
                 None
             );
             match d3d11_device_result {
-                Ok(_) => d3d11_device.map_or_else(|| Err(StreamCreateError::Other("Failed to create ID3D11Device".into())), |x| Ok((dxgi_adapter, x))),
+                Ok(_) => d3d11_device.map_or_else(|| Err(StreamCreateError::Other("Failed to create ID3D11Device".into())), |x| Ok((Some(dxgi_adapter), None, x))),
                 Err(e) => Err(StreamCreateError::Other(format!("Failed to create d3d11 device")))
                 ,
             }
         }
     }
 
-    pub fn new(config: CaptureConfig, callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+    pub fn new(token: WindowsCaptureAccessToken, config: CaptureConfig, callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+        let _ = token;
         let should_couninit = unsafe {
-            CoInitializeEx(None, COINIT_MULTITHREADED).is_ok()
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).is_ok()
         };
         
         let pixel_format = match config.pixel_format {
@@ -190,10 +207,13 @@ impl WindowsCaptureStream {
             }
         };
 
-        let (dxgi_adapter, d3d11_device) = match (config.impl_capture_config.dxgi_adapter, config.impl_capture_config.d3d11_device) {
+        let (dxgi_adapter, dxgi_adapter_error, d3d11_device) = match (config.impl_capture_config.dxgi_adapter, config.impl_capture_config.d3d11_device) {
             (_, Some(d3d11_device)) => {
-                let dxgi_adapter = d3d11_device.cast().map_err(|_| StreamCreateError::Other("Failed to create IDXGIAdapter from ID3D11Device".into()))?;
-                (dxgi_adapter, d3d11_device)
+                let dxgi_adapter = d3d11_device.cast().map_err(|error| format!("Failed to create IDXGIAdapter from ID3D11Device: {}", error.to_string()));
+                match dxgi_adapter {
+                    Ok(dxgi_adapter) => (Some(dxgi_adapter), None, d3d11_device),
+                    Err(dxgi_adapter_error) => (None, Some(dxgi_adapter_error), d3d11_device)
+                }
             },
             (Some(dxgi_adapter), None) => Self::create_d3d11_device(dxgi_adapter)?,
             (None, None) => {
@@ -365,6 +385,7 @@ impl WindowsCaptureStream {
 
         let stream = WindowsCaptureStream {
             dxgi_adapter,
+            dxgi_adapter_error,
             dxgi_device,
             d3d11_device,
             frame_pool,

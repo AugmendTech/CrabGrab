@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::{error::Error, fmt::Display};
 
-use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplCaptureConfig, ImplCaptureStream};
+use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplCaptureAccessToken, ImplCaptureConfig, ImplCaptureStream};
 use crate::capturable_content::Capturable;
 use crate::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoFrame};
 use crate::util::{Point, Rect, Size};
@@ -283,15 +283,35 @@ pub struct CaptureStream {
 
 unsafe impl Send for CaptureStream {}
 
+/// Represents programatic capture access
+#[derive(Clone, Copy, Debug)]
+pub struct CaptureAccessToken {
+    pub(crate) impl_capture_access_token: ImplCaptureAccessToken
+}
+
+impl CaptureAccessToken {
+    pub fn allows_borderless(&self) -> bool {
+        self.impl_capture_access_token.allows_borderless()
+    }
+}
+
 impl CaptureStream {
     /// Test whether the calling application has permission to capture content
-    pub fn test_access(borderless: bool) -> bool {
-        ImplCaptureStream::check_access(borderless)
+    pub fn test_access(borderless: bool) -> Option<CaptureAccessToken> {
+        ImplCaptureStream::check_access(borderless).map(|impl_capture_access_token|
+            CaptureAccessToken {
+                impl_capture_access_token
+            }
+        )
     }
 
     /// Prompt the user for permission to capture content
-    pub async fn request_access(borderless: bool) -> bool {
-        ImplCaptureStream::request_access(borderless).await
+    pub async fn request_access(borderless: bool) -> Option<CaptureAccessToken> {
+        ImplCaptureStream::request_access(borderless).await.map(|impl_capture_access_token|
+            CaptureAccessToken {
+                impl_capture_access_token
+            }
+        )
     }
 
     /// Gets the implementation's supported pixel formats
@@ -302,10 +322,10 @@ impl CaptureStream {
     }
 
     /// Start a new capture stream with the given stream callback
-    pub fn new(config: CaptureConfig, callback: impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static) -> Result<Self, StreamCreateError> {
+    pub fn new(token: CaptureAccessToken, config: CaptureConfig, callback: impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static) -> Result<Self, StreamCreateError> {
         let boxed_callback = Box::new(callback);
         Ok(Self {
-            impl_capture_stream: ImplCaptureStream::new(config, boxed_callback)?
+            impl_capture_stream: ImplCaptureStream::new(token.impl_capture_access_token, config, boxed_callback)?
         })
     }
 
