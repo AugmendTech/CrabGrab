@@ -465,6 +465,9 @@
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use </span>futures::executor::block_on;
@@ -605,6 +608,9 @@
 
 <span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCaptureAccessToken();
+
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>MacosCaptureAccessToken {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>MacosCaptureAccessToken {}
 
 <span class="kw">impl </span>MacosCaptureAccessToken {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allows_borderless(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
