@@ -684,6 +684,12 @@ impl SCWindow {
             SCRunningApplication::from_id_unretained(scra_id)
         }
     }
+
+    pub(crate) fn on_screen(&self) -> bool {
+        unsafe {
+            msg_send![self.0, onScreen]
+        }
+    }
 }
 
 unsafe impl Encode for SCWindow {

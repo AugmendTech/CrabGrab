@@ -75,6 +75,10 @@ impl MacosCapturableWindow {
             running_application: self.window.owning_application()
         }
     }
+
+    pub fn is_visible(&self) -> bool {
+        self.window.on_screen()
+    }
 }
 
 impl Debug for MacosCapturableWindow {

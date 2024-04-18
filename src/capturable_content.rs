@@ -217,6 +217,11 @@ impl CapturableWindow {
             impl_capturable_application: self.impl_capturable_window.application()
         }
     }
+
+    /// Checks whether an application is visible (on-screen, not minimized)
+    pub fn is_visible(&self) -> bool {
+        self.impl_capturable_window.is_visible()
+    }
 }
 
 /// Represents a capturable display
