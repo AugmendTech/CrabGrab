@@ -9,44 +9,40 @@ use crate::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVid
 use crate::feature::metal::*;
 #[cfg(target_os = "macos")]
 use metal::MTLTextureUsage;
-use winapi::um::unknwnbase::IUnknown;
-use windows::Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_0;
-use windows::Win32::Graphics::Direct3D11::ID3D11Device;
-use windows::Win32::Graphics::Dxgi::IDXGIDevice;
 
 #[cfg(target_os = "windows")]
 use crate::platform::windows::capture_stream::WindowsCaptureConfig;
 #[cfg(target_os = "windows")]
 use crate::feature::dx11::*;
 #[cfg(target_os = "windows")]
-use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Direct3D11on12::ID3D11On12Device2, Direct3D11::ID3D11Texture2D, Direct3D::D3D_FEATURE_LEVEL_11_1, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
-
-use super::dxgi;
+use crate::feature::dxgi::*;
+#[cfg(target_os = "windows")]
+use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Dxgi::IDXGIDevice, Direct3D11on12::ID3D11On12Device2, Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
 
 pub trait WgpuCaptureConfigExt: Sized {
     fn with_wgpu_device(self, device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String>;
 }
 
 impl WgpuCaptureConfigExt for CaptureConfig {
-    fn with_wgpu_device(self, device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String> {
+    fn with_wgpu_device(self, wgpu_device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String> {
         #[cfg(target_os = "macos")]
         {
             unsafe {
-                let device = AsRef::as_ref(&*device).as_hal::<wgpu::hal::api::Metal, _, _>(move |device| {
+                let device = AsRef::<wgpu::Device>::as_ref(&*wgpu_device).as_hal::<wgpu::hal::api::Metal, _, _>(move |device| {
                     if let Some(device) = device {
                         Some(device.raw_device().lock().clone())
                     } else {
                         None
                     }
                 }).expect("Expected metal device underneath wgpu");
-                Self {
+                Ok(Self {
                     impl_capture_config: MacosCaptureConfig {
                         metal_device: device,
-                        wgpu_device: 
+                        wgpu_device: Some(wgpu_device.clone()),
                         ..self.impl_capture_config
                     },
                     ..self
-                }
+                })
             }
         }
         #[cfg(target_os = "windows")]
@@ -190,6 +186,11 @@ impl WgpuVideoFrameExt for VideoFrame {
                             format: match metal_texture.pixel_format() {
                                 metal::MTLPixelFormat::BGRA8Unorm => wgpu::TextureFormat::Bgra8Unorm,
                                 metal::MTLPixelFormat::BGRA8Unorm_sRGB => wgpu::TextureFormat::Bgra8UnormSrgb,
+                                metal::MTLPixelFormat::RGBA8Sint => wgpu::TextureFormat::Rgba8Sint,
+                                metal::MTLPixelFormat::RGBA8Uint => wgpu::TextureFormat::Rgba8Uint,
+                                metal::MTLPixelFormat::RGBA8Unorm => wgpu::TextureFormat::Rgba8Unorm,
+                                metal::MTLPixelFormat::RGBA8Unorm_sRGB => wgpu::TextureFormat::Rgba8UnormSrgb,
+                                metal::MTLPixelFormat::RGBA8Snorm => wgpu::TextureFormat::Rgba8Snorm,
                                 metal::MTLPixelFormat::RGB10A2Uint => wgpu::TextureFormat::Rgb10a2Uint,
                                 metal::MTLPixelFormat::RGB10A2Unorm => wgpu::TextureFormat::Rgb10a2Unorm,
                                 metal::MTLPixelFormat::RG8Sint => wgpu::TextureFormat::Rg8Sint,
@@ -200,7 +201,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                                 metal::MTLPixelFormat::R8Snorm => wgpu::TextureFormat::R8Snorm,
                                 metal::MTLPixelFormat::R8Uint => wgpu::TextureFormat::R8Uint,
                                 metal::MTLPixelFormat::R8Unorm => wgpu::TextureFormat::R8Unorm,
-                                _ => return Err(WgpuVideoFrameError::Other("Unsupported metal texture format".to_string())),
+                                _ => return Err(WgpuVideoFrameError::Other(format!("Unsupported metal texture format: {:?}", metal_texture.pixel_format()))),
                             },
                             usage: {
                                 let metal_usage = metal_texture.usage();
@@ -218,7 +219,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                             metal_texture.mipmap_level_count() as u32,
                             wgpu::hal::CopyExtent { width: metal_texture.width() as u32, height: metal_texture.height() as u32, depth: metal_texture.depth() as u32 }
                         );
-                        Ok(wgpu_device.create_texture_from_hal::<wgpu::hal::api::Metal>(wgpu_metal_texture, &descriptor))
+                        Ok((&*wgpu_device).as_ref().create_texture_from_hal::<wgpu::hal::api::Metal>(wgpu_metal_texture, &descriptor))
                     }
                 },
                 Err(MacosVideoFrameError::InvalidVideoPlaneTexture) => Err(WgpuVideoFrameError::InvalidVideoPlaneTexture),

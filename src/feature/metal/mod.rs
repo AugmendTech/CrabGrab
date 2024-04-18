@@ -106,7 +106,7 @@ impl MetalVideoFrame for VideoFrame {
                     let device_ref = metal_device.as_ref().unwrap().as_ref();
                     let texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
-                    texture_descriptor.set_pixel_format(metal::MTLPixelFormat::RGBA8Unorm);
+                    texture_descriptor.set_pixel_format(metal::MTLPixelFormat::BGRA8Unorm);
                     texture_descriptor.set_width(iosurface.get_width() as u64);
                     texture_descriptor.set_height(iosurface.get_height() as u64);
                     texture_descriptor.set_sample_count(1);

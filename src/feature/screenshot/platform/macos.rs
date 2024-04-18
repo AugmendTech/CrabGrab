@@ -6,10 +6,11 @@ use crate::frame::VideoFrame;
 use crate::platform::macos::frame::{MacosSCStreamVideoFrame, MacosVideoFrame};
 use crate::platform::macos::objc_wrap::{CGPoint, CGRect, CGSize, NSArray, SCContentFilter, SCScreenshotManager, SCStreamColorMatrix, SCStreamConfiguration, SCStreamPixelFormat};
 use crate::platform::platform_impl::objc_wrap::CGMainDisplayID;
-use crate::prelude::{Capturable, CaptureConfig, CapturePixelFormat};
+use crate::prelude::{Capturable, CaptureAccessToken, CaptureConfig, CapturePixelFormat};
 
 // Take a screenshot of the capturable content given a configuration
-pub async fn take_screenshot(config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
+pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
+    let _ = token;
     // Force core graphics initialization
     unsafe { CGMainDisplayID() };
     let mut stream_config = SCStreamConfiguration::new();

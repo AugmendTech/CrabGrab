@@ -24,7 +24,10 @@ fn main() {
             None => CaptureStream::request_access(false).await.expect("Expected capture access")
         };
         let wgpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            #[cfg(target_os = "windows")]
             backends: wgpu::Backends::DX12,
+            #[cfg(target_os = "macos")]
+            backends: wgpu::Backends::METAL,
             flags: wgpu::InstanceFlags::default(),
             dx12_shader_compiler: wgpu::Dx12Compiler::default(),
             gles_minor_version: wgpu::Gles3MinorVersion::default(),
@@ -49,8 +52,8 @@ fn main() {
         let display = content.displays().next()
             .expect("Expected at least one capturable display");
         let config = CaptureConfig::with_display(display, CapturePixelFormat::Bgra8888)
-            //.with_wgpu_device(gfx.clone())
-            ;//.expect("Expected config with wgpu device");
+            .with_wgpu_device(gfx.clone())
+            .expect("Expected config with wgpu device");
         let (tx_result, rx_result) = futures::channel::oneshot::channel();
         let mut tx_result = Some(tx_result);
         let stream = CaptureStream::new(token, config, move |event_result| {
@@ -91,10 +94,10 @@ fn main() {
         match frame_opt {
             Some(frame) => {
                 println!("Got frame! getting wgpu texture...");
-                /*let wgpu_texture = frame.get_texture(crabgrab::feature::wgpu::WgpuVideoFramePlaneTexture::Rgba, Some("wgpu video frame"))
+                let wgpu_texture = frame.get_texture(crabgrab::feature::wgpu::WgpuVideoFramePlaneTexture::Rgba, Some("wgpu video frame"))
                     .expect("Expected wgpu texture from video frame");
-                println!("Got wgpu texture! Size: {:?}", wgpu_texture.size());*/
-                std::mem::forget(frame);
+                println!("Got wgpu texture! Size: {:?}", wgpu_texture.size());
+                //std::mem::forget(frame);
             },
             None => {
                 println!("Got None! Oh no!");

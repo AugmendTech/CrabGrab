@@ -16,5 +16,5 @@ pub mod bitmap;
 pub mod wgpu;
 #[cfg(feature = "screenshot")]
 pub mod screenshot;
-#[cfg(feature = "content_picker")]
-pub mod content_picker;
+//#[cfg(feature = "content_picker")]
+//pub mod content_picker;

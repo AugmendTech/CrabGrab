@@ -8,17 +8,10 @@ iosurface = []
 metal = ["dep:metal"]
 dxgi = []
 dx11 = ["dxgi"]
-bitmap = ["dep:bytemuck", "dep:half"]
+bitmap = ["dep:bytemuck", "dep:half", "dx11"]
 screenshot = ["bitmap"]
-content_picker = []
-wgpu = ["dep:wgpu"]
-
-[target.'cfg(target_os = "macos")'.features]
-wgpu = ["metal"]
-
-[target.'cfg(target_os = "windows")'.features]
-bitmap = ["dx11"]
-wgpu = ["dx11", "dxgi", "dep:winapi"]
+#content_picker = []
+wgpu = ["dep:wgpu", "dep:winapi", "dx11", "dxgi", "metal"]
 
 [dependencies]
 futures = "0.3"
@@ -75,7 +68,7 @@ windows = { version = "0.52", features = [
 ] }
 wgpu = { version = "^0.19", optional = true, features = ["dx12", "hal"] }
 d3d12 = "*"
-winapi = "*"
+winapi = { version = "*", optional = true }
 
 [dev-dependencies]
 tokio = { version = "*", features = ["rt", "macros", "rt-multi-thread"] }

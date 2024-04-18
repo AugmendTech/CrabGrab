@@ -134,6 +134,15 @@ impl MacosAudioCaptureConfigExt for AudioCaptureConfig {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct MacosCaptureAccessToken();
+
+impl MacosCaptureAccessToken {
+    pub(crate) fn allows_borderless(&self) -> bool {
+        true
+    }
+}
+
 impl MacosCaptureStream {
     pub fn supported_pixel_formats() -> &'static [CapturePixelFormat] {
         &[
@@ -144,15 +153,24 @@ impl MacosCaptureStream {
         ]
     }
 
-    pub fn check_access(_borderless: bool) -> bool {
-        return SCStream::preflight_access()
+    pub fn check_access(_borderless: bool) -> Option<MacosCaptureAccessToken> {
+        if SCStream::preflight_access() {
+            Some(MacosCaptureAccessToken())
+        } else {
+            None
+        }
     }
 
-    pub async fn request_access(_borderless: bool) -> bool {
-        SCStream::request_access().await
+    pub async fn request_access(_borderless: bool) -> Option<MacosCaptureAccessToken> {
+        if SCStream::request_access().await {
+            Some(MacosCaptureAccessToken())
+        } else {
+            None
+        }
     }
 
-    pub fn new(capture_config: CaptureConfig, mut callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+    pub fn new(token: MacosCaptureAccessToken, capture_config: CaptureConfig, mut callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+        let _ = token;
         let shared_callback = Arc::new(Mutex::new(callback as Box<dyn FnMut(Result<StreamEvent, StreamError>) + Send + 'static>));
         let stream_shared_callback = shared_callback.clone();
         #[cfg(feature = "metal")]
