@@ -1,4 +1,4 @@
-use std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
+use std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 use futures::executor::block_on;
 use objc::runtime::Object;
@@ -50,12 +50,12 @@ pub(crate) struct MacosCaptureConfig {
     #[cfg(feature = "metal")]
     pub(crate) metal_device: Option<metal::Device>,
     #[cfg(feature = "wgpu")]
-    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device>>>,
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
 }
 
 impl Debug for MacosCaptureConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MacosCaptureConfig").field("scale_to_fit", &self.scale_to_fit).field("maximum_fps", &self.maximum_fps).field("metal_device", &self.metal_device).finish()
+        f.debug_struct("MacosCaptureConfig").field("scale_to_fit", &self.scale_to_fit).field("maximum_fps", &self.maximum_fps).finish()
     }
 }
 

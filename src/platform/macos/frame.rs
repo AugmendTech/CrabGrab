@@ -14,7 +14,7 @@ pub(crate) struct MacosSCStreamVideoFrame {
     #[cfg(feature = "metal")]
     pub(crate) metal_device: Option<metal::Device>,
     #[cfg(feature = "wgpu")]
-    pub(crate) wgpu_device: Option<Arc<wgpu::Device>>,
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
 }
 
 pub(crate) struct MacosCGDisplayStreamVideoFrame {
@@ -28,7 +28,7 @@ pub(crate) struct MacosCGDisplayStreamVideoFrame {
     #[cfg(feature = "metal")]
     pub(crate) metal_device: metal::Device,
     #[cfg(feature = "wgpu")]
-    pub(crate) wgpu_device: Option<Arc<wgpu::Device>>,
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
 }
 
 impl MacosSCStreamVideoFrame {
