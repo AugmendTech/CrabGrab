@@ -75,6 +75,42 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg(target_os = <span class="string">"windows"</span>)]
 #![cfg(feature = <span class="string">"dxgi"</span>)]
 
@@ -115,7 +151,8 @@
     }
 }
 
-<span class="kw">pub trait </span>WindowsDxgiVideoFrame {
+<span class="doccomment">/// A video frame which can interoperate with DXGI
+</span><span class="kw">pub trait </span>WindowsDxgiVideoFrame {
     <span class="doccomment">/// Get the surface texture for this video frame
     </span><span class="kw">fn </span>get_dxgi_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(windows::Win32::Graphics::Dxgi::IDXGISurface, DirectXPixelFormat), WindowsDxgiVideoFrameError&gt;; 
 }
@@ -134,16 +171,51 @@
     }
 }
 
-<span class="kw">pub trait </span>WindowsDxgiCaptureStream {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>WindowsDxgiCaptureStreamError {
+    NoAdapter(String)
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>WindowsDxgiCaptureStreamError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::NoAdapter(error) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"WindowsDxgiCaptureStreamError::NoAdapter(\"{}\")"</span>, error)),
+        }
+    }
+}
+
+<span class="kw">impl </span>Error <span class="kw">for </span>WindowsDxgiCaptureStreamError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">'static</span>)&gt; {
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="string">"description() is deprecated; use Display"
+    </span>}
+
+    <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Error&gt; {
+        <span class="self">self</span>.source()
+    }
+}
+
+<span class="doccomment">/// A capture stream which can interoperate with DXGI
+</span><span class="kw">pub trait </span>WindowsDxgiCaptureStream {
     <span class="doccomment">/// Get the dxgi adapter used by the capture stream for frame generation
-    </span><span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIAdapter;
+    </span><span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;windows::Win32::Graphics::Dxgi::IDXGIAdapter, WindowsDxgiCaptureStreamError&gt;;
     <span class="doccomment">/// Get the dxgi device used by the capture stream for frame generation
     </span><span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIDevice;
 }
 
 <span class="kw">impl </span>WindowsDxgiCaptureStream <span class="kw">for </span>CaptureStream {
-    <span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIAdapter {
-        <span class="self">self</span>.impl_capture_stream.dxgi_adapter.clone()
+    <span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;windows::Win32::Graphics::Dxgi::IDXGIAdapter, WindowsDxgiCaptureStreamError&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(dxgi_adapter) = <span class="self">self</span>.impl_capture_stream.dxgi_adapter.clone() {
+            <span class="prelude-val">Ok</span>(dxgi_adapter)
+        } <span class="kw">else </span>{
+            <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.impl_capture_stream.dxgi_adapter_error {
+                <span class="prelude-val">Some</span>(error) =&gt; <span class="prelude-val">Err</span>(WindowsDxgiCaptureStreamError::NoAdapter(error.clone())),
+                <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Should have dxgi_adapter_error if dxgi_adapter is None"</span>)
+            }
+        }
     }
 
     <span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIDevice {

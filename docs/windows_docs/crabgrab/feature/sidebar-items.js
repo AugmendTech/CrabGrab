@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["dx11","dxgi"]};
+window.SIDEBAR_ITEMS = {"mod":["bitmap","dx11","dxgi","screenshot","wgpu"]};

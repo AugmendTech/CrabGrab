@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["WgpuVideoFrameError","WgpuVideoFramePlaneTexture"],"trait":["WgpuCaptureConfigExt","WgpuCaptureStreamExt","WgpuVideoFrameExt"]};
