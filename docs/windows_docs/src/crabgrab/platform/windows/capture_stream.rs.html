@@ -427,6 +427,9 @@
 <a href="#425" id="425">425</a>
 <a href="#426" id="426">426</a>
 <a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use crate</span>::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
@@ -536,6 +539,9 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WindowsCaptureAccessToken {
     borderless: bool,
 }
+
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>WindowsCaptureAccessToken {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>WindowsCaptureAccessToken {}
 
 <span class="kw">impl </span>WindowsCaptureAccessToken {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allows_borderless(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
