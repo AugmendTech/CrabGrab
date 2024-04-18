@@ -57,6 +57,10 @@ impl WindowsCapturableWindow {
     pub fn application(&self) -> WindowsCapturableApplication {
         WindowsCapturableApplication(hwnd_pid(self.0))
     }
+
+    pub fn is_visible(&self) -> bool {
+        unsafe { IsWindowVisible(self.0).as_bool() }
+    }
 }
 
 impl Hash for WindowsCapturableWindow {
