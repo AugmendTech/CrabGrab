@@ -151,6 +151,15 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 #![cfg(feature = <span class="string">&quot;metal&quot;</span>)]
 
@@ -169,18 +178,25 @@
 <span class="kw">use </span><span class="kw">crate</span>::platform::macos::frame::MacosVideoFrame;
 
 <span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+</span><span class="doccomment">/// Identifies planes of a video frame
 </span><span class="kw">pub enum </span>MetalVideoFramePlaneTexture {
-    Rgba,
-    Luminance,
-    Chroma
+    <span class="doccomment">/// The single RGBA plane for an RGBA format frame
+    </span>Rgba,
+    <span class="doccomment">/// The Luminance (brightness) plane for a YCbCr format frame
+    </span>Luminance,
+    <span class="doccomment">/// The Chroma (red/blue) plane for a YCbCr format frame
+    </span>Chroma
 }
 
 <span class="doccomment">/// Represents an error getting the texture from a video frame
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>MacosVideoFrameError {
-    NoIoSurface,
-    NoImageBuffer,
-    InvalidVideoPlaneTexture,
+    <span class="comment">// Could not retreive the IOSurface for this frame
+    </span>NoIoSurface,
+    <span class="comment">// Could not retreive the image buffer for this frame
+    </span>NoImageBuffer,
+    <span class="comment">// The requested plane isn&#39;t valid for this frame
+    </span>InvalidVideoPlaneTexture,
     Other(String)
 }
 
@@ -210,13 +226,14 @@
     }
 }
 
-<span class="kw">pub trait </span>MetalVideoFrame {
+<span class="doccomment">/// A video frame which can be used to create metal textures
+</span><span class="kw">pub trait </span>MetalVideoFrameExt {
     <span class="doccomment">/// Get the texture for the given plane of the video frame
     </span><span class="kw">fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: MetalVideoFramePlaneTexture) -&gt; <span class="prelude-ty">Result</span>&lt;metal::Texture, MacosVideoFrameError&gt;;
 }
 
 <span class="attr">#[cfg(feature=<span class="string">&quot;metal&quot;</span>)]
-</span><span class="kw">impl </span>MetalVideoFrame <span class="kw">for </span>VideoFrame {
+</span><span class="kw">impl </span>MetalVideoFrameExt <span class="kw">for </span>VideoFrame {
     <span class="kw">fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: MetalVideoFramePlaneTexture) -&gt; <span class="prelude-ty">Result</span>&lt;metal::Texture, MacosVideoFrameError&gt; {
         <span class="kw">let </span>iosurface_and_metal_device = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.impl_video_frame {
             MacosVideoFrame::SCStream(frame) =&gt; {
@@ -233,7 +250,7 @@
                 }
             },
             MacosVideoFrame::CGDisplayStream(frame) =&gt; {
-                <span class="prelude-val">Ok</span>((frame.io_surface.clone(), frame.metal_device.clone()))
+                <span class="prelude-val">Ok</span>((frame.io_surface.clone(), <span class="prelude-val">Some</span>(frame.metal_device.clone())))
             }
         }<span class="question-mark">?</span>;
         <span class="kw">let </span>(iosurface, metal_device) = iosurface_and_metal_device;
@@ -248,10 +265,10 @@
                     <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MacosVideoFrameError::InvalidVideoPlaneTexture),
                 }
                 <span class="kw">unsafe </span>{
-                    <span class="kw">let </span>device_ref = metal_device.as_ref();
+                    <span class="kw">let </span>device_ref = metal_device.as_ref().unwrap().as_ref();
                     <span class="kw">let </span>texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
-                    texture_descriptor.set_pixel_format(metal::MTLPixelFormat::RGBA8Unorm);
+                    texture_descriptor.set_pixel_format(metal::MTLPixelFormat::BGRA8Unorm);
                     texture_descriptor.set_width(iosurface.get_width() <span class="kw">as </span>u64);
                     texture_descriptor.set_height(iosurface.get_height() <span class="kw">as </span>u64);
                     texture_descriptor.set_sample_count(<span class="number">1</span>);
@@ -272,7 +289,7 @@
                     <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MacosVideoFrameError::InvalidVideoPlaneTexture),
                 };
                 <span class="kw">unsafe </span>{
-                    <span class="kw">let </span>device_ref = metal_device.as_ref();
+                    <span class="kw">let </span>device_ref = metal_device.as_ref().unwrap().as_ref();
                     <span class="kw">let </span>texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
                     texture_descriptor.set_pixel_format(texture_index);
@@ -294,12 +311,13 @@
     }
 }
 
-<span class="kw">pub trait </span>MetalCaptureStream {
+<span class="doccomment">/// A capture stream which interoperates with Metal
+</span><span class="kw">pub trait </span>MetalCaptureStreamExt {
     <span class="doccomment">/// Get the metal device used for frame capture
     </span><span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device;
 }
 
-<span class="kw">impl </span>MetalCaptureStream <span class="kw">for </span>CaptureStream {
+<span class="kw">impl </span>MetalCaptureStreamExt <span class="kw">for </span>CaptureStream {
     <span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device {
         <span class="self">self</span>.impl_capture_stream.metal_device.clone()
     }

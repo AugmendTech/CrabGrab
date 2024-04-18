@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ScreenshotError"],"fn":["take_screenshot"]};

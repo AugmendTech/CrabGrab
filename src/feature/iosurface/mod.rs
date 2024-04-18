@@ -37,16 +37,17 @@ impl Drop for IoSurface {
 }
 
 /// A video frame which can interoperate using IOSurfaces
-pub trait MacosIoSurfaceVideoFrame {
+pub trait MacosIoSurfaceVideoFrameExt {
     /// Get the iosurface representing the video frame's texture
     fn get_iosurface(&self) -> Result<IoSurface, GetIoSurfaceError>;
 }
 
 #[derive(Debug)]
+/// Represents an error when getting the IOSurface behind this video frame
 pub enum GetIoSurfaceError{
-    // There was no image buffer in this frame
+    /// There was no image buffer in this frame
     NoImageBuffer,
-    // There was no IOSurface in the frame's image buffer
+    /// There was no IOSurface in the frame's image buffer
     NoIoSurface
 }
 
@@ -73,7 +74,7 @@ impl Error for GetIoSurfaceError {
     }
 }
 
-impl MacosIoSurfaceVideoFrame for VideoFrame {
+impl MacosIoSurfaceVideoFrameExt for VideoFrame {
     fn get_iosurface(&self) -> Result<IoSurface, GetIoSurfaceError> {
         match &self.impl_video_frame {
             MacosVideoFrame::SCStream(frame) => {

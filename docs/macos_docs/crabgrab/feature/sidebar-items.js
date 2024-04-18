@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["bitmap","iosurface","metal"]};
+window.SIDEBAR_ITEMS = {"mod":["bitmap","iosurface","metal","screenshot","wgpu"]};

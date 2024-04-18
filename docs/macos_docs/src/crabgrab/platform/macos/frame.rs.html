@@ -192,7 +192,11 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::{Ref, RefCell}, marker::PhantomData, time::{Duration, Instant}};
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::{Ref, RefCell}, marker::PhantomData, sync::Arc, time::{Duration, Instant}};
 
 <span class="kw">use </span>objc::runtime::Object;
 
@@ -206,7 +210,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) dictionary: RefCell&lt;<span class="prelude-ty">Option</span>&lt;CFDictionary&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_id: u64,
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: metal::Device,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: <span class="prelude-ty">Option</span>&lt;metal::Device&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCGDisplayStreamVideoFrame {
@@ -219,6 +225,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) dest_size: Size,
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: metal::Device,
+    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
 }
 
 <span class="kw">impl </span>MacosSCStreamVideoFrame {

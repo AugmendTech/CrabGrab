@@ -8,7 +8,7 @@ use crate::platform::macos::objc_wrap::{CGPoint, CGRect, CGSize, NSArray, SCCont
 use crate::platform::platform_impl::objc_wrap::CGMainDisplayID;
 use crate::prelude::{Capturable, CaptureAccessToken, CaptureConfig, CapturePixelFormat};
 
-// Take a screenshot of the capturable content given a configuration
+/// Take a screenshot of the capturable content given a configuration
 pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
     let _ = token;
     // Force core graphics initialization

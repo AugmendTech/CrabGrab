@@ -88,6 +88,7 @@ pub trait VideoFrameBitmap {
 }
 
 #[derive(Clone, Debug)]
+/// Represents an error while generating a frame bitmap
 pub enum VideoFrameBitmapError {
     Other(String),
 }

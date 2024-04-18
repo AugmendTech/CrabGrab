@@ -270,6 +270,13 @@
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg(feature = <span class="string">&quot;bitmap&quot;</span>)]
 
 </span><span class="kw">use </span>std::error::Error;
@@ -300,27 +307,33 @@
 <span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
 </span><span class="kw">use </span>windows::Win32::Graphics::Direct3D11::{D3D11_STANDARD_MULTISAMPLE_QUALITY_LEVELS, D3D11_USAGE_DYNAMIC};
 
-<span class="kw">pub struct </span>FrameBitmapBgraUnorm8x4 {
+<span class="doccomment">/// A Bgra8888 format bitmap
+</span><span class="kw">pub struct </span>FrameBitmapBgraUnorm8x4 {
     <span class="kw">pub </span>data: Box&lt;[[u8; <span class="number">4</span>]]&gt;,
     <span class="kw">pub </span>width:  usize,
     <span class="kw">pub </span>height: usize,
 }
 
-<span class="kw">pub struct </span>FrameBitmapRgbaUnormPacked1010102 {
+<span class="doccomment">/// A Rgba1010102 format bitmap
+</span><span class="kw">pub struct </span>FrameBitmapRgbaUnormPacked1010102 {
     <span class="kw">pub </span>data: Box&lt;[u32]&gt;,
     <span class="kw">pub </span>width:  usize,
     <span class="kw">pub </span>height: usize,
 }
 
-<span class="kw">pub struct </span>FrameBitmapRgbaF16x4 {
+<span class="doccomment">/// A RgbaF16x4 format bitmap
+</span><span class="kw">pub struct </span>FrameBitmapRgbaF16x4 {
     <span class="kw">pub </span>data: Box&lt;[[f16; <span class="number">4</span>]]&gt;,
     <span class="kw">pub </span>width:  usize,
     <span class="kw">pub </span>height: usize,
 }
 
-<span class="kw">pub enum </span>VideoRange {
-    Video,
-    Full,
+<span class="doccomment">/// The video range for a YCbCr format bitmap
+</span><span class="kw">pub enum </span>VideoRange {
+    <span class="doccomment">/// Luma: [16, 240], Chroma: [0, 255]
+    </span>Video,
+    <span class="doccomment">/// Luma: [0, 255], Chroma: [0, 255]
+    </span>Full,
 }
 
 <span class="doccomment">/// A YCbCr image, corresponding to either V420 or F420 pixel formats.
@@ -338,7 +351,7 @@
     <span class="kw">pub </span>range: VideoRange,
 }
 
-<span class="doccomment">/// A bitmap image
+<span class="doccomment">/// A bitmap image of the selected format
 </span><span class="kw">pub enum </span>FrameBitmap {
     BgraUnorm8x4(FrameBitmapBgraUnorm8x4),
     RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102),
@@ -354,6 +367,7 @@
 }
 
 <span class="attr">#[derive(Clone, Debug)]
+</span><span class="doccomment">/// Represents an error while generating a frame bitmap
 </span><span class="kw">pub enum </span>VideoFrameBitmapError {
     Other(String),
 }

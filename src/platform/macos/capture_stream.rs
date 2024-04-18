@@ -34,6 +34,8 @@ pub(crate) struct MacosCaptureStream {
     shared_callback: Arc<Mutex<Box<dyn FnMut(Result<StreamEvent, StreamError>) + Send + 'static>>>,
     #[cfg(feature = "metal")]
     pub(crate) metal_device: metal::Device,
+    #[cfg(feature = "wgpu")]
+    pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
 }
 
 pub trait MacosCaptureConfigExt {
@@ -342,7 +344,9 @@ impl MacosCaptureStream {
                     shared_callback,
                     stream: MacosCaptureStreamInternal::Window(sc_stream),
                     #[cfg(feature = "metal")]
-                    metal_device
+                    metal_device,
+                    #[cfg(feature = "wgpu")]
+                    wgpu_device
                 })
             },
             Capturable::Display(display) => {
@@ -431,7 +435,9 @@ impl MacosCaptureStream {
                     stopped_flag,
                     shared_callback,
                     #[cfg(feature = "metal")]
-                    metal_device
+                    metal_device,
+                    #[cfg(feature = "wgpu")]
+                    wgpu_device
                 }) 
             }
         }

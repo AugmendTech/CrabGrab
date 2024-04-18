@@ -340,14 +340,139 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}};
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use </span>futures::executor::block_on;
 <span class="kw">use </span>objc::runtime::Object;
 <span class="kw">use </span>parking_lot::Mutex;
 
-<span class="kw">use crate</span>::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, StreamStopError, VideoFrame}, util::{Rect, Size}};
-<span class="kw">use super</span>::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
+<span class="kw">use crate</span>::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
+<span class="kw">use super</span>::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, IOSurface, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
 
 <span class="kw">pub type </span>MacosPixelFormat = SCStreamPixelFormat;
 
@@ -376,6 +501,8 @@
     shared_callback: Arc&lt;Mutex&lt;Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;&gt;&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: metal::Device,
+    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
 }
 
 <span class="kw">pub trait </span>MacosCaptureConfigExt {
@@ -385,12 +512,20 @@
     </span><span class="kw">fn </span>with_metal_device(<span class="self">self</span>, metal_device: metal::Device) -&gt; <span class="self">Self</span>;
 }
 
-<span class="attr">#[derive(Clone, Debug)]
+<span class="attr">#[derive(Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCaptureConfig {
-    scale_to_fit: bool,
-    maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) scale_to_fit: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
-    </span>metal_device: <span class="prelude-ty">Option</span>&lt;metal::Device&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: <span class="prelude-ty">Option</span>&lt;metal::Device&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+}
+
+<span class="kw">impl </span>Debug <span class="kw">for </span>MacosCaptureConfig {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;MacosCaptureConfig&quot;</span>).field(<span class="string">&quot;scale_to_fit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.scale_to_fit).field(<span class="string">&quot;maximum_fps&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.maximum_fps).finish()
+    }
 }
 
 <span class="kw">impl </span>MacosCaptureConfig {
@@ -400,6 +535,8 @@
             maximum_fps: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
             </span>metal_device: <span class="prelude-val">None</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+            </span>wgpu_device: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -466,6 +603,15 @@
     }
 }
 
+<span class="attr">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCaptureAccessToken();
+
+<span class="kw">impl </span>MacosCaptureAccessToken {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allows_borderless(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">true
+    </span>}
+}
+
 <span class="kw">impl </span>MacosCaptureStream {
     <span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[CapturePixelFormat] {
         <span class="kw-2">&amp;</span>[
@@ -476,25 +622,45 @@
         ]
     }
 
-    <span class="kw">pub fn </span>check_access(_borderless: bool) -&gt; bool {
-        <span class="kw">return </span>SCStream::preflight_access()
+    <span class="kw">pub fn </span>check_access(_borderless: bool) -&gt; <span class="prelude-ty">Option</span>&lt;MacosCaptureAccessToken&gt; {
+        <span class="kw">if </span>SCStream::preflight_access() {
+            <span class="prelude-val">Some</span>(MacosCaptureAccessToken())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">pub async fn </span>request_access(_borderless: bool) -&gt; bool {
-        SCStream::request_access().<span class="kw">await
-    </span>}
+    <span class="kw">pub async fn </span>request_access(_borderless: bool) -&gt; <span class="prelude-ty">Option</span>&lt;MacosCaptureAccessToken&gt; {
+        <span class="kw">if </span>SCStream::request_access().<span class="kw">await </span>{
+            <span class="prelude-val">Some</span>(MacosCaptureAccessToken())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
 
-    <span class="kw">pub fn </span>new(capture_config: CaptureConfig, <span class="kw-2">mut </span>callback: Box&lt;<span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
+    <span class="kw">pub fn </span>new(token: MacosCaptureAccessToken, capture_config: CaptureConfig, <span class="kw-2">mut </span>callback: Box&lt;<span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
+        <span class="kw">let _ </span>= token;
         <span class="kw">let </span>shared_callback = Arc::new(Mutex::new(callback <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;));
         <span class="kw">let </span>stream_shared_callback = shared_callback.clone();
+        <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>metal_device = <span class="kw">match </span>capture_config.impl_capture_config.metal_device {
+            <span class="prelude-val">Some</span>(metal_device) =&gt; metal_device,
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">match </span>metal::Device::system_default() {
+                    <span class="prelude-val">Some</span>(device) =&gt; device,
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">&quot;Failed to create system default metal device&quot;</span>.into()))
+                }
+            }
+        };
+        <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+        </span><span class="kw">let </span>callback_metal_device = metal_device.clone();
+        <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+        </span><span class="kw">let </span>wgpu_device = capture_config.impl_capture_config.wgpu_device.clone();
+        <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+        </span><span class="kw">let </span>callback_wgpu_device = wgpu_device.clone();
         <span class="kw">match </span>capture_config.target {
             Capturable::Window(window) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>config = SCStreamConfiguration::new();
-                config.set_size(CGSize {
-                    x: window.rect().size.width * <span class="number">2.0</span>,
-                    y: window.rect().size.height * <span class="number">2.0</span>,
-                });
-                config.set_scales_to_fit(<span class="bool-val">false</span>);
                 <span class="kw">let </span>(pixel_format, set_color_matrix) = <span class="kw">match </span>capture_config.pixel_format {
                     CapturePixelFormat::Bgra8888 =&gt;    (SCStreamPixelFormat::BGRA8888, <span class="bool-val">false</span>),
                     CapturePixelFormat::Argb2101010 =&gt; (SCStreamPixelFormat::L10R, <span class="bool-val">false</span>),
@@ -520,6 +686,7 @@
                     x: capture_config.output_size.width,
                     y: capture_config.output_size.height,
                 });
+                config.set_scales_to_fit(capture_config.impl_capture_config.scale_to_fit);
                 config.set_queue_depth(capture_config.buffer_count <span class="kw">as </span>isize);
                 config.set_show_cursor(capture_config.show_cursor);
                 <span class="kw">match </span>capture_config.capture_audio {
@@ -553,19 +720,6 @@
 
                 <span class="kw">let </span>stopped_flag = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
                 <span class="kw">let </span>callback_stopped_flag = stopped_flag.clone();
-
-                <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
-                </span><span class="kw">let </span><span class="kw-2">mut </span>metal_device = <span class="kw">match </span>capture_config.impl_capture_config.metal_device {
-                    <span class="prelude-val">Some</span>(metal_device) =&gt; metal_device,
-                    <span class="prelude-val">None </span>=&gt; {
-                        <span class="kw">match </span>metal::Device::system_default() {
-                            <span class="prelude-val">Some</span>(device) =&gt; device,
-                            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">&quot;Failed to create system default metal device&quot;</span>.into()))
-                        }
-                    }
-                };
-                <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
-                </span><span class="kw">let </span>callback_metal_device = metal_device.clone();
                 
                 <span class="kw">let </span>handler = SCStreamHandler::new(Box::new(<span class="kw">move </span>|stream_result: <span class="prelude-ty">Result</span>&lt;(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError&gt;| {
                     <span class="kw">let </span><span class="kw-2">mut </span>callback = stream_shared_callback.lock();
@@ -604,7 +758,9 @@
                                                     dictionary: RefCell::new(<span class="prelude-val">None</span>),
                                                     frame_id,
                                                     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
-                                                    </span>metal_device: callback_metal_device.clone()
+                                                    </span>metal_device: <span class="prelude-val">Some</span>(callback_metal_device.clone()),
+                                                    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                                                    </span>wgpu_device: callback_wgpu_device.clone(),
                                                 })
                                             };
                                             (callback)(<span class="prelude-val">Ok</span>(StreamEvent::Video(video_frame)));
@@ -617,7 +773,7 @@
                                             (callback)(<span class="prelude-val">Ok</span>(StreamEvent::Idle));
                                         },
                                         SCFrameStatus::Stopped =&gt; {
-                                            <span class="kw">if </span>callback_stopped_flag.fetch_and(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
+                                            <span class="kw">if </span>callback_stopped_flag.fetch_or(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
                                                 <span class="kw">return</span>;
                                             }
                                             (callback)(<span class="prelude-val">Ok</span>(StreamEvent::End));
@@ -632,7 +788,7 @@
                         <span class="prelude-val">Err</span>(err) =&gt; {
                             <span class="kw">let </span>event = <span class="kw">match </span>err {
                                 SCStreamCallbackError::StreamStopped =&gt; {
-                                    <span class="kw">if </span>callback_stopped_flag.fetch_and(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
+                                    <span class="kw">if </span>callback_stopped_flag.fetch_or(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
                                         <span class="kw">return</span>;
                                     }
                                     <span class="prelude-val">Ok</span>(StreamEvent::End)
@@ -655,10 +811,102 @@
                     shared_callback,
                     stream: MacosCaptureStreamInternal::Window(sc_stream),
                     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
-                    </span>metal_device
+                    </span>metal_device,
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                    </span>wgpu_device
                 })
             },
-            Capturable::Display(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">&quot;Macos display capture unimplemented&quot;</span>.into()))
+            Capturable::Display(display) =&gt; {
+                <span class="kw">let </span>options_dict = NSDictionary::new_mutable();
+
+                <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                </span><span class="kw">let </span>callback_metal_device = metal_device.clone();
+                
+                <span class="kw">let </span>display_id = display.impl_capturable_display.display.raw_id();
+
+                <span class="kw">let </span>size = (capture_config.output_size.width.ceil() <span class="kw">as </span>usize, capture_config.output_size.height.ceil() <span class="kw">as </span>usize);
+
+                <span class="kw">let </span>(pixel_format, set_color_matrix) = <span class="kw">match </span>capture_config.pixel_format {
+                    CapturePixelFormat::Bgra8888 =&gt;    (SCStreamPixelFormat::BGRA8888, <span class="bool-val">false</span>),
+                    CapturePixelFormat::Argb2101010 =&gt; (SCStreamPixelFormat::L10R, <span class="bool-val">false</span>),
+                    CapturePixelFormat::V420 =&gt;        (SCStreamPixelFormat::V420, <span class="bool-val">true</span>),
+                    CapturePixelFormat::F420 =&gt;        (SCStreamPixelFormat::F420, <span class="bool-val">true</span>),
+                };
+
+                <span class="kw">let </span>dispatch_queue = DispatchQueue::make_concurrent(<span class="string">&quot;crabgrab.capture&quot;</span>.into());
+                
+                <span class="kw">let </span><span class="kw-2">mut </span>audio_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>video_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
+
+                <span class="kw">let </span>stopped_flag = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
+                <span class="kw">let </span>callback_stopped_flag = stopped_flag.clone();
+
+                <span class="kw">let </span>capture_time = Instant::now();
+
+                <span class="kw">let </span>stream_callback = <span class="kw">move </span>|status, duration, io_surface: IOSurface| {
+                    <span class="kw">let </span>now = Instant::now();
+                    <span class="kw">match </span>status {
+                        CGDisplayStreamFrameStatus::Complete =&gt; {
+                            <span class="kw">let </span>frame_id = video_frame_id_counter.fetch_add(<span class="number">1</span>, atomic::Ordering::AcqRel);
+                            <span class="kw">let </span>rect = display.impl_capturable_display.display.frame();
+                            <span class="kw">let </span>w = io_surface.get_width();
+                            <span class="kw">let </span>h = io_surface.get_height();
+                            <span class="kw">let </span>video_frame = VideoFrame{
+                                impl_video_frame: MacosVideoFrame::CGDisplayStream (
+                                    MacosCGDisplayStreamVideoFrame {
+                                        io_surface,
+                                        duration,
+                                        capture_timestamp: now,
+                                        capture_time: now - capture_time,
+                                        frame_id,
+                                        source_rect: Rect {
+                                            origin: Point { x: rect.origin.x, y: rect.origin.y },
+                                            size: Size { width: rect.size.x, height: rect.size.y },
+                                        },
+                                        dest_size: Size { width: w <span class="kw">as </span>f64, height: h <span class="kw">as </span>f64 },
+                                        <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                                        </span>metal_device: callback_metal_device.clone(),
+                                        <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                                        </span>wgpu_device: callback_wgpu_device.clone(),
+                                    }
+                                )
+                            };
+                            
+                            <span class="kw">let </span><span class="kw-2">mut </span>callback = stream_shared_callback.lock();
+                            <span class="kw">if </span>!callback_stopped_flag.load(atomic::Ordering::Acquire) {
+                                (callback)(<span class="prelude-val">Ok</span>(StreamEvent::Video(video_frame)));
+                            }
+                        },
+                        CGDisplayStreamFrameStatus::Idle =&gt; {
+                            <span class="kw">let </span><span class="kw-2">mut </span>callback = stream_shared_callback.lock();
+                            <span class="kw">if </span>!callback_stopped_flag.load(atomic::Ordering::Acquire) {
+                                (callback)(<span class="prelude-val">Ok</span>(StreamEvent::Idle));
+                            }
+                        },
+                        CGDisplayStreamFrameStatus::Stopped =&gt; {
+                            <span class="kw">let </span><span class="kw-2">mut </span>callback = stream_shared_callback.lock();
+                            <span class="kw">if </span>!callback_stopped_flag.fetch_or(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
+                                (callback)(<span class="prelude-val">Ok</span>(StreamEvent::End));
+                            }
+                        },
+                        <span class="kw">_ </span>=&gt; {}
+                    }
+                };
+
+                <span class="kw">let </span>display_stream = CGDisplayStream::new(stream_callback, display_id, size, pixel_format, options_dict, dispatch_queue);
+
+                display_stream.start().map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">&quot;Stream failed to start&quot;</span>.into()))<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>(MacosCaptureStream {
+                    stream: MacosCaptureStreamInternal::Display(display_stream),
+                    stopped_flag,
+                    shared_callback,
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                    </span>metal_device,
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                    </span>wgpu_device
+                }) 
+            }
         }
 
     }
@@ -666,8 +914,10 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), StreamStopError&gt; {
         {
             <span class="kw">let </span><span class="kw-2">mut </span>callback = <span class="self">self</span>.shared_callback.lock();
-            <span class="kw">if </span>!<span class="self">self</span>.stopped_flag.fetch_and(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
+            <span class="kw">if </span>!<span class="self">self</span>.stopped_flag.fetch_or(<span class="bool-val">true</span>, atomic::Ordering::AcqRel) {
                 (callback)(<span class="prelude-val">Ok</span>(StreamEvent::End));
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.stream {

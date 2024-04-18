@@ -16,13 +16,13 @@ use std::fmt::Display;
 use crate::platform::macos::frame::MacosVideoFrame;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-// Identifies planes of a video frame
+/// Identifies planes of a video frame
 pub enum MetalVideoFramePlaneTexture {
-    // The single RGBA plane for an RGBA format frame
+    /// The single RGBA plane for an RGBA format frame
     Rgba,
-    // The Luminance (brightness) plane for a YCbCr format frame
+    /// The Luminance (brightness) plane for a YCbCr format frame
     Luminance,
-    // The Chroma (red/blue) plane for a YCbCr format frame
+    /// The Chroma (red/blue) plane for a YCbCr format frame
     Chroma
 }
 
@@ -64,14 +64,14 @@ impl Error for MacosVideoFrameError {
     }
 }
 
-// A video frame which can be used to create metal textures
-pub trait MetalVideoFrame {
+/// A video frame which can be used to create metal textures
+pub trait MetalVideoFrameExt {
     /// Get the texture for the given plane of the video frame
     fn get_texture(&self, plane: MetalVideoFramePlaneTexture) -> Result<metal::Texture, MacosVideoFrameError>;
 }
 
 #[cfg(feature="metal")]
-impl MetalVideoFrame for VideoFrame {
+impl MetalVideoFrameExt for VideoFrame {
     fn get_texture(&self, plane: MetalVideoFramePlaneTexture) -> Result<metal::Texture, MacosVideoFrameError> {
         let iosurface_and_metal_device = match &self.impl_video_frame {
             MacosVideoFrame::SCStream(frame) => {
@@ -149,13 +149,13 @@ impl MetalVideoFrame for VideoFrame {
     }
 }
 
-// A capture stream which interoperates with Metal
-pub trait MetalCaptureStream {
+/// A capture stream which interoperates with Metal
+pub trait MetalCaptureStreamExt {
     /// Get the metal device used for frame capture
     fn get_metal_device(&self) -> metal::Device;
 }
 
-impl MetalCaptureStream for CaptureStream {
+impl MetalCaptureStreamExt for CaptureStream {
     fn get_metal_device(&self) -> metal::Device {
         self.impl_capture_stream.metal_device.clone()
     }

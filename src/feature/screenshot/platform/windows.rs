@@ -4,6 +4,7 @@ use crate::feature::screenshot::ScreenshotError;
 use crate::frame::VideoFrame;
 use crate::prelude::{CaptureConfig, CaptureStream, StreamEvent, CaptureAccessToken};
 
+/// Take a screenshot of the capturable content given a configuration
 pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -> Result<VideoFrame, ScreenshotError> {
     let (tx, rx) = oneshot::channel();
     let mut tx = Some(tx);

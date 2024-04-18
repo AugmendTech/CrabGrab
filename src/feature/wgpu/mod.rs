@@ -1,7 +1,7 @@
 use std::sync::Arc;
-use std::{error::Error, fmt::Display, os::raw::c_void};
+use std::{error::Error, fmt::Display};
 
-use crate::prelude::{CaptureConfig, VideoFrame};
+use crate::prelude::{CaptureConfig, CaptureStream, VideoFrame};
 
 #[cfg(target_os = "macos")]
 use crate::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVideoFrame};
@@ -19,11 +19,13 @@ use crate::feature::dxgi::*;
 #[cfg(target_os = "windows")]
 use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Dxgi::IDXGIDevice, Direct3D11on12::ID3D11On12Device2, Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
 
+/// A capture config which can be supplied with a Wgpu device
 pub trait WgpuCaptureConfigExt: Sized {
     fn with_wgpu_device(self, device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String>;
 }
 
 impl WgpuCaptureConfigExt for CaptureConfig {
+    /// Supply a wgpu device to the config, allowing the generation of wgpu textures from video frames
     fn with_wgpu_device(self, wgpu_device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String> {
         #[cfg(target_os = "macos")]
         {
@@ -98,13 +100,13 @@ impl WgpuCaptureConfigExt for CaptureConfig {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-// Identifies planes of a video frame
+/// Identifies planes of a video frame
 pub enum WgpuVideoFramePlaneTexture {
-     // The single RGBA plane for an RGBA format frame
+     /// The single RGBA plane for an RGBA format frame
      Rgba,
-     // The Luminance (brightness) plane for a YCbCr format frame
+     /// The Luminance (brightness) plane for a YCbCr format frame
      Luminance,
-     // The Chroma (red/blue) plane for a YCbCr format frame
+     /// The Chroma (red/blue) plane for a YCbCr format frame
      Chroma
 }
 
@@ -166,7 +168,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                 WgpuVideoFramePlaneTexture::Chroma => MetalVideoFramePlaneTexture::Chroma,
                 WgpuVideoFramePlaneTexture::Luminance => MetalVideoFramePlaneTexture::Luminance,
             };
-            match MetalVideoFrame::get_texture(self, metal_plane) {
+            match MetalVideoFrameExt::get_texture(self, metal_plane) {
                 Ok(metal_texture) => {
                     unsafe {
                         let descriptor = wgpu::TextureDescriptor {
@@ -290,3 +292,22 @@ impl WgpuVideoFrameExt for VideoFrame {
     }
 }
 
+/// A capture stream which may have had a wgpu device instance supplied to it
+pub trait WgpuCaptureStreamExt {
+    /// Gets the Wgpu device wrapper supplied to `CaptureConfig::with_wgpu_device(..)`
+    fn get_wgpu_device_wrapper(&self) -> Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>;
+    /// Gets the Wgpu device referenced by device wrapper supplied to `CaptureConfig::with_wgpu_device(..)`
+    fn get_wgpu_device(&self) -> Option<&wgpu::Device>;
+}
+
+impl WgpuCaptureStreamExt for CaptureStream {
+    fn get_wgpu_device(&self) -> Option<&wgpu::Device> {
+        #[cfg(target_os = "macos")]
+        self.impl_capture_stream.wgpu_device.as_ref().map(|wgpu_device| AsRef::<wgpu::Device>::as_ref(wgpu_device.as_ref()))
+    }
+
+    fn get_wgpu_device_wrapper(&self) -> Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>> {
+        #[cfg(target_os = "macos")]
+        self.impl_capture_stream.wgpu_device.clone()
+    }
+}
