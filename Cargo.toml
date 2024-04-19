@@ -1,7 +1,7 @@
 [package]
 name = "crabgrab"
 description = "A cross-platform screen/window capture crate"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Augmend, Inc. <https://github.com/AugmendTech>", "Liam Taylor <https://github.com/OutOfTheVoid>", "Tim Misiak <https://github.com/TimMisiak>"]
 documentation = "https://docs.rs/crabgrab"
