@@ -9,7 +9,6 @@ readme = "README.md"
 homepage = "https://github.com/AugmendTech/CrabGrab"
 repository = "https://github.com/AugmendTech/CrabGrab"
 license = "MIT OR Apache-2.0"
-license-file = "LICENSE.md"
 keywords = ["capture", "graphics", "window", "screen", "media"]
 categories = ["graphics", "hardware-support", "multimedia", "os"]
 exclude = ["spellcheck/", "update_doc_copy.ps1", "update_doc_copy.sh", "docs/", ".gitignore", ".vscode/"]
