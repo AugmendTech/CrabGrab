@@ -111,7 +111,7 @@
     }
 }
 
-<span class="doccomment">/// A video frame which can yield a d3d11 surface
+<span class="doccomment">/// A video frame which can yield a DX11 surface
 </span><span class="kw">pub trait </span>WindowsDx11VideoFrame {
     <span class="doccomment">/// Get the DX11 surface representing the video frame's texture memory, as well as the pixel format
     </span><span class="kw">fn </span>get_dx11_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(IDirect3DSurface, DirectXPixelFormat), WindowsDx11VideoFrameError&gt;;
@@ -135,9 +135,9 @@
     }
 }
 
-<span class="doccomment">/// A capture stream which can interoperate with D3D11
+<span class="doccomment">/// A capture stream which can inter-operate with DX11
 </span><span class="kw">pub trait </span>WindowsDx11CaptureStream {
-    <span class="doccomment">/// Get the underlying D3D11 device used for frame capture
+    <span class="doccomment">/// Get the underlying DX11 device used for frame capture
     </span><span class="kw">fn </span>get_dx11_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ID3D11Device;
 }
 

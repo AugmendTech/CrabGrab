@@ -339,8 +339,6 @@
 <a href="#337" id="337">337</a>
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::{error::Error, fmt::Display};
 
@@ -362,7 +360,7 @@
     </span>End,
 }
 
-<span class="doccomment">/// This represents an error during a stream, for example a failure to retreive a video or audio frame
+<span class="doccomment">/// This represents an error during a stream, for example a failure to retrieve a video or audio frame
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>StreamError {
     Other(String),
@@ -471,7 +469,7 @@
 
 <span class="kw">impl </span>AudioCaptureConfig {
     <span class="doccomment">/// Creates a new audio capture config with default settings:
-    /// * 24000 hz
+    /// * 24000 Hz
     /// * Mono
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -486,17 +484,17 @@
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>CapturePixelFormat {
-    <span class="doccomment">/// One plane, 4 channels, 8 bits per channel: {b: u8, g: u8, r: u8, a: u8}, full range: [0, 255]
+    <span class="doccomment">/// One plane, 4 channels, 8 bits per channel: { b: u8, g: u8, r: u8, a: u8 }, full range: [0, 255]
     </span>Bgra8888,
-    <span class="doccomment">/// One plane, 4 channels, 10 bits per color channel, two bits for alpha: {a: u2, r: u10, g: u10, b: u10}, rgb range: [0, 1023], alpha range: [0, 3]
+    <span class="doccomment">/// One plane, 4 channels, 10 bits per color channel, two bits for alpha: { a: u2, r: u10, g: u10, b: u10 }, rgb range: [0, 1023], alpha range: [0, 3]
     </span>Argb2101010,
     <span class="doccomment">/// Two planes:
-    /// * 1 channel, luminance, 8 bits per pixel, video range: [16, 240]
-    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
+    /// * 1 channel, luminance (Y), 8 bits per pixel, video range: [16, 240]
+    /// * 2 channels, chrominance (CbCr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
     </span>V420,
     <span class="doccomment">/// Two planes:
-    /// * 1 channel, luminance, 8 bits per pixel, full range: [0, 255]
-    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
+    /// * 1 channel, luminance (Y), 8 bits per pixel, full range: [0, 255]
+    /// * 2 channels, chrominance (CbCr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
     </span>F420,
 }
 
@@ -626,7 +624,7 @@
 
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>CaptureStream {}
 
-<span class="doccomment">/// Represents programatic capture access
+<span class="doccomment">/// Represents programmatic capture access
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>CaptureAccessToken {
     <span class="kw">pub</span>(<span class="kw">crate</span>) impl_capture_access_token: ImplCaptureAccessToken
@@ -661,8 +659,6 @@
     }
 
     <span class="doccomment">/// Gets the implementation's supported pixel formats
-    /// 
-    /// Note that the returned formats may not work for all capture modalities (eg, window vs display)
     </span><span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[CapturePixelFormat] {
         ImplCaptureStream::supported_pixel_formats()
     }

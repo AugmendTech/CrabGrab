@@ -151,7 +151,7 @@
     }
 }
 
-<span class="doccomment">/// A video frame which can interoperate with DXGI
+<span class="doccomment">/// A video frame which can inter-operate with DXGI
 </span><span class="kw">pub trait </span>WindowsDxgiVideoFrame {
     <span class="doccomment">/// Get the surface texture for this video frame
     </span><span class="kw">fn </span>get_dxgi_surface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(windows::Win32::Graphics::Dxgi::IDXGISurface, DirectXPixelFormat), WindowsDxgiVideoFrameError&gt;; 
@@ -198,11 +198,11 @@
     }
 }
 
-<span class="doccomment">/// A capture stream which can interoperate with DXGI
+<span class="doccomment">/// A capture stream which can inter-operate with DXGI
 </span><span class="kw">pub trait </span>WindowsDxgiCaptureStream {
-    <span class="doccomment">/// Get the dxgi adapter used by the capture stream for frame generation
+    <span class="doccomment">/// Get the DXGI adapter used by the capture stream for frame generation
     </span><span class="kw">fn </span>get_dxgi_adapter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;windows::Win32::Graphics::Dxgi::IDXGIAdapter, WindowsDxgiCaptureStreamError&gt;;
-    <span class="doccomment">/// Get the dxgi device used by the capture stream for frame generation
+    <span class="doccomment">/// Get the DXGI device used by the capture stream for frame generation
     </span><span class="kw">fn </span>get_dxgi_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; windows::Win32::Graphics::Dxgi::IDXGIDevice;
 }
 
