@@ -5,7 +5,7 @@ use libc::getpid;
 
 use crate::{capturable_content::{CapturableContentFilter, CapturableContentError}, util::{Rect, Point, Size}};
 
-use super::objc_wrap::{SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
+use super::objc_wrap::{CGMainDisplayID, SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
 
 pub struct MacosCapturableContent {
     pub windows: Vec<SCWindow>,
@@ -14,6 +14,8 @@ pub struct MacosCapturableContent {
 
 impl MacosCapturableContent {
     pub async fn new(filter: CapturableContentFilter) -> Result<Self, CapturableContentError> {
+        // Force core graphics initialization
+        unsafe { CGMainDisplayID() };
         let (exclude_desktop, onscreen_only) = filter.windows.map_or((false, true), |filter| (!filter.desktop_windows, filter.onscreen_only));
         let (tx, rx) = oneshot::channel();
         let tx = Cell::new(Some(tx));
