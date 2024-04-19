@@ -77,6 +77,6 @@ d3d12 = "*"
 winapi = { version = "*", optional = true }
 
 [dev-dependencies]
+futures = "0.3"
 tokio = { version = "*", features = ["rt", "macros", "rt-multi-thread"] }
-winit = "*"
 wgpu = "0.19"
