@@ -93,17 +93,24 @@
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A cross-platform screen/window/audio capture library
 //! 
 //! ## Feature flags
 //! 
-//! ### GPU Interop
+//! ### GPU Inter-op
 //! 
-//! - **`dx11`** - enables retreiving the surface of a video frame and getting the dx11 device instance for the stream (windows only)
-//! - **`dxgi`** - enables retreiving the surface of a video frame and getting the dxgi device instance for the stream (windows only)
-//! - **`metal`** - enabels retreiving the metal textures for a video frame and getting the metal device instance for the stream (macos only)
-//! - **`iosurface`** - enables retreiving the iosurface for a video frame (macos only)
-//! - **`wgpu`** - enables retreiving a wgpu texture from a video frame and getting the wgpu device instance wrapper for the stream
+//! - **`dx11`** - enables retrieving the surface of a video frame and getting the DX11 device instance for the stream (Windows only)
+//! - **`dxgi`** - enables retrieving the surface of a video frame and getting the DXGI device instance for the stream (Windows only)
+//! - **`metal`** - enables retrieving the Metal textures for a video frame and getting the Metal device instance for the stream (MacOS only)
+//! - **`iosurface`** - enables retrieving the IOSurface for a video frame (MacOS only)
+//! - **`wgpu`** - enables retrieving a Wgpu texture from a video frame and getting the Wgpu device instance wrapper for the stream
 //! 
 //! ### Bitmap output
 //! 
@@ -111,7 +118,7 @@
 //! 
 //! ### Screenshots
 //! 
-//! - **`screenshot`** - provides an easy-to-use function wrapping CaptureStream for single-frame capture
+//! - **`screenshot`** - provides an easy-to-use function wrapping `CaptureStream` for single-frame capture
 //! 
 //! ## Example
 //! 
@@ -177,12 +184,19 @@
 //! ````
 //! 
 
+/// Platform-specific extensions
 </span><span class="kw">pub mod </span>platform;
-<span class="kw">pub mod </span>feature;
+<span class="doccomment">/// Extension features
+</span><span class="kw">pub mod </span>feature;
 
-<span class="kw">pub mod </span>util;
-<span class="kw">pub mod </span>frame;
-<span class="kw">pub mod </span>capture_stream;
-<span class="kw">pub mod </span>capturable_content;
+<span class="doccomment">/// Geometry types
+</span><span class="kw">pub mod </span>util;
+<span class="doccomment">/// Audio and video frames
+</span><span class="kw">pub mod </span>frame;
+<span class="doccomment">/// The actual capture stream and related constructs
+</span><span class="kw">pub mod </span>capture_stream;
+<span class="doccomment">/// Enumeration of capturable items
+</span><span class="kw">pub mod </span>capturable_content;
 
-<span class="kw">pub mod </span>prelude;</code></pre></div></section></main></body></html>
+<span class="doccomment">/// Everything
+</span><span class="kw">pub mod </span>prelude;</code></pre></div></section></main></body></html>
