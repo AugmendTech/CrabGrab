@@ -44,8 +44,8 @@ libc = "~0.2.33"
 objc2 = "0.3.0-beta.5"
 metal = { version = "0.27", optional = true }
 lazy_static = "1.4"
-core-graphics-types = "*"
-mach2 = "*"
+core-graphics-types = "0.1"
+mach2 = "0.4"
 wgpu = { version = "^0.19", optional = true, features = ["metal", "hal"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
@@ -82,11 +82,11 @@ windows = { version = "0.52", features = [
     "UI_Core",
     "ApplicationModel_Core",
 ] }
-wgpu = { version = "^0.19", optional = true, features = ["dx12", "hal"] }
-d3d12 = "*"
-winapi = { version = "*", optional = true }
+wgpu = { version = "0.19", optional = true, features = ["dx12", "hal"] }
+d3d12 = "0.19"
+winapi = { version = "0.3", optional = true }
 
 [dev-dependencies]
 futures = "0.3"
-tokio = { version = "*", features = ["rt", "macros", "rt-multi-thread"] }
+tokio = { version = "1.37", features = ["rt", "macros", "rt-multi-thread"] }
 wgpu = "0.19"
