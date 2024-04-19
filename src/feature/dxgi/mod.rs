@@ -38,7 +38,7 @@ impl Error for WindowsDxgiVideoFrameError {
     }
 }
 
-/// A video frame which can interoperate with DXGI
+/// A video frame which can inter-operate with DXGI
 pub trait WindowsDxgiVideoFrame {
     /// Get the surface texture for this video frame
     fn get_dxgi_surface(&self) -> Result<(windows::Win32::Graphics::Dxgi::IDXGISurface, DirectXPixelFormat), WindowsDxgiVideoFrameError>; 
@@ -85,11 +85,11 @@ impl Error for WindowsDxgiCaptureStreamError {
     }
 }
 
-/// A capture stream which can interoperate with DXGI
+/// A capture stream which can inter-operate with DXGI
 pub trait WindowsDxgiCaptureStream {
-    /// Get the dxgi adapter used by the capture stream for frame generation
+    /// Get the DXGI adapter used by the capture stream for frame generation
     fn get_dxgi_adapter(&self) -> Result<windows::Win32::Graphics::Dxgi::IDXGIAdapter, WindowsDxgiCaptureStreamError>;
-    /// Get the dxgi device used by the capture stream for frame generation
+    /// Get the DXGI device used by the capture stream for frame generation
     fn get_dxgi_device(&self) -> windows::Win32::Graphics::Dxgi::IDXGIDevice;
 }
 

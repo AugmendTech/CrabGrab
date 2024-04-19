@@ -39,9 +39,12 @@ pub(crate) struct MacosCaptureStream {
 }
 
 pub trait MacosCaptureConfigExt {
+    /// Set whether or not to scale content to the output size
     fn with_scale_to_fit(self, scale_to_fit: bool) -> Self;
+    /// Set the maximum capture frame-rate
     fn with_maximum_fps(self, maximum_fps: Option<f32>) -> Self;
     #[cfg(feature = "metal")]
+    /// Set the metal device to use for texture creation
     fn with_metal_device(self, metal_device: metal::Device) -> Self;
 }
 

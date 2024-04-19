@@ -7,12 +7,12 @@ Features:
 - Screen and window capture supported
 - Compatible with multiple GPU APIs:
     - Wgpu
-    - DirectX 11
+    - DX11
     - DXGI
     - Metal
     - IOSurface
 - Easy frame bitmap generation
-- Sound capture (wip)
+- Sound capture (WIP)
 - Platform specific extension features
 - Screenshot facility
 

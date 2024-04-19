@@ -59,9 +59,9 @@ pub enum VideoRange {
 
 /// A YCbCr image, corresponding to either V420 or F420 pixel formats.
 /// 
-/// Dual-planar, with luma (Y) in one plane, and chroma (CbCr) in another.
+/// Dual-planar, with luminance (Y) in one plane, and chrominance (CbCr) in another.
 /// Note that each plane may have a different size, as with V420 format, where
-/// the chroma plane is 2x2 blocks, but luma is per-pixel
+/// the chroma plane is 2 by 2 blocks, but luma is per-pixel
 pub struct FrameBitmapYCbCr {
     pub luma_data: Box<[u8]>,
     pub luma_width: usize,

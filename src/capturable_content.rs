@@ -2,7 +2,7 @@ use std::{error::Error, fmt::{Debug, Display}};
 
 use crate::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
 
-/// Represents an error that occured when enumerating capturable content
+/// Represents an error that occurred when enumerating capturable content
 #[derive(Debug, Clone)]
 pub enum CapturableContentError {
     Other(String)
@@ -32,7 +32,7 @@ impl Error for CapturableContentError {
 
 /// Selects the kind of windows to enumerate for capture
 pub struct CapturableWindowFilter {
-    /// Desktop windows are elements of the desktop environment, E.G. the dock on macos or the start bar on windows.
+    /// Desktop windows are elements of the desktop environment, E.G. the dock on MacOS or the start bar on Windows.
     pub desktop_windows: bool,
     /// Whether to restrict to onscreen windows
     pub onscreen_only: bool,
@@ -99,6 +99,7 @@ impl CapturableContentFilter {
     };
 }
 
+/// A collection of capturable content (windows, screens)
 pub struct CapturableContent {
     impl_capturable_content: ImplCapturableContent
 }
@@ -242,7 +243,7 @@ impl CapturableDisplay {
 unsafe impl Send for CapturableDisplay {}
 unsafe impl Sync for CapturableDisplay {}
 
-// Represents an application with capturable windows
+/// Represents an application with capturable windows
 pub struct CapturableApplication {
     impl_capturable_application: ImplCapturableApplication
 }
@@ -250,7 +251,7 @@ pub struct CapturableApplication {
 impl CapturableApplication {
     /// Gets the "identifier" of the application
     /// 
-    /// On Macos, this is the application bundle, and on windows, this is the application file name
+    /// On MacOS, this is the application bundle, and on windows, this is the application file name
     pub fn identifier(&self) -> String {
         self.impl_capturable_application.identifier()
     }

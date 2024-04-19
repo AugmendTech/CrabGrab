@@ -3,6 +3,13 @@ name = "crabgrab"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.docs.rs]
+features = ["iosurface", "metal", "dxgi", "dx11", "bitmap", "screenshot", "wgpu"]
+targets = ["x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+
+[package.metadata.spellcheck]
+config = "spellcheck/cfg.toml"
+
 [features]
 iosurface = []
 metal = ["dep:metal"]
@@ -10,7 +17,6 @@ dxgi = []
 dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half", "dx11"]
 screenshot = ["bitmap"]
-#content_picker = []
 wgpu = ["dep:wgpu", "dep:winapi", "dx11", "dxgi", "metal"]
 
 [dependencies]

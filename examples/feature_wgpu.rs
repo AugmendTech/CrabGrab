@@ -6,6 +6,7 @@ use crabgrab::prelude::*;
 use crabgrab::feature::wgpu::WgpuCaptureConfigExt;
 use crabgrab::feature::wgpu::WgpuVideoFrameExt;
 
+#[allow(unused)]
 struct Gfx {
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -56,7 +57,7 @@ fn main() {
             .expect("Expected config with wgpu device");
         let (tx_result, rx_result) = futures::channel::oneshot::channel();
         let mut tx_result = Some(tx_result);
-        let stream = CaptureStream::new(token, config, move |event_result| {
+        let _stream = CaptureStream::new(token, config, move |event_result| {
             match event_result {
                 Ok(event) => {
                     match event {
@@ -94,16 +95,14 @@ fn main() {
         match frame_opt {
             Some(frame) => {
                 println!("Got frame! getting wgpu texture...");
-                let wgpu_texture = frame.get_texture(crabgrab::feature::wgpu::WgpuVideoFramePlaneTexture::Rgba, Some("wgpu video frame"))
+                let wgpu_texture = frame.get_wgpu_texture(crabgrab::feature::wgpu::WgpuVideoFramePlaneTexture::Rgba, Some("wgpu video frame"))
                     .expect("Expected wgpu texture from video frame");
                 println!("Got wgpu texture! Size: {:?}", wgpu_texture.size());
-                //std::mem::forget(frame);
             },
             None => {
                 println!("Got None! Oh no!");
             }
         }
         std::thread::sleep(Duration::from_millis(1000));
-        //std::mem::forget(stream);
     });
 }

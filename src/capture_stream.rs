@@ -19,7 +19,7 @@ pub enum StreamEvent {
     End,
 }
 
-/// This represents an error during a stream, for example a failure to retreive a video or audio frame
+/// This represents an error during a stream, for example a failure to retrieve a video or audio frame
 #[derive(Debug, Clone)]
 pub enum StreamError {
     Other(String),
@@ -128,7 +128,7 @@ pub struct AudioCaptureConfig {
 
 impl AudioCaptureConfig {
     /// Creates a new audio capture config with default settings:
-    /// * 24000 hz
+    /// * 24000 Hz
     /// * Mono
     pub fn new() -> Self {
         Self {
@@ -143,17 +143,17 @@ impl AudioCaptureConfig {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum CapturePixelFormat {
-    /// One plane, 4 channels, 8 bits per channel: {b: u8, g: u8, r: u8, a: u8}, full range: [0, 255]
+    /// One plane, 4 channels, 8 bits per channel: { b: u8, g: u8, r: u8, a: u8 }, full range: [0, 255]
     Bgra8888,
-    /// One plane, 4 channels, 10 bits per color channel, two bits for alpha: {a: u2, r: u10, g: u10, b: u10}, rgb range: [0, 1023], alpha range: [0, 3]
+    /// One plane, 4 channels, 10 bits per color channel, two bits for alpha: { a: u2, r: u10, g: u10, b: u10 }, rgb range: [0, 1023], alpha range: [0, 3]
     Argb2101010,
     /// Two planes:
-    /// * 1 channel, luminance, 8 bits per pixel, video range: [16, 240]
-    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
+    /// * 1 channel, luminance (Y), 8 bits per pixel, video range: [16, 240]
+    /// * 2 channels, chrominance (CbCr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
     V420,
     /// Two planes:
-    /// * 1 channel, luminance, 8 bits per pixel, full range: [0, 255]
-    /// * 2 channels, chroma (cb, cr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
+    /// * 1 channel, luminance (Y), 8 bits per pixel, full range: [0, 255]
+    /// * 2 channels, chrominance (CbCr) 8 bits bits per channel per two pixels vertically, range: [0, 255]
     F420,
 }
 
@@ -283,7 +283,7 @@ pub struct CaptureStream {
 
 unsafe impl Send for CaptureStream {}
 
-/// Represents programatic capture access
+/// Represents programmatic capture access
 #[derive(Clone, Copy, Debug)]
 pub struct CaptureAccessToken {
     pub(crate) impl_capture_access_token: ImplCaptureAccessToken
@@ -318,8 +318,6 @@ impl CaptureStream {
     }
 
     /// Gets the implementation's supported pixel formats
-    /// 
-    /// Note that the returned formats may not work for all capture modalities (eg, window vs display)
     pub fn supported_pixel_formats() -> &'static [CapturePixelFormat] {
         ImplCaptureStream::supported_pixel_formats()
     }

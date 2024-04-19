@@ -8,7 +8,7 @@ use std::fmt::Display;
 
 use crate::{platform::{macos::{frame::MacosVideoFrame, objc_wrap::IOSurfaceRef}, platform_impl::objc_wrap::{IOSurfaceDecrementUseCount, IOSurfaceIncrementUseCount}}, prelude::VideoFrame};
 
-/// A Macos IOSurface instance
+/// A MacOS IOSurface instance
 pub struct IoSurface(IOSurfaceRef);
 
 impl IoSurface {
@@ -36,9 +36,9 @@ impl Drop for IoSurface {
     }
 }
 
-/// A video frame which can interoperate using IOSurfaces
+/// A video frame which can inter-operate with any MacOS GPU API using IOSurfaces
 pub trait MacosIoSurfaceVideoFrameExt {
-    /// Get the iosurface representing the video frame's texture
+    /// Get the IOSurface representing the video frame's texture
     fn get_iosurface(&self) -> Result<IoSurface, GetIoSurfaceError>;
 }
 

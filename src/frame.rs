@@ -26,7 +26,7 @@ pub enum AudioChannelData<'data> {
     I16(AudioChannelDataSamples<'data, i16>),
 }
 
-// Wraps a "slice" of audio data for one channel, handling interleaving/stride
+/// Wraps a "slice" of audio data for one channel, handling data stride
 pub struct AudioChannelDataSamples<'data, T> {
     pub(crate) data: *const u8,
     pub(crate) stride: usize,
@@ -35,12 +35,14 @@ pub struct AudioChannelDataSamples<'data, T> {
 }
 
 impl<T: Copy> AudioChannelDataSamples<'_, T> {
-    fn get(&self, i: usize) -> T {
-        let ptr = self.data.wrapping_add(self.stride * i);
+    /// Get the nth sample for this channel data
+    pub fn get(&self, n: usize) -> T {
+        let ptr = self.data.wrapping_add(self.stride * n);
         unsafe { *(ptr as *const T) }
     }
 
-    fn length(&self) -> usize {
+    /// Get the length of this sample buffer
+    pub fn length(&self) -> usize {
         self.length
     }
 }

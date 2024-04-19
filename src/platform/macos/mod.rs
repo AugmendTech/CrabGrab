@@ -17,5 +17,7 @@ pub(crate) use capture_stream::MacosPixelFormat as ImplPixelFormat;
 pub(crate) use capturable_content::MacosCapturableApplication as ImplCapturableApplication;
 pub(crate) use capture_stream::MacosCaptureAccessToken as ImplCaptureAccessToken;
 
+/// Macos-specific extensions for audio capture configs
 pub use capture_stream::MacosAudioCaptureConfigExt;
+/// Macos-specific extensions for capture configs
 pub use capture_stream::MacosCaptureConfigExt;

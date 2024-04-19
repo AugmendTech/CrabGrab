@@ -1,4 +1,3 @@
-use std::ffi::c_void;
 use std::sync::Arc;
 use std::{error::Error, fmt::Display};
 
@@ -19,6 +18,8 @@ use crate::feature::dx11::*;
 use crate::feature::dxgi::*;
 #[cfg(target_os = "windows")]
 use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Dxgi::IDXGIDevice, Direct3D11on12::ID3D11On12Device2, Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
+#[cfg(target_os = "windows")]
+use std::ffi::c_void;
 
 /// A capture config which can be supplied with a Wgpu device
 pub trait WgpuCaptureConfigExt: Sized {
@@ -26,7 +27,7 @@ pub trait WgpuCaptureConfigExt: Sized {
 }
 
 impl WgpuCaptureConfigExt for CaptureConfig {
-    /// Supply a wgpu device to the config, allowing the generation of wgpu textures from video frames
+    /// Supply a Wgpu device to the config, allowing the generation of Wgpu textures from video frames
     fn with_wgpu_device(self, wgpu_device: Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>) -> Result<Self, String> {
         #[cfg(target_os = "macos")]
         {
@@ -105,9 +106,9 @@ impl WgpuCaptureConfigExt for CaptureConfig {
 pub enum WgpuVideoFramePlaneTexture {
      /// The single RGBA plane for an RGBA format frame
      Rgba,
-     /// The Luminance (brightness) plane for a YCbCr format frame
+     /// The Luminance (Y, brightness) plane for a YCbCr format frame
      Luminance,
-     /// The Chroma (red/blue) plane for a YCbCr format frame
+     /// The Chrominance (CbCr, Blue/Red) plane for a YCbCr format frame
      Chroma
 }
 
@@ -119,7 +120,7 @@ pub enum WgpuVideoFrameError {
     NoBackendTexture,
     /// The requested plane isn't valid for this frame
     InvalidVideoPlaneTexture,
-    /// No wgpu device
+    /// No Wgpu device was supplied to the capture stream
     NoWgpuDevice,
     Other(String)
 }
@@ -150,14 +151,14 @@ impl Error for WgpuVideoFrameError {
     }
 }
 
-/// A video frame which can be used to create wpgu textures
+/// A video frame which can be used to create Wgpu textures
 pub trait WgpuVideoFrameExt {
     /// Get the texture for the given plane of the video frame
-    fn get_texture(&self, plane: WgpuVideoFramePlaneTexture, label: Option<&'static str>) -> Result<wgpu::Texture, WgpuVideoFrameError>;
+    fn get_wgpu_texture(&self, plane: WgpuVideoFramePlaneTexture, label: Option<&'static str>) -> Result<wgpu::Texture, WgpuVideoFrameError>;
 }
 
 impl WgpuVideoFrameExt for VideoFrame {
-    fn get_texture(&self, plane: WgpuVideoFramePlaneTexture, label: Option<&'static str>) -> Result<wgpu::Texture, WgpuVideoFrameError> {
+    fn get_wgpu_texture(&self, plane: WgpuVideoFramePlaneTexture, label: Option<&'static str>) -> Result<wgpu::Texture, WgpuVideoFrameError> {
         #[cfg(target_os = "macos")]
         {
             let wgpu_device = match &self.impl_video_frame {
@@ -169,7 +170,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                 WgpuVideoFramePlaneTexture::Chroma => MetalVideoFramePlaneTexture::Chroma,
                 WgpuVideoFramePlaneTexture::Luminance => MetalVideoFramePlaneTexture::Luminance,
             };
-            match MetalVideoFrameExt::get_texture(self, metal_plane) {
+            match MetalVideoFrameExt::get_metal_texture(self, metal_plane) {
                 Ok(metal_texture) => {
                     unsafe {
                         let descriptor = wgpu::TextureDescriptor {
@@ -293,7 +294,7 @@ impl WgpuVideoFrameExt for VideoFrame {
     }
 }
 
-/// A capture stream which may have had a wgpu device instance supplied to it
+/// A capture stream which may have had a Wgpu device instance supplied to it
 pub trait WgpuCaptureStreamExt {
     /// Gets the Wgpu device wrapper supplied to `CaptureConfig::with_wgpu_device(..)`
     fn get_wgpu_device_wrapper(&self) -> Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>;

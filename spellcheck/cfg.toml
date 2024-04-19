@@ -1,0 +1,4 @@
+[Hunspell]
+search_dirs = ["."]
+extra_dictionaries = ["crabgrab.dic"]
+use_builtin = true

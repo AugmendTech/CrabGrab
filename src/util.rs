@@ -1,4 +1,4 @@
-/// Represents a 2d size
+/// Represents a 2D size
 #[derive(Debug, Copy, Clone)]
 pub struct Size {
     pub width: f64,
@@ -23,7 +23,7 @@ impl Size {
     }
 }
 
-/// Represents a 2d point
+/// Represents a 2D point
 #[derive(Debug, Copy, Clone)]
 pub struct Point {
     pub x: f64,

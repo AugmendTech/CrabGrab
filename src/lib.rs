@@ -2,13 +2,13 @@
 //! 
 //! ## Feature flags
 //! 
-//! ### GPU Interop
+//! ### GPU Inter-op
 //! 
-//! - **`dx11`** - enables retreiving the surface of a video frame and getting the dx11 device instance for the stream (windows only)
-//! - **`dxgi`** - enables retreiving the surface of a video frame and getting the dxgi device instance for the stream (windows only)
-//! - **`metal`** - enabels retreiving the metal textures for a video frame and getting the metal device instance for the stream (macos only)
-//! - **`iosurface`** - enables retreiving the iosurface for a video frame (macos only)
-//! - **`wgpu`** - enables retreiving a wgpu texture from a video frame and getting the wgpu device instance wrapper for the stream
+//! - **`dx11`** - enables retrieving the surface of a video frame and getting the DX11 device instance for the stream (Windows only)
+//! - **`dxgi`** - enables retrieving the surface of a video frame and getting the DXGI device instance for the stream (Windows only)
+//! - **`metal`** - enables retrieving the Metal textures for a video frame and getting the Metal device instance for the stream (MacOS only)
+//! - **`iosurface`** - enables retrieving the IOSurface for a video frame (MacOS only)
+//! - **`wgpu`** - enables retrieving a Wgpu texture from a video frame and getting the Wgpu device instance wrapper for the stream
 //! 
 //! ### Bitmap output
 //! 
@@ -16,7 +16,7 @@
 //! 
 //! ### Screenshots
 //! 
-//! - **`screenshot`** - provides an easy-to-use function wrapping CaptureStream for single-frame capture
+//! - **`screenshot`** - provides an easy-to-use function wrapping `CaptureStream` for single-frame capture
 //! 
 //! ## Example
 //! 
@@ -82,12 +82,19 @@
 //! ````
 //! 
 
+/// Platform-specific extensions
 pub mod platform;
+/// Extension features
 pub mod feature;
 
+/// Geometry types
 pub mod util;
+/// Audio and video frames
 pub mod frame;
+/// The actual capture stream and related constructs
 pub mod capture_stream;
+/// Enumeration of capturable items
 pub mod capturable_content;
 
+/// Everything
 pub mod prelude;
