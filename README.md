@@ -33,11 +33,11 @@ With CrabGrab, you can build things like:
 
 1. An AI assistant that can see your screen. A fully featured AI assistant built on top of CrabGrab can be seen in the open source [Snippy](https://github.com/AugmendTech/cggui) project.
 
-![Snippy, an AI assistant](docs/snippy_chat_cmd.png)
+![Snippy, an AI assistant](https://github.com/AugmendTech/CrabGrab/blob/main/docs/snippy_chat_cmd.png?raw=true)
 
 2. A video capture tool like the [Augmend](https://augmend.com) client
 
-![Augmend, a video capture tool](docs/augmend.png)
+![Augmend, a video capture tool](https://github.com/AugmendTech/CrabGrab/blob/main/docs/augmend.png?raw=true)
 
 Features:
 ---------
