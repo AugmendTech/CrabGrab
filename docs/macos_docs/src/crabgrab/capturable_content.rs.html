@@ -255,11 +255,12 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::{Debug, Display}};
 
 <span class="kw">use crate</span>::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
 
-<span class="doccomment">/// Represents an error that occured when enumerating capturable content
+<span class="doccomment">/// Represents an error that occurred when enumerating capturable content
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>CapturableContentError {
     Other(String)
@@ -289,7 +290,7 @@
 
 <span class="doccomment">/// Selects the kind of windows to enumerate for capture
 </span><span class="kw">pub struct </span>CapturableWindowFilter {
-    <span class="doccomment">/// Desktop windows are elements of the desktop environment, E.G. the dock on macos or the start bar on windows.
+    <span class="doccomment">/// Desktop windows are elements of the desktop environment, E.G. the dock on MacOS or the start bar on Windows.
     </span><span class="kw">pub </span>desktop_windows: bool,
     <span class="doccomment">/// Whether to restrict to onscreen windows
     </span><span class="kw">pub </span>onscreen_only: bool,
@@ -356,7 +357,8 @@
     };
 }
 
-<span class="kw">pub struct </span>CapturableContent {
+<span class="doccomment">/// A collection of capturable content (windows, screens)
+</span><span class="kw">pub struct </span>CapturableContent {
     impl_capturable_content: ImplCapturableContent
 }
 
@@ -499,7 +501,7 @@
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>CapturableDisplay {}
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>CapturableDisplay {}
 
-<span class="comment">// Represents an application with capturable windows
+<span class="doccomment">/// Represents an application with capturable windows
 </span><span class="kw">pub struct </span>CapturableApplication {
     impl_capturable_application: ImplCapturableApplication
 }
@@ -507,7 +509,7 @@
 <span class="kw">impl </span>CapturableApplication {
     <span class="doccomment">/// Gets the &quot;identifier&quot; of the application
     /// 
-    /// On Macos, this is the application bundle, and on windows, this is the application file name
+    /// On MacOS, this is the application bundle, and on windows, this is the application file name
     </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.impl_capturable_application.identifier()
     }

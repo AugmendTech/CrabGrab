@@ -338,9 +338,9 @@
 
 <span class="doccomment">/// A YCbCr image, corresponding to either V420 or F420 pixel formats.
 /// 
-/// Dual-planar, with luma (Y) in one plane, and chroma (CbCr) in another.
+/// Dual-planar, with luminance (Y) in one plane, and chrominance (CbCr) in another.
 /// Note that each plane may have a different size, as with V420 format, where
-/// the chroma plane is 2x2 blocks, but luma is per-pixel
+/// the chroma plane is 2 by 2 blocks, but luma is per-pixel
 </span><span class="kw">pub struct </span>FrameBitmapYCbCr {
     <span class="kw">pub </span>luma_data: Box&lt;[u8]&gt;,
     <span class="kw">pub </span>luma_width: usize,

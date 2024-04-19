@@ -468,6 +468,9 @@
 <a href="#468" id="468">468</a>
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use </span>futures::executor::block_on;
@@ -509,9 +512,12 @@
 }
 
 <span class="kw">pub trait </span>MacosCaptureConfigExt {
-    <span class="kw">fn </span>with_scale_to_fit(<span class="self">self</span>, scale_to_fit: bool) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn </span>with_maximum_fps(<span class="self">self</span>, maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Set whether or not to scale content to the output size
+    </span><span class="kw">fn </span>with_scale_to_fit(<span class="self">self</span>, scale_to_fit: bool) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Set the maximum capture frame-rate
+    </span><span class="kw">fn </span>with_maximum_fps(<span class="self">self</span>, maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;) -&gt; <span class="self">Self</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    </span><span class="doccomment">/// Set the metal device to use for texture creation
     </span><span class="kw">fn </span>with_metal_device(<span class="self">self</span>, metal_device: metal::Device) -&gt; <span class="self">Self</span>;
 }
 

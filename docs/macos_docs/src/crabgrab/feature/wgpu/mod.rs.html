@@ -316,8 +316,8 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::c_void;
-<span class="kw">use </span>std::sync::Arc;
+<a href="#319" id="319">319</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::{error::Error, fmt::Display};
 
 <span class="kw">use </span><span class="kw">crate</span>::prelude::{CaptureConfig, CaptureStream, VideoFrame};
@@ -337,6 +337,8 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::feature::dxgi::<span class="kw-2">*</span>;
 <span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
 </span><span class="kw">use </span>windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Dxgi::IDXGIDevice, Direct3D11on12::ID3D11On12Device2, Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
+<span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+</span><span class="kw">use </span>std::ffi::c_void;
 
 <span class="doccomment">/// A capture config which can be supplied with a Wgpu device
 </span><span class="kw">pub trait </span>WgpuCaptureConfigExt: Sized {
@@ -344,7 +346,7 @@
 }
 
 <span class="kw">impl </span>WgpuCaptureConfigExt <span class="kw">for </span>CaptureConfig {
-    <span class="doccomment">/// Supply a wgpu device to the config, allowing the generation of wgpu textures from video frames
+    <span class="doccomment">/// Supply a Wgpu device to the config, allowing the generation of Wgpu textures from video frames
     </span><span class="kw">fn </span>with_wgpu_device(<span class="self">self</span>, wgpu_device: Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
         <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
         </span>{
@@ -423,9 +425,9 @@
 </span><span class="kw">pub enum </span>WgpuVideoFramePlaneTexture {
      <span class="doccomment">/// The single RGBA plane for an RGBA format frame
      </span>Rgba,
-     <span class="doccomment">/// The Luminance (brightness) plane for a YCbCr format frame
+     <span class="doccomment">/// The Luminance (Y, brightness) plane for a YCbCr format frame
      </span>Luminance,
-     <span class="doccomment">/// The Chroma (red/blue) plane for a YCbCr format frame
+     <span class="doccomment">/// The Chrominance (CbCr, Blue/Red) plane for a YCbCr format frame
      </span>Chroma
 }
 
@@ -437,7 +439,7 @@
     </span>NoBackendTexture,
     <span class="doccomment">/// The requested plane isn&#39;t valid for this frame
     </span>InvalidVideoPlaneTexture,
-    <span class="doccomment">/// No wgpu device
+    <span class="doccomment">/// No Wgpu device was supplied to the capture stream
     </span>NoWgpuDevice,
     Other(String)
 }
@@ -468,14 +470,14 @@
     }
 }
 
-<span class="doccomment">/// A video frame which can be used to create wpgu textures
+<span class="doccomment">/// A video frame which can be used to create Wgpu textures
 </span><span class="kw">pub trait </span>WgpuVideoFrameExt {
     <span class="doccomment">/// Get the texture for the given plane of the video frame
-    </span><span class="kw">fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt;;
+    </span><span class="kw">fn </span>get_wgpu_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt;;
 }
 
 <span class="kw">impl </span>WgpuVideoFrameExt <span class="kw">for </span>VideoFrame {
-    <span class="kw">fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt; {
+    <span class="kw">fn </span>get_wgpu_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt; {
         <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
         </span>{
             <span class="kw">let </span>wgpu_device = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.impl_video_frame {
@@ -487,7 +489,7 @@
                 WgpuVideoFramePlaneTexture::Chroma =&gt; MetalVideoFramePlaneTexture::Chroma,
                 WgpuVideoFramePlaneTexture::Luminance =&gt; MetalVideoFramePlaneTexture::Luminance,
             };
-            <span class="kw">match </span>MetalVideoFrameExt::get_texture(<span class="self">self</span>, metal_plane) {
+            <span class="kw">match </span>MetalVideoFrameExt::get_metal_texture(<span class="self">self</span>, metal_plane) {
                 <span class="prelude-val">Ok</span>(metal_texture) =&gt; {
                     <span class="kw">unsafe </span>{
                         <span class="kw">let </span>descriptor = wgpu::TextureDescriptor {
@@ -611,7 +613,7 @@
     }
 }
 
-<span class="doccomment">/// A capture stream which may have had a wgpu device instance supplied to it
+<span class="doccomment">/// A capture stream which may have had a Wgpu device instance supplied to it
 </span><span class="kw">pub trait </span>WgpuCaptureStreamExt {
     <span class="doccomment">/// Gets the Wgpu device wrapper supplied to `CaptureConfig::with_wgpu_device(..)`
     </span><span class="kw">fn </span>get_wgpu_device_wrapper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;;

@@ -182,9 +182,9 @@
 </span><span class="kw">pub enum </span>MetalVideoFramePlaneTexture {
     <span class="doccomment">/// The single RGBA plane for an RGBA format frame
     </span>Rgba,
-    <span class="doccomment">/// The Luminance (brightness) plane for a YCbCr format frame
+    <span class="doccomment">/// The Luminance (Y, Brightness) plane for a YCbCr format frame
     </span>Luminance,
-    <span class="doccomment">/// The Chroma (red/blue) plane for a YCbCr format frame
+    <span class="doccomment">/// The Chrominance (CbCr, Blue/Red) plane for a YCbCr format frame
     </span>Chroma
 }
 
@@ -229,12 +229,12 @@
 <span class="doccomment">/// A video frame which can be used to create metal textures
 </span><span class="kw">pub trait </span>MetalVideoFrameExt {
     <span class="doccomment">/// Get the texture for the given plane of the video frame
-    </span><span class="kw">fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: MetalVideoFramePlaneTexture) -&gt; <span class="prelude-ty">Result</span>&lt;metal::Texture, MacosVideoFrameError&gt;;
+    </span><span class="kw">fn </span>get_metal_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: MetalVideoFramePlaneTexture) -&gt; <span class="prelude-ty">Result</span>&lt;metal::Texture, MacosVideoFrameError&gt;;
 }
 
 <span class="attr">#[cfg(feature=<span class="string">&quot;metal&quot;</span>)]
 </span><span class="kw">impl </span>MetalVideoFrameExt <span class="kw">for </span>VideoFrame {
-    <span class="kw">fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: MetalVideoFramePlaneTexture) -&gt; <span class="prelude-ty">Result</span>&lt;metal::Texture, MacosVideoFrameError&gt; {
+    <span class="kw">fn </span>get_metal_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: MetalVideoFramePlaneTexture) -&gt; <span class="prelude-ty">Result</span>&lt;metal::Texture, MacosVideoFrameError&gt; {
         <span class="kw">let </span>iosurface_and_metal_device = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.impl_video_frame {
             MacosVideoFrame::SCStream(frame) =&gt; {
                 <span class="kw">match </span>frame.sample_buffer.get_image_buffer() {
@@ -311,7 +311,7 @@
     }
 }
 
-<span class="doccomment">/// A capture stream which interoperates with Metal
+<span class="doccomment">/// A capture stream which inter-operates with Metal
 </span><span class="kw">pub trait </span>MetalCaptureStreamExt {
     <span class="doccomment">/// Get the metal device used for frame capture
     </span><span class="kw">fn </span>get_metal_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; metal::Device;

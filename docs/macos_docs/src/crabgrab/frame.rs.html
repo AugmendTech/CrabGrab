@@ -164,6 +164,8 @@
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 </span><span class="kw">use </span>std::{marker::PhantomData, time::{Duration, Instant}, fmt::Debug};
 
@@ -192,7 +194,7 @@
     I16(AudioChannelDataSamples&lt;<span class="lifetime">&#39;data</span>, i16&gt;),
 }
 
-<span class="comment">// Wraps a &quot;slice&quot; of audio data for one channel, handling interleaving/stride
+<span class="doccomment">/// Wraps a &quot;slice&quot; of audio data for one channel, handling data stride
 </span><span class="kw">pub struct </span>AudioChannelDataSamples&lt;<span class="lifetime">&#39;data</span>, T&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) data: <span class="kw-2">*const </span>u8,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stride: usize,
@@ -201,12 +203,14 @@
 }
 
 <span class="kw">impl</span>&lt;T: Copy&gt; AudioChannelDataSamples&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; T {
-        <span class="kw">let </span>ptr = <span class="self">self</span>.data.wrapping_add(<span class="self">self</span>.stride * i);
+    <span class="doccomment">/// Get the nth sample for this channel data
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; T {
+        <span class="kw">let </span>ptr = <span class="self">self</span>.data.wrapping_add(<span class="self">self</span>.stride * n);
         <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(ptr <span class="kw">as </span><span class="kw-2">*const </span>T) }
     }
 
-    <span class="kw">fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="doccomment">/// Get the length of this sample buffer
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.length
     }
 }
