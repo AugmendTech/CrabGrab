@@ -1,7 +1,18 @@
 [package]
 name = "crabgrab"
+description = "A cross-platform screen/window capture crate"
 version = "0.1.0"
 edition = "2021"
+authors = ["Augmend, Inc. <https://github.com/AugmendTech>", "Liam Taylor <https://github.com/OutOfTheVoid>", "Tim Misiak <https://github.com/TimMisiak>"]
+documentation = "https://docs.rs/crabgrab"
+readme = "README.md"
+homepage = "https://github.com/AugmendTech/CrabGrab"
+repository = "https://github.com/AugmendTech/CrabGrab"
+license = "MIT OR Apache-2.0"
+license-file = "LICENSE.md"
+keywords = ["capture", "graphics", "window", "screen", "media"]
+categories = ["graphics", "hardware-support", "multimedia", "os"]
+exclude = ["spellcheck/", "update_doc_copy.ps1", "update_doc_copy.sh", "docs/", ".gitignore", ".vscode/"]
 
 [package.metadata.docs.rs]
 features = ["iosurface", "metal", "dxgi", "dx11", "bitmap", "screenshot", "wgpu"]
