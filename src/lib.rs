@@ -9,11 +9,14 @@
 //! - **`metal`** - enabels retreiving the metal textures for a video frame and getting the metal device instance for the stream (macos only)
 //! - **`iosurface`** - enables retreiving the iosurface for a video frame (macos only)
 //! - **`wgpu`** - enables retreiving a wgpu texture from a video frame and getting the wgpu device instance wrapper for the stream
+//! 
 //! ### Bitmap output
 //! 
 //! - **`bitmap`** - enables creating raw bitmap copies of frames in system memory
 //! 
-//! ### 
+//! ### Screenshots
+//! 
+//! - **`screenshot`** - provides an easy-to-use function wrapping CaptureStream for single-frame capture
 //! 
 //! ## Example
 //! 
