@@ -31,7 +31,7 @@ async fn main() {
 
 With CrabGrab, you can build things like:
 
-1. An AI assistant that can see your screen. A fully functional AI assistant built on top of CrabGrab can be seen in the open source [Snippy](https://github.com/AugmendTech/cggui) project.
+1. An AI assistant that can see your screen. A fully functional AI assistant built on top of CrabGrab can be seen in the open source [Snippy](https://github.com/AugmendTech/snippy) project.
 
 ![Snippy, an AI assistant](https://github.com/AugmendTech/CrabGrab/blob/main/docs/snippy_chat_cmd.png?raw=true)
 
@@ -56,7 +56,7 @@ Features:
 Examples
 --------
 
-For a full application example, check out [Snippy](https://github.com/AugmendTech/cggui), an AI assistant built on top of CrabGrab.
+For a full application example, check out [Snippy](https://github.com/AugmendTech/snippy), an AI assistant built on top of CrabGrab.
 
 Small examples showing how to use the CrabGrab crate can be found at [crabgrab/examples](examples). You can run the examples from the repository:
 
