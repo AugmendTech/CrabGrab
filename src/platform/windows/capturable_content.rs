@@ -1,6 +1,6 @@
 use std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}, hash::Hash};
 
-use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, HWND, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible}};
+use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, HWND, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
 
 use crate::{prelude::{CapturableContentError, CapturableContentFilter}, util::{Point, Rect, Size}};
 
@@ -193,6 +193,12 @@ impl WindowsCapturableContent {
                     }
                     if window_filter.onscreen_only && !IsWindowVisible(**hwnd).as_bool() {
                         return false;
+                    }
+                    let mut window_display_affinity = 0;
+                    if GetWindowDisplayAffinity(**hwnd, &mut window_display_affinity as *mut _).is_ok() {
+                        if (window_display_affinity & WDA_EXCLUDEFROMCAPTURE.0) != 0 {
+                            return false;
+                        }
                     }
                     // TODO: filter desktop windows
                     true
