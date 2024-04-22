@@ -2,6 +2,7 @@ use std::{cell::Cell, fmt::Debug, hash::Hash};
 
 use futures::channel::oneshot;
 use libc::getpid;
+use parking_lot::Mutex;
 
 use crate::{capturable_content::{CapturableContentFilter, CapturableContentError}, util::{Rect, Point, Size}};
 
@@ -18,9 +19,10 @@ impl MacosCapturableContent {
         unsafe { CGMainDisplayID() };
         let (exclude_desktop, onscreen_only) = filter.windows.map_or((false, true), |filter| (!filter.desktop_windows, filter.onscreen_only));
         let (tx, rx) = oneshot::channel();
-        let tx = Cell::new(Some(tx));
+        let mut tx = Mutex::new(Some(tx));
         SCShareableContent::get_shareable_content_with_completion_handler(exclude_desktop, onscreen_only, move |result| {
-            if let Some(tx) = tx.take() {
+            println!("get_shareable_content_with_completion_handler - handler");
+            if let Some(tx) = tx.lock().take() {
                 let _ = tx.send(result);
             }
         });
@@ -37,7 +39,7 @@ impl MacosCapturableContent {
             Ok(Err(error)) => {
                 Err(CapturableContentError::Other(format!("SCShareableContent returned error code: {}", error.code())))
             }
-            Err(_) => Err(CapturableContentError::Other("Failed to receive SCSharableContent result from completion handler future".into())),
+            Err(error) => Err(CapturableContentError::Other(format!("Failed to receive SCSharableContent result from completion handler future: {}", error.to_string()))),
         }
     }
 }

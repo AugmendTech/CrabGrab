@@ -3066,90 +3066,6 @@
 <a href="#3066" id="3066">3066</a>
 <a href="#3067" id="3067">3067</a>
 <a href="#3068" id="3068">3068</a>
-<a href="#3069" id="3069">3069</a>
-<a href="#3070" id="3070">3070</a>
-<a href="#3071" id="3071">3071</a>
-<a href="#3072" id="3072">3072</a>
-<a href="#3073" id="3073">3073</a>
-<a href="#3074" id="3074">3074</a>
-<a href="#3075" id="3075">3075</a>
-<a href="#3076" id="3076">3076</a>
-<a href="#3077" id="3077">3077</a>
-<a href="#3078" id="3078">3078</a>
-<a href="#3079" id="3079">3079</a>
-<a href="#3080" id="3080">3080</a>
-<a href="#3081" id="3081">3081</a>
-<a href="#3082" id="3082">3082</a>
-<a href="#3083" id="3083">3083</a>
-<a href="#3084" id="3084">3084</a>
-<a href="#3085" id="3085">3085</a>
-<a href="#3086" id="3086">3086</a>
-<a href="#3087" id="3087">3087</a>
-<a href="#3088" id="3088">3088</a>
-<a href="#3089" id="3089">3089</a>
-<a href="#3090" id="3090">3090</a>
-<a href="#3091" id="3091">3091</a>
-<a href="#3092" id="3092">3092</a>
-<a href="#3093" id="3093">3093</a>
-<a href="#3094" id="3094">3094</a>
-<a href="#3095" id="3095">3095</a>
-<a href="#3096" id="3096">3096</a>
-<a href="#3097" id="3097">3097</a>
-<a href="#3098" id="3098">3098</a>
-<a href="#3099" id="3099">3099</a>
-<a href="#3100" id="3100">3100</a>
-<a href="#3101" id="3101">3101</a>
-<a href="#3102" id="3102">3102</a>
-<a href="#3103" id="3103">3103</a>
-<a href="#3104" id="3104">3104</a>
-<a href="#3105" id="3105">3105</a>
-<a href="#3106" id="3106">3106</a>
-<a href="#3107" id="3107">3107</a>
-<a href="#3108" id="3108">3108</a>
-<a href="#3109" id="3109">3109</a>
-<a href="#3110" id="3110">3110</a>
-<a href="#3111" id="3111">3111</a>
-<a href="#3112" id="3112">3112</a>
-<a href="#3113" id="3113">3113</a>
-<a href="#3114" id="3114">3114</a>
-<a href="#3115" id="3115">3115</a>
-<a href="#3116" id="3116">3116</a>
-<a href="#3117" id="3117">3117</a>
-<a href="#3118" id="3118">3118</a>
-<a href="#3119" id="3119">3119</a>
-<a href="#3120" id="3120">3120</a>
-<a href="#3121" id="3121">3121</a>
-<a href="#3122" id="3122">3122</a>
-<a href="#3123" id="3123">3123</a>
-<a href="#3124" id="3124">3124</a>
-<a href="#3125" id="3125">3125</a>
-<a href="#3126" id="3126">3126</a>
-<a href="#3127" id="3127">3127</a>
-<a href="#3128" id="3128">3128</a>
-<a href="#3129" id="3129">3129</a>
-<a href="#3130" id="3130">3130</a>
-<a href="#3131" id="3131">3131</a>
-<a href="#3132" id="3132">3132</a>
-<a href="#3133" id="3133">3133</a>
-<a href="#3134" id="3134">3134</a>
-<a href="#3135" id="3135">3135</a>
-<a href="#3136" id="3136">3136</a>
-<a href="#3137" id="3137">3137</a>
-<a href="#3138" id="3138">3138</a>
-<a href="#3139" id="3139">3139</a>
-<a href="#3140" id="3140">3140</a>
-<a href="#3141" id="3141">3141</a>
-<a href="#3142" id="3142">3142</a>
-<a href="#3143" id="3143">3143</a>
-<a href="#3144" id="3144">3144</a>
-<a href="#3145" id="3145">3145</a>
-<a href="#3146" id="3146">3146</a>
-<a href="#3147" id="3147">3147</a>
-<a href="#3148" id="3148">3148</a>
-<a href="#3149" id="3149">3149</a>
-<a href="#3150" id="3150">3150</a>
-<a href="#3151" id="3151">3151</a>
-<a href="#3152" id="3152">3152</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 #![allow(non_upper_case_globals)]
 
@@ -3165,12 +3081,11 @@
 #[link(name = <span class="string">&quot;AVFoundation&quot;</span>, kind = <span class="string">&quot;framework&quot;</span>)]
 </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{}
 
-<span class="kw">use </span>std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut}, sync::Arc, time::{Duration, Instant}};
+<span class="kw">use </span>std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut, NonNull}, sync::Arc, time::{Duration, Instant}};
 
-<span class="kw">use </span>block::{Block, ConcreteBlock, RcBlock};
+<span class="kw">use </span>block2::{ffi::Class, Block, RcBlock, StackBlock};
 <span class="kw">use </span>libc::{c_void, strlen};
-<span class="kw">use </span>objc::{class, declare::MethodImplementation, msg_send, runtime::{objc_copyProtocolList, objc_getProtocol, Class, Object, Protocol, Sel, BOOL}, sel, sel_impl, Encode, Encoding, Message};
-<span class="kw">use </span>objc2::runtime::Bool;
+<span class="kw">use </span>objc2::{class, declare::ClassBuilder, ffi::{objc_getClass, objc_getProtocol}, msg_send, rc::Id, runtime::{AnyClass, AnyObject, AnyProtocol, Bool, Ivar, Sel}, sel, Encode, Encoding, RefEncode};
 <span class="kw">use </span>mach2::mach_time::{mach_timebase_info, mach_timebase_info_data_t};
 
 <span class="kw">use crate</span>::{prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
@@ -3200,69 +3115,11 @@
 <span class="kw">type </span>CGDataProviderRef = CFTypeRef;
 <span class="kw">type </span>CFDataRef = CFTypeRef;
 
-<span class="attr">#[allow(unused)]
-</span><span class="kw">fn </span>debug_objc_class(name: <span class="kw-2">&amp;</span>str) {
-    <span class="kw">let </span>class_name_cstring = CString::new(name).unwrap();
-    <span class="kw">let </span>class = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>objc::runtime::objc_getClass(class_name_cstring.as_ptr()) };
-    <span class="macro">println!</span>(<span class="string">&quot;instance methods: &quot;</span>);
-    <span class="kw">for </span>method <span class="kw">in </span>class.instance_methods().iter() {
-        <span class="macro">print!</span>(<span class="string">&quot;METHOD {}::{}(&quot;</span>, class.name(), method.name().name());
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0 </span>.. method.arguments_count() {
-            <span class="kw">if </span>i + <span class="number">1 </span>== method.arguments_count() {
-                <span class="macro">println!</span>(<span class="string">&quot;{}) -&gt; {}&quot;</span>, method.argument_type(i).unwrap().as_str(), method.return_type().as_str());
-            } <span class="kw">else </span>{
-                <span class="macro">print!</span>(<span class="string">&quot;{}, &quot;</span>, method.argument_type(i).unwrap().as_str());
-            }
-        }
-    }
-    <span class="macro">println!</span>(<span class="string">&quot;instance variables: &quot;</span>);
-    <span class="kw">for </span>ivar <span class="kw">in </span>class.instance_variables().iter() {
-        <span class="macro">println!</span>(<span class="string">&quot;IVAR {}::{}: {}&quot;</span>, class.name(), ivar.name(), ivar.type_encoding().as_str());
-    }
-    <span class="kw">let </span>metaclass = class.metaclass();
-    <span class="kw">let </span>metaclass_ptr = metaclass <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>;
-    <span class="macro">println!</span>(<span class="string">&quot;metaclass ptr: {:?}&quot;</span>, metaclass_ptr);
-    <span class="macro">println!</span>(<span class="string">&quot;class methods: &quot;</span>);
-    <span class="kw">for </span>method <span class="kw">in </span>metaclass.instance_methods().iter() {
-        <span class="macro">print!</span>(<span class="string">&quot;CLASS METHOD {}::{}(&quot;</span>, class.name(), method.name().name());
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0 </span>.. method.arguments_count() {
-            <span class="kw">if </span>i + <span class="number">1 </span>== method.arguments_count() {
-                <span class="macro">println!</span>(<span class="string">&quot;{}) -&gt; {}&quot;</span>, method.argument_type(i).unwrap().as_str(), method.return_type().as_str());
-            } <span class="kw">else </span>{
-                <span class="macro">print!</span>(<span class="string">&quot;{}, &quot;</span>, method.argument_type(i).unwrap().as_str());
-            }
-        }
-    }
+<span class="attr">#[repr(C)]
+</span><span class="kw">struct </span>CFStringRefEncoded(CFStringRef);
 
-    <span class="macro">println!</span>(<span class="string">&quot;class ivars: &quot;</span>);
-    <span class="kw">for </span>ivar <span class="kw">in </span>metaclass.instance_variables().iter() {
-        <span class="macro">println!</span>(<span class="string">&quot;CLASS IVAR {}::{}: {}&quot;</span>, class.name(), ivar.name(), ivar.type_encoding().as_str());
-    }
-
-    <span class="macro">println!</span>(<span class="string">&quot;protocols: &quot;</span>);
-    <span class="kw">for </span>protocol <span class="kw">in </span>class.adopted_protocols().iter() {
-        <span class="macro">println!</span>(<span class="string">&quot;PROTOCOL {}&quot;</span>, protocol.name());
-    }
-    <span class="macro">println!</span>(<span class="string">&quot;end&quot;</span>);
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>debug_objc_object(obj: <span class="kw-2">*mut </span>Object) {
-    <span class="kw">if </span>(obj.is_null()) {
-        <span class="macro">println!</span>(<span class="string">&quot;debug_objc_object: nil&quot;</span>);
-        <span class="kw">return</span>;
-    } <span class="kw">else </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;debug_objc_object: {:?}&quot;</span>, obj);
-    }
-    <span class="kw">unsafe </span>{
-        <span class="kw">let </span>class_ptr = objc::runtime::object_getClass(obj);
-        <span class="kw">if </span>class_ptr.is_null() {
-            <span class="macro">println!</span>(<span class="string">&quot; * class: nil&quot;</span>);
-            <span class="kw">return</span>;
-        }
-        <span class="kw">let </span>class = <span class="kw-2">&amp;*</span>class_ptr;
-        <span class="macro">println!</span>(<span class="string">&quot; * class: {}&quot;</span>, class.name());
-        debug_objc_class(class.name());
-    }
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CFStringRefEncoded {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Pointer(<span class="kw-2">&amp;</span>Encoding::Struct(<span class="string">&quot;__CFString&quot;</span>, <span class="kw-2">&amp;</span>[]));
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -3335,7 +3192,7 @@
     <span class="kw">fn </span>CGRequestScreenCaptureAccess() -&gt; bool;
 
     <span class="comment">//CGDisplayStreamRef CGDisplayStreamCreateWithDispatchQueue(CGDirectDisplayID display, size_t outputWidth, size_t outputHeight, int32_t pixelFormat, CFDictionaryRef properties, dispatch_queue_t queue, CGDisplayStreamFrameAvailableHandler handler);
-    </span><span class="kw">fn </span>CGDisplayStreamCreateWithDispatchQueue(display_id: u32, output_width: usize, output_height: usize, pixel_format: i32, properties: CFDictionaryRef, dispatch_queue: <span class="kw-2">*mut </span>Object, handler: <span class="kw-2">*const </span>c_void) -&gt; CGDisplayStreamRef;
+    </span><span class="kw">fn </span>CGDisplayStreamCreateWithDispatchQueue(display_id: u32, output_width: usize, output_height: usize, pixel_format: i32, properties: CFDictionaryRef, dispatch_queue: <span class="kw-2">*mut </span>AnyObject, handler: <span class="kw-2">*const </span>c_void) -&gt; CGDisplayStreamRef;
     <span class="kw">fn </span>CGDisplayStreamStart(stream: CGDisplayStreamRef) -&gt; i32;
     <span class="kw">fn </span>CGDisplayStreamStop(stream: CGDisplayStreamRef) -&gt; i32;
 
@@ -3390,8 +3247,8 @@
     <span class="kw">static </span><span class="kw-2">mut </span>_dispatch_queue_attr_concurrent: c_void;
 
     <span class="kw">fn </span>dispatch_queue_create(label: <span class="kw-2">*const </span>std::ffi::c_char, attr: DispatchQueueAttr) -&gt; DispatchQueue;
-    <span class="kw">fn </span>dispatch_retain(object: <span class="kw-2">*mut </span>Object);
-    <span class="kw">fn </span>dispatch_release(object: <span class="kw-2">*mut </span>Object);
+    <span class="kw">fn </span>dispatch_retain(AnyObject: <span class="kw-2">*mut </span>AnyObject);
+    <span class="kw">fn </span>dispatch_release(AnyObject: <span class="kw-2">*mut </span>AnyObject);
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SCStreamFrameInfoStatus       : CFStringRef;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SCStreamFrameInfoDisplayTime  : CFStringRef;
@@ -3445,35 +3302,37 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CGColorRef(CFTypeRef);
 
 <span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CGColorRef {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;^{CGColor=}&quot;</span>) }
-    }
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Pointer(<span class="kw-2">&amp;</span>c_void::ENCODING_REF);
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSString(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSString(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>NSString {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
+}
 
 <span class="kw">impl </span>NSString {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>bytes = s.as_bytes();
             <span class="kw">let </span>instance = CFStringCreateWithBytes(std::ptr::null(), bytes.as_ptr(), bytes.len() <span class="kw">as </span>isize, kCFStringEncodingUTF8, <span class="bool-val">false</span>);
-            NSString(instance <span class="kw">as </span><span class="kw-2">*mut </span>Object)
+            NSString(instance <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_ref_unretained(r: CFStringRef) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{ CFRetain(r); }
-        <span class="self">Self</span>(r <span class="kw">as </span><span class="kw-2">*mut </span>Object)
+        <span class="self">Self</span>(r <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_ref_retained(r: CFStringRef) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(r <span class="kw">as </span><span class="kw-2">*mut </span>Object)
+        <span class="self">Self</span>(r <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain];
+            <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain];
             <span class="self">Self</span>(id)
         }
     }
@@ -3488,24 +3347,22 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>NSString {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;^@\&quot;NSString\&quot;&quot;</span>) }
-    }
-}
-
 <span class="attr">#[repr(C)]
 #[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSError(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSError(<span class="kw-2">*mut </span>AnyObject);
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>NSError {}
 
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>NSError {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
+}
+
 <span class="kw">impl </span>NSError {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
@@ -3535,14 +3392,6 @@
     <span class="comment">//pub(crate) fn user_info(&amp;self) -&gt; 
 </span>}
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>NSError {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{
-            Encoding::from_str(<span class="string">&quot;@\&quot;NSError\&quot;&quot;</span>)
-        }
-    }
-}
-
 <span class="kw">impl </span>Drop <span class="kw">for </span>NSError {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, release]; };
@@ -3551,7 +3400,7 @@
 
 <span class="attr">#[repr(C)]
 #[derive(Copy, Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSArrayRef(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSArrayRef(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSArrayRef {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -3559,27 +3408,21 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>NSArrayRef {
-    <span class="kw">fn </span>encode() -&gt; objc::Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;NSArray\&quot;&quot;</span>) }
-    }
-}
-
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSArray(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSArray(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSArray {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSArray), new];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSArray), new];
             <span class="self">Self</span>::from_id_retained(id)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_mutable() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSMutableArray), alloc];
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, init];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSMutableArray), alloc];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, init];
             <span class="self">Self</span>::from_id_retained(id)
         }
     }
@@ -3588,12 +3431,12 @@
         <span class="self">Self</span>::from_id_unretained(r.<span class="number">0</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
@@ -3601,13 +3444,13 @@
         <span class="kw">unsafe </span>{ <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, count] }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_object&lt;T: <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: T) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_object&lt;T: <span class="lifetime">&#39;static </span>+ Encode&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: T) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, addObject: object];
+            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, addAnyObject: object];
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>obj_at_index&lt;T: <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; T {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>obj_at_index&lt;T: <span class="lifetime">&#39;static </span>+ Encode&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; T {
         <span class="kw">unsafe </span>{ <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, objectAtIndex: i] }
     }
 }
@@ -3621,7 +3464,7 @@
 
 <span class="attr">#[repr(C)]
 #[derive(Copy, Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSDictionaryEncoded(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSDictionaryEncoded(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSDictionaryEncoded {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -3629,45 +3472,38 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>NSDictionaryEncoded {
-    <span class="kw">fn </span>encode() -&gt; objc::Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;NSDictionary\&quot;&quot;</span>) }
-    }
-}
-
-
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSDictionary(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NSDictionary(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSDictionary {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSDictionary), new];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSDictionary), new];
             <span class="self">Self</span>::from_id_retained(id)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_mutable() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSMutableDictionary), new];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSMutableDictionary), new];
             <span class="self">Self</span>::from_id_retained(id)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_ref_unretained(r: CGDictionaryRef) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_id_unretained(r <span class="kw">as </span><span class="kw-2">*mut </span>Object)
+        <span class="self">Self</span>::from_id_unretained(r <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_encoded(e: NSDictionaryEncoded) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_id_unretained(e.<span class="number">0</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
@@ -3677,20 +3513,20 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NSArray {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>keys: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, allKeys];
+            <span class="kw">let </span>keys: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, allKeys];
             NSArray::from_id_retained(keys)
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_for_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: CFStringRef) -&gt; <span class="kw-2">*mut </span>Object {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_for_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: CFStringRef) -&gt; <span class="kw-2">*mut </span>AnyObject {
         <span class="kw">unsafe </span>{
             <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, valueForKey: key]
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_object_for_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: <span class="kw-2">*mut </span>Object, key: <span class="kw-2">*mut </span>Object) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_object_for_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, AnyObject: <span class="kw-2">*mut </span>AnyObject, key: <span class="kw-2">*mut </span>AnyObject) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setObject: object forKey: key];
+            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setAnyObject: AnyObject forKey: key];
         }
     }
 }
@@ -3716,6 +3552,10 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) y: CGFloat,
 }
 
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CGPoint {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Struct(<span class="string">&quot;CGPoint&quot;</span>, <span class="kw-2">&amp;</span>[Encoding::Double, Encoding::Double]);
+}
+
 <span class="kw">impl </span>CGPoint {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ZERO: CGPoint = CGPoint { x: <span class="number">0.0</span>, y: <span class="number">0.0 </span>};
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INF: CGPoint = CGPoint { x: std::f64::INFINITY, y: std::f64::INFINITY };
@@ -3728,14 +3568,12 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) y: CGFloat,
 }
 
-<span class="kw">impl </span>CGSize {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ZERO: CGSize = CGSize { x: <span class="number">0.0</span>, y: <span class="number">0.0 </span>};
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CGSize {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Struct(<span class="string">&quot;CGSize&quot;</span>, <span class="kw-2">&amp;</span>[Encoding::Double, Encoding::Double]);
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CGSize {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;{CGSize=\&quot;width\&quot;d\&quot;height\&quot;d}&quot;</span>) }
-    }
+<span class="kw">impl </span>CGSize {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ZERO: CGSize = CGSize { x: <span class="number">0.0</span>, y: <span class="number">0.0 </span>};
 }
 
 <span class="attr">#[repr(C)]
@@ -3743,6 +3581,10 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CGRect {
     <span class="kw">pub</span>(<span class="kw">crate</span>) origin: CGPoint,
     <span class="kw">pub</span>(<span class="kw">crate</span>) size: CGSize,
+}
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CGRect {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Struct(<span class="string">&quot;CGRect&quot;</span>, <span class="kw-2">&amp;</span>[CGPoint::ENCODING, CGSize::ENCODING]);
 }
 
 <span class="kw">impl </span>CGRect {
@@ -3778,12 +3620,6 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CGRect {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;{CGRect=\&quot;origin\&quot;{CGPoint=\&quot;x\&quot;d\&quot;y\&quot;d}\&quot;size\&quot;{CGSize=\&quot;width\&quot;d\&quot;height\&quot;d}}&quot;</span>) }
-    }
-}
-
 <span class="attr">#[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CGWindowID(<span class="kw">pub</span>(<span class="kw">crate</span>) u32);
@@ -3797,16 +3633,20 @@
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>CGWindowID {}
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCWindow(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCWindow(<span class="kw-2">*mut </span>AnyObject);
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCWindow {}
 
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCWindow {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
+}
+
 <span class="kw">impl </span>SCWindow {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
@@ -3819,20 +3659,25 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>title_cfstringref: CFStringRef = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, title];
-            NSString::from_ref_unretained(title_cfstringref).as_string()
+            <span class="kw">let </span>title_nsstring: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, title];
+            NSString::from_id_unretained(title_nsstring).as_string()
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CGRect {
         <span class="kw">unsafe </span>{
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).get_ivar(<span class="string">&quot;_frame&quot;</span>)
+            <span class="comment">// This ugly hack is necessary because the obc2 encoding for CGRect doesn&#39;t have field names like CoreGraphic&#39;s internal CGRect
+            </span><span class="kw">let </span>offset = (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).class().instance_variable(<span class="string">&quot;_frame&quot;</span>).unwrap().offset();
+            <span class="kw">let </span>raw_self_ptr = <span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span>c_void;
+            <span class="kw">let </span>raw_frame_ptr = raw_self_ptr.byte_add(offset <span class="kw">as </span>usize);
+            <span class="kw">let </span>frame_ptr = raw_frame_ptr <span class="kw">as </span><span class="kw-2">*const </span>CGRect;
+            <span class="kw-2">*</span>frame_ptr
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>owning_application(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SCRunningApplication {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>scra_id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, owningApplication];
+            <span class="kw">let </span>scra_id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, owningApplication];
             SCRunningApplication::from_id_unretained(scra_id)
         }
     }
@@ -3844,15 +3689,9 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCWindow {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;^\&quot;@SCWindow\&quot;&quot;</span>) }
-    }
-}
-
 <span class="kw">impl </span>Clone <span class="kw">for </span>SCWindow {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
         SCWindow(<span class="self">self</span>.<span class="number">0</span>)
     }
 }
@@ -3864,22 +3703,26 @@
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCDisplay(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCDisplay(<span class="kw-2">*mut </span>AnyObject);
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCDisplay {}
 
 <span class="kw">impl </span>SCDisplay {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CGRect {
         <span class="kw">unsafe </span>{
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).get_ivar(<span class="string">&quot;_frame&quot;</span>)
+            <span class="kw">let </span>offset = (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).class().instance_variable(<span class="string">&quot;_frame&quot;</span>).unwrap().offset();
+            <span class="kw">let </span>raw_self_ptr = <span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span>c_void;
+            <span class="kw">let </span>raw_frame_ptr = raw_self_ptr.byte_add(offset <span class="kw">as </span>usize);
+            <span class="kw">let </span>frame_ptr = raw_frame_ptr <span class="kw">as </span><span class="kw-2">*const </span>CGRect;
+            <span class="kw-2">*</span>frame_ptr
         }
     }
 
@@ -3892,7 +3735,7 @@
 
 <span class="kw">impl </span>Clone <span class="kw">for </span>SCDisplay {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
         SCDisplay(<span class="self">self</span>.<span class="number">0</span>)
     }
 }
@@ -3904,7 +3747,7 @@
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCShareableContent(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCShareableContent(<span class="kw-2">*mut </span>AnyObject);
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCShareableContent {}
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SCShareableContent {}
 
@@ -3914,23 +3757,25 @@
         onscreen_windows_only: bool,
         completion_handler: <span class="kw">impl </span>Fn(<span class="prelude-ty">Result</span>&lt;SCShareableContent, NSError&gt;) + Send + <span class="lifetime">&#39;static</span>,
     ) {
-        <span class="kw">let </span>completion_handler = Box::new(completion_handler);
-        <span class="kw">let </span>handler_block = ConcreteBlock::new(<span class="kw">move </span>|sc_shareable_content: <span class="kw-2">*mut </span>Object, error: <span class="kw-2">*mut </span>Object| {
-            <span class="kw">if </span>!error.is_null() {
-                <span class="kw">let </span>error = NSError::from_id_retained(error);
-                (completion_handler)(<span class="prelude-val">Err</span>(error));
-            } <span class="kw">else </span>{
-                <span class="kw">unsafe </span>{ <span class="kw">let _</span>:() = <span class="macro">msg_send!</span>[sc_shareable_content, retain]; }
-                <span class="kw">let </span>sc_shareable_content = SCShareableContent(sc_shareable_content);
-                (completion_handler)(<span class="prelude-val">Ok</span>(sc_shareable_content));
+        <span class="kw">let </span>completion_handler = Arc::new(completion_handler);
+        <span class="kw">let </span>handler_block = RcBlock::new(<span class="kw">move </span>|sc_shareable_content: <span class="prelude-ty">Option</span>&lt;NonNull&lt;AnyObject&gt;&gt;, error: <span class="prelude-ty">Option</span>&lt;NonNull&lt;AnyObject&gt;&gt;| {
+            <span class="kw">unsafe </span>{
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>error) = error {
+                    (completion_handler)(<span class="prelude-val">Err</span>(NSError::from_id_unretained(error.as_mut())));
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>sc_shareable_content = sc_shareable_content.unwrap();
+                    <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[sc_shareable_content, retain]; }
+                    <span class="kw">let </span>sc_shareable_content = SCShareableContent(sc_shareable_content.as_mut());
+                    (completion_handler)(<span class="prelude-val">Ok</span>(sc_shareable_content));
+                }
             }
-        }).copy();
+        });
         <span class="kw">unsafe </span>{
             <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[
                 <span class="macro">class!</span>(SCShareableContent),
                 getShareableContentExcludingDesktopWindows: Bool::from_raw(excluding_desktop_windows)
                 onScreenWindowsOnly: Bool::from_raw(onscreen_windows_only)
-                completionHandler: handler_block
+                completionHandler: <span class="kw-2">&amp;*</span>handler_block
             ];
         }
     }
@@ -3938,12 +3783,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>windows(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;SCWindow&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>windows = Vec::new();
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>windows_nsarray_ref: NSArrayRef = <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).get_ivar(<span class="string">&quot;_windows&quot;</span>);
+            <span class="kw">let </span>windows_ivar = <span class="macro">class!</span>(SCShareableContent).instance_variable(<span class="string">&quot;_windows&quot;</span>).expect(<span class="string">&quot;Expected _windows ivar on SCShareableContent&quot;</span>);
+            <span class="kw">let </span>windows_nsarray_ref = NSArrayRef(<span class="kw-2">*</span>windows_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>));
             <span class="kw">if </span>!windows_nsarray_ref.is_null() {
                 <span class="kw">let </span>windows_ns_array = NSArray::from_ref(windows_nsarray_ref);
                 <span class="kw">let </span>count = windows_ns_array.count();
                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
-                    <span class="kw">let </span>window_id: <span class="kw-2">*mut </span>Object = windows_ns_array.obj_at_index(i);
+                    <span class="kw">let </span>window_id: <span class="kw-2">*mut </span>AnyObject = windows_ns_array.obj_at_index(i);
                     windows.push(SCWindow::from_id_unretained(window_id));
                 }
             }
@@ -3954,12 +3800,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>displays(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;SCDisplay&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>displays = Vec::new();
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>displays_ref: NSArrayRef = <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).get_ivar(<span class="string">&quot;_displays&quot;</span>);
+            <span class="kw">let </span>displays_ivar = <span class="macro">class!</span>(SCShareableContent).instance_variable(<span class="string">&quot;_displays&quot;</span>).expect(<span class="string">&quot;Expected _displays ivar on SCShareableContent&quot;</span>);
+            <span class="kw">let </span>displays_ref = NSArrayRef(<span class="kw-2">*</span>displays_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>));
             <span class="kw">if </span>!displays_ref.is_null() {
                 <span class="kw">let </span>displays_ns_array = NSArray::from_ref(displays_ref);
                 <span class="kw">let </span>count = displays_ns_array.count();
                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
-                    <span class="kw">let </span>display_id: <span class="kw-2">*mut </span>Object = displays_ns_array.obj_at_index(i);
+                    <span class="kw">let </span>display_id: <span class="kw-2">*mut </span>AnyObject = displays_ns_array.obj_at_index(i);
                     displays.push(SCDisplay::from_id_unretained(display_id));
                 }
             }
@@ -3970,12 +3817,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>applications(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;SCRunningApplication&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>applications = Vec::new();
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>applicaitons_ref: NSArrayRef = <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).get_ivar(<span class="string">&quot;_applications&quot;</span>);
+            <span class="kw">let </span>applications_ivar = <span class="macro">class!</span>(SCShareableContent).instance_variable(<span class="string">&quot;_applications&quot;</span>).expect(<span class="string">&quot;Expected _applications ivar on SCShareableContent&quot;</span>);
+            <span class="kw">let </span>applicaitons_ref = NSArrayRef(<span class="kw-2">*</span>applications_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>));
             <span class="kw">if </span>!applicaitons_ref.is_null() {
                 <span class="kw">let </span>applications_array = NSArray::from_ref(applicaitons_ref);
                 <span class="kw">let </span>count = applications_array.count();
                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
-                    <span class="kw">let </span>application_id: <span class="kw-2">*mut </span>Object = applications_array.obj_at_index(i);
+                    <span class="kw">let </span>application_id: <span class="kw-2">*mut </span>AnyObject = applications_array.obj_at_index(i);
                     applications.push(SCRunningApplication::from_id_unretained(application_id));
                 }
             }
@@ -4005,9 +3853,7 @@
 }
 
 <span class="kw">unsafe impl </span>Encode <span class="kw">for </span>OSType {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;I&quot;</span>) }
-    }
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::UInt;
 }
 
 <span class="attr">#[repr(C)]
@@ -4058,20 +3904,15 @@
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCStreamConfiguration(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCStreamConfiguration(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCStreamConfiguration {}
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SCStreamConfiguration {}
-
-<span class="attr">#[test]
-</span><span class="kw">fn </span>test_sc_stream_config_properties() {
-    debug_objc_class(<span class="string">&quot;SCStreamConfiguration&quot;</span>);
-}
 
 <span class="kw">impl </span>SCStreamConfiguration {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCStreamConfiguration), alloc];
-            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[instance, init];
+            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCStreamConfiguration), alloc];
+            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[instance, init];
             <span class="self">Self</span>(instance)
         }
     }
@@ -4100,13 +3941,14 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_pixel_format(<span class="kw-2">&amp;mut </span><span class="self">self</span>, format: SCStreamPixelFormat) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_pixelFormat&quot;</span>, format.to_ostype());
+            <span class="kw">let </span>pixelformat_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_pixelFormat&quot;</span>).expect(<span class="string">&quot;_pixelFormat ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>pixelformat_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = format.to_ostype();
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_color_matrix(<span class="kw-2">&amp;mut </span><span class="self">self</span>, color_matrix: SCStreamColorMatrix) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setColorMatrix: color_matrix.to_cfstringref()];
+            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setColorMatrix: CFStringRefEncoded(color_matrix.to_cfstringref())];
         }
     }
 
@@ -4118,7 +3960,8 @@
                 SCStreamBackgroundColor::Clear =&gt; kCGColorClear,
             };
             <span class="kw">let </span>bg_color = CGColorGetConstantColor(bg_color_name);
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_backgroundColor&quot;</span>, bg_color);
+            <span class="kw">let </span>bg_color_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_backgroundColor&quot;</span>).expect(<span class="string">&quot;_backgroundColor ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>bg_color_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = bg_color;
         }
     }
 
@@ -4130,44 +3973,54 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_minimum_time_interval(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interval: CMTime) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_minimumFrameInterval&quot;</span>, interval);
+            <span class="kw">let </span>minimum_frame_interval_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_minimumFrameInterval&quot;</span>).expect(<span class="string">&quot;_minimumFrameInterval ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw">let </span>offset = minimum_frame_interval_ivar.offset();
+            <span class="kw">let </span>raw_self_ptr = <span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>c_void;
+            <span class="kw">let </span>raw_frame_ptr = raw_self_ptr.byte_add(offset <span class="kw">as </span>usize);
+            <span class="kw">let </span>frame_ptr = raw_frame_ptr <span class="kw">as </span><span class="kw-2">*mut </span>CMTime;
+            <span class="kw-2">*</span>frame_ptr = interval;
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_sample_rate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sample_rate: SCStreamSampleRate) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_sampleRate&quot;</span>, sample_rate.to_isize());
+            <span class="kw">let </span>sample_rate_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_sampleRate&quot;</span>).expect(<span class="string">&quot;_sampleRate ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>sample_rate_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = sample_rate.to_isize();
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_show_cursor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, show_cursor: bool) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_showsCursor&quot;</span>, show_cursor);
+            <span class="kw">let </span>show_cursor_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_showsCursor&quot;</span>).expect(<span class="string">&quot;_showsCursor ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>show_cursor_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::from_raw(show_cursor);
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_capture_audio(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capture_audio: bool) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_capturesAudio&quot;</span>, BOOL::from(capture_audio));
+            <span class="kw">let </span>captures_audio_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_capturesAudio&quot;</span>).expect(<span class="string">&quot;_capturesAudio ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>captures_audio_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::from_raw(capture_audio);
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_channel_count(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_count: isize) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_channelCount&quot;</span>, channel_count);
+            <span class="kw">let </span>channel_count_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_channelCount&quot;</span>).expect(<span class="string">&quot;_channelCount ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>channel_count_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = channel_count
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_exclude_current_process_audio(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exclude_current_process_audio: bool) {
         <span class="kw">unsafe </span>{
-            (<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).set_ivar(<span class="string">&quot;_excludesCurrentProcessAudio&quot;</span>, exclude_current_process_audio);
+            <span class="kw">let </span>exclude_current_process_audio_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">&quot;_excludesCurrentProcessAudio&quot;</span>).expect(<span class="string">&quot;_excludesCurrentProcessAudio ivar on SCStreamConfiguration&quot;</span>);
+            <span class="kw-2">*</span>exclude_current_process_audio_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::from_raw(exclude_current_process_audio);
         }
     }
 }
 
 <span class="kw">impl </span>Clone <span class="kw">for </span>SCStreamConfiguration {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
         SCStreamConfiguration(<span class="self">self</span>.<span class="number">0</span>)
     }
 }
@@ -4184,8 +4037,17 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CMTime {
     value: i64,
     scale: i32,
-    epoch: i64,
     flags: u32,
+    epoch: i64,
+}
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CMTime {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Struct(<span class="string">&quot;?&quot;</span>, <span class="kw-2">&amp;</span>[
+        Encoding::LongLong,
+        Encoding::Int,
+        Encoding::UInt,
+        Encoding::LongLong,
+    ]);
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>K_CMTIME_FLAGS_VALID                   : u32 = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
@@ -4291,12 +4153,6 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>CMTime {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;{?=\&quot;value\&quot;q\&quot;timescale\&quot;i\&quot;flags\&quot;I\&quot;epoch\&quot;q}&quot;</span>) }
-    }
-}
-
 <span class="kw">impl </span>CMTime {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_seconds(seconds: f64, timescale: i32) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{ CMTimeMakeWithSeconds(seconds, timescale) }
@@ -4370,7 +4226,7 @@
 
 <span class="attr">#[repr(C)]
 #[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCContentFilter(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCContentFilter(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCContentFilter {}
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SCContentFilter {}
@@ -4378,30 +4234,24 @@
 <span class="kw">impl </span>SCContentFilter {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_desktop_independent_window(window: <span class="kw-2">&amp;</span>SCWindow) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentFilter), alloc];
-            <span class="kw">let _</span>: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, initWithDesktopIndependentWindow: window.clone()];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentFilter), alloc];
+            <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, initWithDesktopIndependentWindow: window.clone()];
             <span class="self">Self</span>(id)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_display_excluding_apps_excepting_windows(display: SCDisplay, excluded_applications: NSArray, excepting_windows: NSArray) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentFilter), alloc];
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, initWithDisplay: display.<span class="number">0 </span>excludingApplications: excluded_applications.<span class="number">0 </span>exceptingWindows: excepting_windows.<span class="number">0</span>];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentFilter), alloc];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, initWithDisplay: display.<span class="number">0 </span>excludingApplications: excluded_applications.<span class="number">0 </span>exceptingWindows: excepting_windows.<span class="number">0</span>];
             <span class="self">Self</span>(id)
         }
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCContentFilter {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;SCContentFilter\&quot;&quot;</span>) }
-    }
-}
-
 <span class="kw">impl </span>Clone <span class="kw">for </span>SCContentFilter {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, retain]; }
         SCContentFilter(<span class="self">self</span>.<span class="number">0</span>)
     }
 }
@@ -4421,6 +4271,10 @@
 <span class="attr">#[repr(C)]
 </span><span class="kw">struct </span>SCStreamCallbackContainer {
     callback: Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;
+}
+
+<span class="kw">unsafe impl </span>RefEncode <span class="kw">for </span>SCStreamCallbackContainer {
+    <span class="kw">const </span>ENCODING_REF: Encoding = Encoding::Void;
 }
 
 <span class="kw">impl </span>SCStreamCallbackContainer {
@@ -4453,7 +4307,7 @@
         })
     }
 
-    <span class="kw">fn </span>from_encoded(x: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_encoded(x: isize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>x {
             <span class="number">0 </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::Screen),
             <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::Audio),
@@ -4463,101 +4317,76 @@
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">struct </span>SCStreamOutputTypeEncoded(usize);
+</span><span class="kw">struct </span>SCStreamOutputTypeEncoded(isize);
 
 <span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStreamOutputTypeEncoded {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;q&quot;</span>) }
-    }
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::LongLong;
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">struct </span>SCStreamEncoded(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">struct </span>SCStreamEncoded(<span class="kw-2">*mut </span>AnyObject);
 
-<span class="kw">unsafe impl </span>Message <span class="kw">for </span>SCStreamEncoded {}
-
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStreamEncoded {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{
-            Encoding::from_str(<span class="string">&quot;@\&quot;SCStream\&quot;&quot;</span>)
-        }
-    }
-}
-
-<span class="kw">extern fn </span>sc_stream_output_did_output_sample_buffer_of_type(this: <span class="kw-2">&amp;</span>Object, _sel: Sel, stream: SCStream, buffer: CMSampleBufferRef, output_type: SCStreamOutputTypeEncoded) {
+<span class="kw">extern fn </span>sc_stream_output_did_output_sample_buffer_of_type(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel, stream: SCStream, buffer: CMSampleBufferRef, output_type: SCStreamOutputTypeEncoded) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>callback_container: <span class="kw-2">&amp;mut </span>SCStreamCallbackContainer = <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span>this.get_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>) <span class="kw">as </span><span class="kw-2">*mut </span>SCStreamCallbackContainer);
+        <span class="kw">let </span>callback_container_ivar = SCStreamHandler::get_class().instance_variable(<span class="string">&quot;callback_container_ptr&quot;</span>).expect(<span class="string">&quot;Expected callback_container_ptr ivar on SCStreamHandler&quot;</span>);
+        <span class="kw">let </span>callback_container: <span class="kw-2">*mut </span>SCStreamCallbackContainer = <span class="kw-2">*</span>callback_container_ivar.load::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="kw-2">&amp;mut *</span>this) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(sample_buffer) = CMSampleBuffer::copy_from_ref(buffer) {
             <span class="kw">let </span>output_type = SCStreamOutputType::from_encoded(output_type.<span class="number">0</span>).unwrap();
-            callback_container.call_output(sample_buffer, output_type);
+            (<span class="kw-2">&amp;mut *</span>callback_container).call_output(sample_buffer, output_type);
         } <span class="kw">else </span>{
-            callback_container.call_error(SCStreamCallbackError::SampleBufferCopyFailed);
+            (<span class="kw-2">&amp;mut *</span>callback_container).call_error(SCStreamCallbackError::SampleBufferCopyFailed);
         }
         std::mem::forget(stream);
     }
 }
 
-<span class="kw">extern fn </span>sc_stream_handler_did_stop_with_error(this: <span class="kw-2">&amp;</span>Object, _sel: Sel, stream: SCStream, error: NSError) -&gt; () {
+<span class="kw">extern fn </span>sc_stream_handler_did_stop_with_error(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel, stream: SCStream, error: NSError) -&gt; () {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>callback_container: <span class="kw-2">&amp;mut </span>SCStreamCallbackContainer = <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span>this.get_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>) <span class="kw">as </span><span class="kw-2">*mut </span>SCStreamCallbackContainer);
-        callback_container.call_error(SCStreamCallbackError::StreamStopped);
+        <span class="kw">let </span>callback_container_ivar = SCStreamHandler::get_class().instance_variable(<span class="string">&quot;callback_container_ptr&quot;</span>).expect(<span class="string">&quot;Expected callback_container_ptr ivar on SCStreamHandler&quot;</span>);
+        <span class="kw">let </span>callback_container: <span class="kw-2">*mut </span>SCStreamCallbackContainer = <span class="kw-2">*</span>callback_container_ivar.load(<span class="kw-2">&amp;mut *</span>this);
+        (<span class="kw-2">&amp;mut *</span>callback_container).call_error(SCStreamCallbackError::StreamStopped);
         std::mem::forget(error);
         std::mem::forget(stream);
     }
 }
 
-<span class="kw">extern fn </span>sc_stream_handler_dealloc(this: <span class="kw-2">&amp;mut </span>Object, _sel: Sel) {
+<span class="kw">extern fn </span>sc_stream_handler_dealloc(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>callback_container: Box&lt;SCStreamCallbackContainer&gt; = Box::from_raw(<span class="kw-2">*</span>this.get_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>) <span class="kw">as </span><span class="kw-2">*mut </span>SCStreamCallbackContainer);
+        <span class="kw">let </span>callback_container_ivar = SCStreamHandler::get_class().instance_variable(<span class="string">&quot;callback_container_ptr&quot;</span>).expect(<span class="string">&quot;Expected callback_container_ptr ivar on SCStreamHandler&quot;</span>);
+        <span class="kw">let </span>callback_container: <span class="kw-2">*mut </span>SCStreamCallbackContainer = <span class="kw-2">*</span>callback_container_ivar.load(<span class="kw-2">&amp;mut *</span>this);
+        <span class="kw">let </span>callback_container: Box&lt;SCStreamCallbackContainer&gt; = Box::from_raw(callback_container);
         drop(callback_container);
     }
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCStreamHandler(<span class="kw-2">*mut </span>Object);
-
-<span class="kw">unsafe impl </span>Message <span class="kw">for </span>SCStreamHandler {}
-
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStreamHandler {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;&lt;SCStreamOutput, SCStreamDelegate&gt;\&quot;&quot;</span>) }
-    }
-}
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCStreamHandler(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>SCStreamHandler {
     <span class="kw">pub fn </span>new(callback: <span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError&gt;) + Send + <span class="lifetime">&#39;static</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>class = <span class="self">Self</span>::get_class();
         <span class="kw">let </span>callback_container_ptr = Box::leak(Box::new(SCStreamCallbackContainer::new(callback)));
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCStreamHandler), alloc];
-            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[instance, init];
-            (<span class="kw-2">*</span>instance).set_ivar(<span class="string">&quot;callback_container_ptr&quot;</span>, callback_container_ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>c_void);
+            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCStreamHandler), alloc];
+            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[instance, init];
+            <span class="kw">let </span>callback_container_ivar = class.instance_variable(<span class="string">&quot;callback_container_ptr&quot;</span>).expect(<span class="string">&quot;Expected callback_container_ptr ivar on SCStreamHandler&quot;</span>);
+            <span class="kw-2">*</span>callback_container_ivar.load_mut(<span class="kw-2">&amp;mut *</span>instance) = callback_container_ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>c_void;
             <span class="self">Self</span>(instance)
         }
     }
 
-    <span class="kw">fn </span>get_class() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Class {
+    <span class="kw">fn </span>get_class() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>AnyClass {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>class_name = CString::new(<span class="string">&quot;SCStreamHandler&quot;</span>).unwrap();
-            <span class="kw">let </span>class_ptr = objc::runtime::objc_getClass(class_name.as_ptr());
-            <span class="kw">if </span>!class_ptr.is_null() {
-                <span class="kw-2">&amp;*</span>class_ptr
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>class) = objc::declare::ClassDecl::new(<span class="string">&quot;SCStreamHandler&quot;</span>, <span class="macro">class!</span>(NSObject)) {
-                class.add_method(<span class="macro">sel!</span>(stream:didOutputSampleBuffer:ofType:), sc_stream_output_did_output_sample_buffer_of_type <span class="kw">as extern fn </span>(<span class="kw-2">&amp;</span>Object, Sel, SCStream, CMSampleBufferRef, SCStreamOutputTypeEncoded));
-                class.add_method(<span class="macro">sel!</span>(stream:didStopWithError:), sc_stream_handler_did_stop_with_error <span class="kw">as extern fn</span>(<span class="kw-2">&amp;</span>Object, Sel, SCStream, NSError));
-                class.add_method(<span class="macro">sel!</span>(dealloc), sc_stream_handler_dealloc <span class="kw">as extern fn</span>(<span class="kw-2">&amp;mut </span>Object, Sel));
-                
-                <span class="comment">//let sc_stream_delegate_name = CString::new(&quot;SCStreamDelegate&quot;).unwrap();
-                //class.add_protocol(&amp;*objc::runtime::objc_getProtocol(sc_stream_delegate_name.as_ptr()));
-                
-                //let sc_stream_output_name = CString::new(&quot;SCStreamOutput&quot;).unwrap();
-                //class.add_protocol(&amp;*objc::runtime::objc_getProtocol(sc_stream_output_name.as_ptr()));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>class) = ClassBuilder::new(<span class="string">&quot;SCStreamHandler&quot;</span>, <span class="macro">class!</span>(NSObject)) {
+                class.add_method(<span class="macro">sel!</span>(stream:didOutputSampleBuffer:ofType:), sc_stream_output_did_output_sample_buffer_of_type <span class="kw">as extern fn </span>(<span class="kw-2">*mut </span>AnyObject, Sel, SCStream, CMSampleBufferRef, SCStreamOutputTypeEncoded));
+                class.add_method(<span class="macro">sel!</span>(stream:didStopWithError:), sc_stream_handler_did_stop_with_error <span class="kw">as extern fn</span>(<span class="kw-2">*mut </span>AnyObject, Sel, SCStream, NSError));
+                class.add_method(<span class="macro">sel!</span>(dealloc), sc_stream_handler_dealloc <span class="kw">as extern fn</span>(<span class="kw-2">*mut </span>AnyObject, Sel));
 
-                </span>class.add_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>);
+                class.add_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>);
                 
-                class.register()
+                <span class="kw">return </span>class.register();
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;Failed to register SCStreamHandler&quot;</span>);
+                <span class="kw">return </span><span class="macro">class!</span>(SCStreamHandler);
             }
         }
     }
@@ -4566,35 +4395,29 @@
 
 <span class="attr">#[repr(C)]
 #[derive(Debug)]
-</span><span class="kw">pub struct </span>SCStream(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub struct </span>SCStream(<span class="kw-2">*mut </span>AnyObject);
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStream {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
+}
 
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SCStream {}
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCStream {}
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStream {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;SCStream\&quot;&quot;</span>) }
-    }
-}
-
 <span class="attr">#[repr(C)]
 #[derive(Copy, Clone, Debug)]
-</span><span class="kw">struct </span>SCStreamDelegate(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">struct </span>SCStreamDelegate(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStreamDelegate {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;&lt;SCStreamDelegate&gt;\&quot;&quot;</span>) }
-    }
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
 }
 
 <span class="attr">#[repr(C)]
 #[derive(Copy, Clone, Debug)]
-</span><span class="kw">struct </span>SCStreamOutput(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">struct </span>SCStreamOutput(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCStreamOutput {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;&lt;SCStreamOutput&gt;\&quot;&quot;</span>) }
-    }
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
 }
 
 <span class="kw">impl </span>SCStream {
@@ -4608,8 +4431,8 @@
         }.<span class="kw">await
     </span>}
 
-    <span class="kw">pub fn </span>from_id(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub fn </span>from_id(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
@@ -4619,12 +4442,10 @@
 
     <span class="kw">pub fn </span>new(filter: SCContentFilter, config: SCStreamConfiguration, handler_queue: DispatchQueue, handler: SCStreamHandler) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCStream), alloc];
-            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[instance, initWithFilter: filter.<span class="number">0 </span>configuration: config.<span class="number">0 </span>delegate: SCStreamDelegate(handler.<span class="number">0</span>)];
-            <span class="macro">println!</span>(<span class="string">&quot;SCStream instance: {:?}&quot;</span>, instance);
-            <span class="kw">let </span><span class="kw-2">mut </span>error: <span class="kw-2">*mut </span>Object = std::ptr::null_mut();
+            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCStream), alloc];
+            <span class="kw">let </span>instance: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[instance, initWithFilter: filter.<span class="number">0 </span>configuration: config.<span class="number">0 </span>delegate: SCStreamDelegate(handler.<span class="number">0</span>)];
+            <span class="kw">let </span><span class="kw-2">mut </span>error: <span class="kw-2">*mut </span>AnyObject = std::ptr::null_mut();
             <span class="kw">let </span>result: bool = <span class="macro">msg_send!</span>[instance, addStreamOutput: SCStreamOutput(handler.<span class="number">0</span>) <span class="kw">type</span>: SCStreamOutputType::Screen.to_encoded() sampleHandlerQueue: handler_queue error: <span class="kw-2">&amp;mut </span>error <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>];
-            <span class="macro">println!</span>(<span class="string">&quot;addStreamOutput result: {}&quot;</span>, result);
             <span class="kw">if </span>!error.is_null() {
                 <span class="kw">let </span>error = NSError::from_id_retained(error);
                 <span class="macro">println!</span>(<span class="string">&quot;error: {}, reason: {}&quot;</span>, error.description(), error.reason());
@@ -4635,8 +4456,8 @@
 
     <span class="kw">pub fn </span>start(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
-                |error: <span class="kw-2">*mut </span>Object| {
+            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, startCaptureWithCompletionHandler: <span class="kw-2">&amp;*</span>StackBlock::new(Box::new(
+                |error: <span class="kw-2">*mut </span>AnyObject| {
                     <span class="kw">if </span>!error.is_null() {
                         <span class="kw">let </span>error =  NSError::from_id_unretained(error);
                         <span class="macro">println!</span>(<span class="string">&quot;startCaptureWithCompletionHandler error: {:?}, reason: {:?}&quot;</span>, error.description(), error.reason());
@@ -4648,8 +4469,8 @@
 
     <span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, stopCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
-                |error: <span class="kw-2">*mut </span>Object| {
+            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, stopCaptureWithCompletionHandler: <span class="kw-2">&amp;*</span>StackBlock::new(Box::new(
+                |error: <span class="kw-2">*mut </span>AnyObject| {
                     <span class="kw">if </span>!error.is_null() {
                         <span class="kw">let </span>error =  NSError::from_id_unretained(error);
                         <span class="macro">println!</span>(<span class="string">&quot;stopCaptureWithCompletionHandler error: {:?}, reason: {:?}&quot;</span>, error.description(), error.reason());
@@ -4707,7 +4528,6 @@
             <span class="kw-2">&amp;mut </span>block_buffer <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
         </span>);
         <span class="kw">if </span>status != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(...) failed: {}&quot;</span>, status);
             <span class="kw">return </span><span class="prelude-val">Err</span>(());
         }
         <span class="prelude-val">Ok</span>((audio_buffer_list, CMBlockBuffer::from_ref_retained(block_buffer)))
@@ -4869,13 +4689,17 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AVAudioFormat(<span class="kw-2">*mut </span>Object);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AVAudioFormat(<span class="kw-2">*mut </span>AnyObject);
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>AVAudioFormat {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
+}
 
 <span class="kw">impl </span>AVAudioFormat {
     <span class="kw">pub fn </span>new_with_standard_format_sample_rate_channels(sample_rate: f64, channel_count: u32) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(AVAudioFormat), alloc];
-            <span class="kw">let _</span>: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, initStandardFormatWithSampleRate: sample_rate channels: channel_count];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(AVAudioFormat), alloc];
+            <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, initStandardFormatWithSampleRate: sample_rate channels: channel_count];
             <span class="self">Self</span>(id)
         }
     }
@@ -4894,10 +4718,29 @@
     data: <span class="kw-2">*mut </span>c_void,
 }
 
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>AudioBuffer {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Struct(<span class="string">&quot;AudioBuffer&quot;</span>, <span class="kw-2">&amp;</span>[
+        Encoding::UInt,
+        Encoding::UInt,
+        Encoding::Pointer(<span class="kw-2">&amp;</span>Encoding::Void),
+    ]);
+}
+
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AudioBufferList {
     number_buffers: u32,
     buffers: <span class="kw-2">*mut </span>AudioBuffer,
+}
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>AudioBufferList {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Struct(<span class="string">&quot;AudioBufferList&quot;</span>, <span class="kw-2">&amp;</span>[
+        Encoding::UInt,
+        Encoding::Pointer(<span class="kw-2">&amp;</span>AudioBuffer::ENCODING)
+    ]);
+}
+
+<span class="kw">unsafe impl </span>RefEncode <span class="kw">for </span>AudioBufferList {
+    <span class="kw">const </span>ENCODING_REF: Encoding = <span class="self">Self</span>::ENCODING;
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>AudioBufferList {
@@ -4930,13 +4773,13 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AVAudioPCMBuffer(<span class="kw-2">*mut </span>Object);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AVAudioPCMBuffer(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>AVAudioPCMBuffer {
     <span class="kw">pub fn </span>new_with_format_buffer_list_no_copy_deallocator(format: AVAudioFormat, buffer_list_no_copy: <span class="kw-2">*const </span>AudioBufferList) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ()&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(AVAudioPCMBuffer), alloc];
-            <span class="kw">let </span>result: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, initWithPCMFormat: format bufferListNoCopy: buffer_list_no_copy];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(AVAudioPCMBuffer), alloc];
+            <span class="kw">let </span>result: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, initWithPCMFormat: format bufferListNoCopy: buffer_list_no_copy];
             <span class="kw">if </span>result.is_null() {
                 <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, release];
                 <span class="prelude-val">Err</span>(())
@@ -5058,7 +4901,11 @@
 
 <span class="attr">#[repr(C)]
 #[derive(Debug)]
-</span><span class="kw">pub struct </span>DispatchQueue(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub struct </span>DispatchQueue(<span class="kw-2">*mut </span>AnyObject);
+
+<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>DispatchQueue {
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
+}
 
 <span class="kw">impl </span>DispatchQueue {
     <span class="kw">pub fn </span>make_concurrent(name: String) -&gt; <span class="self">Self </span>{
@@ -5095,24 +4942,18 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Encode <span class="kw">for </span>DispatchQueue {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;NSObject&lt;OS_dispatch_queue&gt;\&quot;&quot;</span>) }
-    }
-}
-
 <span class="attr">#[repr(C)]
 </span><span class="kw">struct </span>DispatchQueueAttr(<span class="kw-2">*mut </span>c_void);
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCRunningApplication(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>Object);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCRunningApplication(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>SCRunningApplication {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
@@ -5131,8 +4972,8 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bundle_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>bundle_id_cfstringref: CFStringRef = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, bundleIdentifier];
-            NSString::from_ref_unretained(bundle_id_cfstringref).as_string()
+            <span class="kw">let </span>bundle_id_nsstring: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, bundleIdentifier];
+            NSString::from_id_unretained(bundle_id_nsstring).as_string()
         }
     }
 }
@@ -5171,13 +5012,14 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CGDisplayStream{
     stream_ref: CGDisplayStreamRef,
-    callback_block: RcBlock&lt;(i32, u64, IOSurfaceRef, CGDisplayStreamUpdateRef), ()&gt;,
+    callback_block: RcBlock&lt;<span class="kw">dyn </span>Fn(i32, u64, IOSurfaceRef, CGDisplayStreamUpdateRef)&gt;,
 }
 
 <span class="kw">impl </span>CGDisplayStream {
     <span class="kw">pub fn </span>new(callback: <span class="kw">impl </span>Fn(CGDisplayStreamFrameStatus, Duration, IOSurface) + <span class="lifetime">&#39;static</span>, display_id: u32, size: (usize, usize), pixel_format: SCStreamPixelFormat, options_dict: NSDictionary, dispatch_queue: DispatchQueue) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>absolute_time_start = Mutex::new(<span class="prelude-val">None</span>);
-        <span class="kw">let </span>callback_block = ConcreteBlock::new(<span class="kw">move </span>|status: i32, display_time: u64, iosurface_ref: IOSurfaceRef, stream_update_ref: CGDisplayStreamUpdateRef| {
+        <span class="kw">let </span>absolute_time_start = Arc::new(Mutex::new(<span class="prelude-val">None</span>));
+        <span class="kw">let </span>callback = Arc::new(callback);
+        <span class="kw">let </span>callback_block = StackBlock::new(<span class="kw">move </span>|status: i32, display_time: u64, iosurface_ref: IOSurfaceRef, stream_update_ref: CGDisplayStreamUpdateRef| {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = CGDisplayStreamFrameStatus::from_i32(status) {
                 <span class="kw">let </span>abs_time_start_opt = { <span class="kw-2">*</span>absolute_time_start.lock() };
                 <span class="kw">let </span>relative_time = <span class="kw">if let </span><span class="prelude-val">Some</span>(absolute_time_start) = abs_time_start_opt {
@@ -5526,28 +5368,28 @@ kCFNumberCFIndexType = 14,
     }
 }
 
-<span class="kw">pub struct </span>NSNumber(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>Object);
+<span class="kw">pub struct </span>NSNumber(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSNumber {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_isize(x: isize) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSNumber), numberWithInteger: x];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSNumber), numberWithInteger: x];
             <span class="self">Self</span>(id)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_f32(x: f32) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSNumber), numberWithFloat: x];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSNumber), numberWithFloat: x];
             <span class="self">Self</span>(id)
         }
     }
@@ -5578,21 +5420,21 @@ kCFNumberCFIndexType = 14,
     }
 }
 
-<span class="kw">pub struct </span>NSApplication(<span class="kw-2">*mut </span>Object);
+<span class="kw">pub struct </span>NSApplication(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSApplication {
-    <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
-        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain]; }
+    <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
+        <span class="kw">unsafe </span>{ <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain]; }
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
     <span class="kw">pub fn </span>shared() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSApplication), sharedApplication];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSApplication), sharedApplication];
             <span class="self">Self</span>::from_id_unretained(id)
         }
     }
@@ -5700,11 +5542,11 @@ kCFNumberCFIndexType = 14,
 
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">struct </span>NSValue(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">struct </span>NSValue(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="attr">#[allow(unused)]
 </span><span class="kw">impl </span>NSValue {
-    <span class="kw">fn </span>from_id(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from_id(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
@@ -5728,7 +5570,7 @@ kCFNumberCFIndexType = 14,
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub struct </span>NSScreen(<span class="kw-2">*mut </span>Object);
+</span><span class="kw">pub struct </span>NSScreen(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>NSScreen {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>screens() -&gt; Vec&lt;NSScreen&gt; {
@@ -5736,7 +5578,7 @@ kCFNumberCFIndexType = 14,
             <span class="kw">let </span>screens_ns_array = NSArray::from_id_retained(<span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSScreen), screens]);
             <span class="kw">let </span><span class="kw-2">mut </span>screens_out = Vec::new();
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..screens_ns_array.count() {
-                <span class="kw">let </span>screen: <span class="kw-2">*mut </span>Object = screens_ns_array.obj_at_index(i);
+                <span class="kw">let </span>screen: <span class="kw-2">*mut </span>AnyObject = screens_ns_array.obj_at_index(i);
                 screens_out.push(NSScreen(screen));
             }
             <span class="kw">return </span>screens_out;
@@ -5987,24 +5829,24 @@ kCFNumberCFIndexType = 14,
 <span class="kw">pub const </span>SCContentSharingPickerModeMultipleApplications : usize = <span class="number">1 </span>&lt;&lt; <span class="number">3</span>;
 <span class="kw">pub const </span>SCContentSharingPickerModeSingleDisplay        : usize = <span class="number">1 </span>&lt;&lt; <span class="number">4</span>;
 
-<span class="kw">pub struct </span>SCContentSharingPickerConfiguration(<span class="kw-2">*mut </span>Object);
+<span class="kw">pub struct </span>SCContentSharingPickerConfiguration(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>SCContentSharingPickerConfiguration {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentSharingPickerConfiguration), alloc];
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, init];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentSharingPickerConfiguration), alloc];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, init];
             <span class="self">Self</span>::from_id_retained(id)
         }
     }
 
-    <span class="kw">pub fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain];
+            <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain];
         }
         <span class="self">Self</span>(id)
     }
@@ -6038,68 +5880,57 @@ kCFNumberCFIndexType = 14,
 }
 
 <span class="attr">#[repr(C)]
-</span><span class="kw">pub struct </span>SCContentSharingPickerObserver(<span class="kw-2">*mut </span>Object);
-
-<span class="kw">unsafe impl </span>Message <span class="kw">for </span>SCContentSharingPickerObserver {}
+</span><span class="kw">pub struct </span>SCContentSharingPickerObserver(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">unsafe impl </span>Encode <span class="kw">for </span>SCContentSharingPickerObserver {
-    <span class="kw">fn </span>encode() -&gt; Encoding {
-        <span class="kw">unsafe </span>{ Encoding::from_str(<span class="string">&quot;@\&quot;&lt;SCContentSharingPickerObserver&gt;\&quot;&quot;</span>) }
-    }
+    <span class="kw">const </span>ENCODING: Encoding = Encoding::Object;
 }
 
-<span class="kw">extern fn </span>sc_content_sharing_picker_observer_did_cancel_for_stream(this: <span class="kw-2">&amp;</span>Object, _sel: Sel, picker: <span class="kw-2">*mut </span>Object, stream: <span class="kw-2">*mut </span>Object) {
+<span class="kw">extern fn </span>sc_content_sharing_picker_observer_did_cancel_for_stream(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel, picker: <span class="kw-2">*mut </span>AnyObject, stream: <span class="kw-2">*mut </span>AnyObject) {
     <span class="comment">//println!(&quot;sc_content_sharing_picker_observer_did_cancel_for_stream&quot;);
 </span>}
 
-<span class="kw">extern fn </span>sc_content_sharing_picker_observer_did_update_filter_for_stream(this: <span class="kw-2">&amp;</span>Object, _sel: Sel, picker: <span class="kw-2">*mut </span>Object, filter: <span class="kw-2">*mut </span>Object, stream: <span class="kw-2">*mut </span>Object) {
+<span class="kw">extern fn </span>sc_content_sharing_picker_observer_did_update_filter_for_stream(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel, picker: <span class="kw-2">*mut </span>AnyObject, filter: <span class="kw-2">*mut </span>AnyObject, stream: <span class="kw-2">*mut </span>AnyObject) {
     <span class="comment">//println!(&quot;sc_content_sharing_picker_observer_did_update_filter_for_stream&quot;);
-    //debug_objc_object(filter);
+    //debug_objc_AnyObject(filter);
 </span>}
 
-<span class="kw">extern fn </span>sc_content_sharing_picker_observer_start_did_fail_with_error(this: <span class="kw-2">&amp;</span>Object, _sel: Sel, error: <span class="kw-2">*mut </span>Object) {
+<span class="kw">extern fn </span>sc_content_sharing_picker_observer_start_did_fail_with_error(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel, error: <span class="kw-2">*mut </span>AnyObject) {
     <span class="comment">//println!(&quot;sc_content_sharing_picker_observer_start_did_fail_with_error&quot;);
 </span>}
 
-<span class="kw">extern fn </span>sc_content_sharing_picker_observer_dealloc(this: <span class="kw-2">&amp;mut </span>Object, _sel: Sel) {
+<span class="kw">extern fn </span>sc_content_sharing_picker_observer_dealloc(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>callback_container: Box&lt;SCContentSharingPickerCallbackContainer&gt; = Box::from_raw(<span class="kw-2">*</span>this.get_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>) <span class="kw">as </span><span class="kw-2">*mut </span>SCContentSharingPickerCallbackContainer);
+        <span class="kw">let </span>callback_container: Box&lt;SCContentSharingPickerCallbackContainer&gt; = Box::from_raw(<span class="kw-2">*</span>(<span class="kw-2">*</span>this).get_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>) <span class="kw">as </span><span class="kw-2">*mut </span>SCContentSharingPickerCallbackContainer);
         drop(callback_container);
     }
 }
 
 <span class="kw">impl </span>SCContentSharingPickerObserver {
-    <span class="kw">fn </span>get_class() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Class {
+    <span class="kw">fn </span>get_class() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>AnyClass {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>class_name = CString::new(<span class="string">&quot;SCContentSharingPickerObserverImpl&quot;</span>).unwrap();
-            <span class="kw">let </span>class_ptr = objc::runtime::objc_getClass(class_name.as_ptr());
-            <span class="kw">if </span>!class_ptr.is_null() {
-                <span class="kw-2">&amp;*</span>class_ptr
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>class) = objc::declare::ClassDecl::new(<span class="string">&quot;SCContentSharingPickerObserverImpl&quot;</span>, <span class="macro">class!</span>(NSObject)) {
-                class.add_method(<span class="macro">sel!</span>(contentSharingPicker:didCancelForStream:), sc_content_sharing_picker_observer_did_cancel_for_stream <span class="kw">as extern fn </span>(<span class="kw-2">&amp;</span>Object, Sel, <span class="kw-2">*mut </span>Object, <span class="kw-2">*mut </span>Object));
-                class.add_method(<span class="macro">sel!</span>(contentSharingPicker:didUpdateWithFilter:forStream:), sc_content_sharing_picker_observer_did_update_filter_for_stream <span class="kw">as extern fn </span>(<span class="kw-2">&amp;</span>Object, Sel, <span class="kw-2">*mut </span>Object, <span class="kw-2">*mut </span>Object, <span class="kw-2">*mut </span>Object));
-                class.add_method(<span class="macro">sel!</span>(contentSharingPickerStartDidFailWithError:), sc_content_sharing_picker_observer_start_did_fail_with_error <span class="kw">as extern fn </span>(<span class="kw-2">&amp;</span>Object, Sel, <span class="kw-2">*mut </span>Object));
-                class.add_method(<span class="macro">sel!</span>(dealloc), sc_content_sharing_picker_observer_dealloc <span class="kw">as extern fn </span>(<span class="kw-2">&amp;mut </span>Object, Sel));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>class) = ClassBuilder::new(<span class="string">&quot;SCContentSharingPickerObserverImpl&quot;</span>, <span class="macro">class!</span>(NSAnyObject)) {
+                class.add_method(<span class="macro">sel!</span>(contentSharingPicker:didCancelForStream:), sc_content_sharing_picker_observer_did_cancel_for_stream <span class="kw">as extern fn </span>(<span class="kw-2">*mut </span>AnyObject, Sel, <span class="kw-2">*mut </span>AnyObject, <span class="kw-2">*mut </span>AnyObject));
+                class.add_method(<span class="macro">sel!</span>(contentSharingPicker:didUpdateWithFilter:forStream:), sc_content_sharing_picker_observer_did_update_filter_for_stream <span class="kw">as extern fn </span>(<span class="kw-2">*mut </span>AnyObject, Sel, <span class="kw-2">*mut </span>AnyObject, <span class="kw-2">*mut </span>AnyObject, <span class="kw-2">*mut </span>AnyObject));
+                class.add_method(<span class="macro">sel!</span>(contentSharingPickerStartDidFailWithError:), sc_content_sharing_picker_observer_start_did_fail_with_error <span class="kw">as extern fn </span>(<span class="kw-2">*mut </span>AnyObject, Sel, <span class="kw-2">*mut </span>AnyObject));
+                class.add_method(<span class="macro">sel!</span>(dealloc), sc_content_sharing_picker_observer_dealloc <span class="kw">as extern fn </span>(<span class="kw-2">*mut </span>AnyObject, Sel));
 
                 class.add_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>);
-
-                <span class="kw">let </span>sc_content_sharing_picker_observer_name = CString::new(<span class="string">&quot;SCContentSharingPickerObserver&quot;</span>).unwrap();
-                class.add_protocol(<span class="kw-2">&amp;*</span>objc::runtime::objc_getProtocol(sc_content_sharing_picker_observer_name.as_ptr()));
                 
                 class.register()
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;Failed to register SCContentSharingPickerObserver&quot;</span>);
+                <span class="macro">class!</span>(SCContentSharingPickerObserverImpl)
             }
         }
     }
 
-    <span class="kw">pub fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">pub fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain];
+            <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain];
         }
         <span class="self">Self</span>(id)
     }
@@ -6110,9 +5941,10 @@ kCFNumberCFIndexType = 14,
             <span class="kw">let </span>callback_container_ptr = Box::leak(callback_container) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>c_void;
 
             <span class="kw">let </span>class = <span class="self">Self</span>::get_class();
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[class, alloc];
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[id, init];
-            (<span class="kw-2">*</span>id).set_ivar(<span class="string">&quot;callback_container_ptr&quot;</span>, callback_container_ptr);
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[class, alloc];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, init];
+            <span class="kw">let </span>callback_container_ptr_ivar = <span class="macro">class!</span>(SCShareableContent).instance_variable(<span class="string">&quot;callback_container_ptr&quot;</span>).expect(<span class="string">&quot;Expected callback_container_ptr ivar on SCContentSharingPickerObserver&quot;</span>);
+            <span class="kw-2">*</span>callback_container_ptr_ivar.load_mut(<span class="kw-2">&amp;mut *</span>id) = callback_container_ptr;
 
             <span class="self">Self</span>(id)
         }
@@ -6168,23 +6000,23 @@ kCFNumberCFIndexType = 14,
     <span class="prelude-val">None
 </span>}
 
-<span class="kw">pub struct </span>SCContentSharingPicker(<span class="kw-2">*mut </span>Object);
+<span class="kw">pub struct </span>SCContentSharingPicker(<span class="kw-2">*mut </span>AnyObject);
 
 <span class="kw">impl </span>SCContentSharingPicker {
     <span class="kw">pub fn </span>shared() -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>id: <span class="kw-2">*mut </span>Object = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentSharingPicker), sharedPicker];
+            <span class="kw">let </span>id: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[<span class="macro">class!</span>(SCContentSharingPicker), sharedPicker];
             <span class="self">Self</span>::from_id_unretained(id)
         }
     }
 
-    <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from_id_retained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(id)
     }
 
-    <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>Object) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from_id_unretained(id: <span class="kw-2">*mut </span>AnyObject) -&gt; <span class="self">Self </span>{
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[id, retain];
+            <span class="kw">let _</span>: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[id, retain];
         }
         <span class="self">Self</span>(id)
     }
@@ -6258,27 +6090,27 @@ kCFNumberCFIndexType = 14,
 
     <span class="kw">pub fn </span>capture_image_with_filter_and_configuration(filter: <span class="kw-2">&amp;</span>SCContentFilter, config: <span class="kw-2">&amp;</span>SCStreamConfiguration, completion_handler: <span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;CGImage, NSError&gt;) + Send + <span class="lifetime">&#39;static</span>) {
         <span class="kw">let </span>completion_handler = Mutex::new(completion_handler);
-        <span class="kw">let </span>completion_block = ConcreteBlock::new(<span class="kw">move </span>|image: CGImageRef, error: <span class="kw-2">*mut </span>Object| {
+        <span class="kw">let </span>completion_block = RcBlock::new(<span class="kw">move </span>|image: CGImageRef, error: <span class="kw-2">*mut </span>AnyObject| {
             <span class="kw">if </span>error.is_null() {
                 (completion_handler.lock())(<span class="prelude-val">Ok</span>(CGImage::from_ref_unretained(image)));
             } <span class="kw">else </span>{
                 (completion_handler.lock())(<span class="prelude-val">Err</span>(NSError::from_id_unretained(error)));
             }
-        }).copy();
+        });
         <span class="kw">unsafe </span>{
             <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[
                 <span class="macro">class!</span>(SCScreenshotManager),
                 captureImageWithFilter: filter.<span class="number">0
                 </span>configuration: config.<span class="number">0
-                </span>completionHandler: completion_block
+                </span>completionHandler: <span class="kw-2">&amp;*</span>completion_block
             ];
         }
     }
 
     <span class="kw">pub fn </span>capture_samplebuffer_with_filter_and_configuration(filter: SCContentFilter, config: SCStreamConfiguration, completion_handler: <span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;CMSampleBuffer, String&gt;) + Send + <span class="lifetime">&#39;static</span>) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>completion_handler = Mutex::new(completion_handler);
-            <span class="kw">let </span>completion_block = ConcreteBlock::new(<span class="kw">move </span>|sample_buffer: CMSampleBufferRef, error: <span class="kw-2">*mut </span>Object| {
+            <span class="kw">let </span>completion_handler = Arc::new(Mutex::new(completion_handler));
+            <span class="kw">let </span>completion_block = StackBlock::new(<span class="kw">move </span>|sample_buffer: CMSampleBufferRef, error: <span class="kw-2">*mut </span>AnyObject| {
                 <span class="kw">if </span>error.is_null() {
                     (completion_handler.lock())(
                         CMSampleBuffer::copy_from_ref(sample_buffer)
@@ -6291,12 +6123,12 @@ kCFNumberCFIndexType = 14,
                     );
                 }
             }).copy();
-            <span class="kw">let </span><span class="kw-2">mut </span>error: <span class="kw-2">*mut </span>Object = std::ptr::null_mut();
+            <span class="kw">let </span><span class="kw-2">mut </span>error: <span class="kw-2">*mut </span>AnyObject = std::ptr::null_mut();
             <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[
                 <span class="macro">class!</span>(SCScreenshotManager),
                 captureSampleBufferWithFilter: filter.<span class="number">0
                 </span>configuration: config.<span class="number">0
-                </span>completionHandler: completion_block
+                </span>completionHandler: <span class="kw-2">&amp;*</span>completion_block
             ];
         }
     }
