@@ -456,9 +456,9 @@ impl NSDictionary {
         }
     }
 
-    pub(crate) fn set_object_for_key(&mut self, AnyObject: *mut AnyObject, key: *mut AnyObject) {
+    pub(crate) fn set_object_for_key(&mut self, object: *mut AnyObject, key: *mut AnyObject) {
         unsafe {
-            let _: () = msg_send![self.0, setAnyObject: AnyObject forKey: key];
+            let _: () = msg_send![self.0, setAnyObject: object, forKey: key];
         }
     }
 }
