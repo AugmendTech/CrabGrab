@@ -474,7 +474,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use </span>futures::executor::block_on;
-<span class="kw">use </span>objc::runtime::Object;
+<span class="kw">use </span>objc2::runtime::AnyObject;
 <span class="kw">use </span>parking_lot::Mutex;
 
 <span class="kw">use crate</span>::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
@@ -752,7 +752,7 @@
                                     <span class="kw">if </span>status_nsnumber_ptr.is_null() {
                                         <span class="kw">return</span>;
                                     }
-                                    <span class="kw">let </span>status_i32 = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(status_nsnumber_ptr <span class="kw">as </span><span class="kw-2">*mut </span>Object).as_i32() };
+                                    <span class="kw">let </span>status_i32 = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(status_nsnumber_ptr <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject).as_i32() };
                                     <span class="kw">let </span>status_opt = SCFrameStatus::from_i32(status_i32);
                                     <span class="kw">if </span>status_opt.is_none() {
                                         <span class="kw">return</span>;

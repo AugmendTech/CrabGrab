@@ -160,10 +160,13 @@
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, fmt::Debug, hash::Hash};
 
 <span class="kw">use </span>futures::channel::oneshot;
 <span class="kw">use </span>libc::getpid;
+<span class="kw">use </span>parking_lot::Mutex;
 
 <span class="kw">use crate</span>::{capturable_content::{CapturableContentFilter, CapturableContentError}, util::{Rect, Point, Size}};
 
@@ -180,9 +183,10 @@
         </span><span class="kw">unsafe </span>{ CGMainDisplayID() };
         <span class="kw">let </span>(exclude_desktop, onscreen_only) = filter.windows.map_or((<span class="bool-val">false</span>, <span class="bool-val">true</span>), |filter| (!filter.desktop_windows, filter.onscreen_only));
         <span class="kw">let </span>(tx, rx) = oneshot::channel();
-        <span class="kw">let </span>tx = Cell::new(<span class="prelude-val">Some</span>(tx));
+        <span class="kw">let </span><span class="kw-2">mut </span>tx = Mutex::new(<span class="prelude-val">Some</span>(tx));
         SCShareableContent::get_shareable_content_with_completion_handler(exclude_desktop, onscreen_only, <span class="kw">move </span>|result| {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx.take() {
+            <span class="macro">println!</span>(<span class="string">&quot;get_shareable_content_with_completion_handler - handler&quot;</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx.lock().take() {
                 <span class="kw">let _ </span>= tx.send(result);
             }
         });
@@ -199,7 +203,7 @@
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(error)) =&gt; {
                 <span class="prelude-val">Err</span>(CapturableContentError::Other(<span class="macro">format!</span>(<span class="string">&quot;SCShareableContent returned error code: {}&quot;</span>, error.code())))
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(CapturableContentError::Other(<span class="string">&quot;Failed to receive SCSharableContent result from completion handler future&quot;</span>.into())),
+            <span class="prelude-val">Err</span>(error) =&gt; <span class="prelude-val">Err</span>(CapturableContentError::Other(<span class="macro">format!</span>(<span class="string">&quot;Failed to receive SCSharableContent result from completion handler future: {}&quot;</span>, error.to_string()))),
         }
     }
 }

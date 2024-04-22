@@ -198,7 +198,7 @@
 <a href="#198" id="198">198</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::{Ref, RefCell}, marker::PhantomData, sync::Arc, time::{Duration, Instant}};
 
-<span class="kw">use </span>objc::runtime::Object;
+<span class="kw">use </span>objc2::runtime::AnyObject;
 
 <span class="kw">use crate</span>::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate}, util::{Rect, Size}};
 
@@ -265,9 +265,9 @@
             MacosVideoFrame::SCStream(sc_frame) =&gt; {
                 <span class="kw">let </span>info_dict = sc_frame.get_info_dict();
                 <span class="kw">let </span>scale_factor_ptr = <span class="kw">unsafe </span>{ info_dict.get_value(SCStreamFrameInfoScaleFactor) };
-                <span class="kw">let </span>scale_factor = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(scale_factor_ptr <span class="kw">as </span><span class="kw-2">*mut </span>Object).as_f64() };
+                <span class="kw">let </span>scale_factor = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(scale_factor_ptr <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject).as_f64() };
                 <span class="kw">let </span>screen_rect_ptr = <span class="kw">unsafe </span>{ info_dict.get_value(SCStreamFrameInfoScreenRect) };
-                <span class="kw">let </span>screen_rect_dict = <span class="kw">unsafe </span>{ NSDictionary::from_id_unretained(screen_rect_ptr <span class="kw">as </span><span class="kw-2">*mut </span>Object) };
+                <span class="kw">let </span>screen_rect_dict = <span class="kw">unsafe </span>{ NSDictionary::from_id_unretained(screen_rect_ptr <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject) };
                 <span class="kw">let </span>frame_screen_rect = <span class="kw">unsafe </span>{ CGRect::create_from_dictionary_representation(<span class="kw-2">&amp;</span>screen_rect_dict) };
                 <span class="kw">let </span><span class="kw-2">mut </span>dpi = <span class="number">72.0f64</span>;
                 <span class="kw">for </span>screen <span class="kw">in </span>NSScreen::screens() {
