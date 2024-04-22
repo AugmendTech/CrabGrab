@@ -660,7 +660,7 @@ impl SCDisplay {
 
     pub(crate) fn raw_id(&self) -> u32 {
         unsafe {
-            *(*self.0).get_ivar("_displayID")
+            *(*self.0).class().instance_variable("_displayID").unwrap().load(&*self.0)
         }
     }
 }
@@ -2833,7 +2833,8 @@ extern fn sc_content_sharing_picker_observer_start_did_fail_with_error(this: *mu
 
 extern fn sc_content_sharing_picker_observer_dealloc(this: *mut AnyObject, _sel: Sel) {
     unsafe {
-        let callback_container: Box<SCContentSharingPickerCallbackContainer> = Box::from_raw(*(*this).get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCContentSharingPickerCallbackContainer);
+        
+        let callback_container: Box<SCContentSharingPickerCallbackContainer> = Box::from_raw(*(&*this).class().instance_variable("callback_container_ptr").unwrap().load::<*mut c_void>(&*this) as *mut SCContentSharingPickerCallbackContainer);
         drop(callback_container);
     }
 }
