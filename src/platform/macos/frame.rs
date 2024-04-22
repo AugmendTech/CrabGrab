@@ -1,6 +1,6 @@
 use std::{cell::{Ref, RefCell}, marker::PhantomData, sync::Arc, time::{Duration, Instant}};
 
-use objc::runtime::Object;
+use objc2::runtime::AnyObject;
 
 use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate}, util::{Rect, Size}};
 
@@ -67,9 +67,9 @@ impl VideoCaptureFrame for MacosVideoFrame {
             MacosVideoFrame::SCStream(sc_frame) => {
                 let info_dict = sc_frame.get_info_dict();
                 let scale_factor_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoScaleFactor) };
-                let scale_factor = unsafe { NSNumber::from_id_unretained(scale_factor_ptr as *mut Object).as_f64() };
+                let scale_factor = unsafe { NSNumber::from_id_unretained(scale_factor_ptr as *mut AnyObject).as_f64() };
                 let screen_rect_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoScreenRect) };
-                let screen_rect_dict = unsafe { NSDictionary::from_id_unretained(screen_rect_ptr as *mut Object) };
+                let screen_rect_dict = unsafe { NSDictionary::from_id_unretained(screen_rect_ptr as *mut AnyObject) };
                 let frame_screen_rect = unsafe { CGRect::create_from_dictionary_representation(&screen_rect_dict) };
                 let mut dpi = 72.0f64;
                 for screen in NSScreen::screens() {

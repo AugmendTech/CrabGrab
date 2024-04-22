@@ -2,16 +2,18 @@
 #![cfg(feature = "metal")]
 
 use metal::foreign_types::ForeignType;
-use objc::msg_send;
-use objc::runtime::Object;
-use objc::sel;
-use objc::sel_impl;
+use objc2::msg_send;
+use objc2::runtime::AnyObject;
+use objc2::Encode;
+use objc2::Encoding;
+use objc2::RefEncode;
 
 use crate::platform::platform_impl::objc_wrap::CVPixelFormat;
 use crate::prelude::{CaptureStream, VideoFrame};
 
 use std::error::Error;
 use std::fmt::Display;
+use std::os::raw::c_void;
 
 use crate::platform::macos::frame::MacosVideoFrame;
 
@@ -70,6 +72,13 @@ pub trait MetalVideoFrameExt {
     fn get_metal_texture(&self, plane: MetalVideoFramePlaneTexture) -> Result<metal::Texture, MacosVideoFrameError>;
 }
 
+#[repr(C)]
+struct IOSurfacePtrEncoded(*const c_void);
+
+unsafe impl Encode for IOSurfacePtrEncoded {
+    const ENCODING: objc2::Encoding = Encoding::Pointer(&Encoding::Struct("__IOSurface", &[]));
+}
+
 #[cfg(feature="metal")]
 impl MetalVideoFrameExt for VideoFrame {
     fn get_metal_texture(&self, plane: MetalVideoFramePlaneTexture) -> Result<metal::Texture, MacosVideoFrameError> {
@@ -103,7 +112,7 @@ impl MetalVideoFrameExt for VideoFrame {
                     _ => return Err(MacosVideoFrameError::InvalidVideoPlaneTexture),
                 }
                 unsafe {
-                    let device_ref = metal_device.as_ref().unwrap().as_ref();
+                    let device_ref = metal_device.as_ref().unwrap().as_ptr();
                     let texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
                     texture_descriptor.set_pixel_format(metal::MTLPixelFormat::BGRA8Unorm);
@@ -112,7 +121,7 @@ impl MetalVideoFrameExt for VideoFrame {
                     texture_descriptor.set_sample_count(1);
                     texture_descriptor.set_mipmap_level_count(1);
                     texture_descriptor.set_storage_mode(metal::MTLStorageMode::Shared);
-                    let texture_ptr: *mut Object = msg_send![device_ref, newTextureWithDescriptor: texture_descriptor.as_ptr() iosurface: iosurface.0 plane: 0];
+                    let texture_ptr: *mut AnyObject = msg_send![device_ref as *mut AnyObject, newTextureWithDescriptor: texture_descriptor.as_ptr() as *mut AnyObject, iosurface: IOSurfacePtrEncoded(iosurface.0), plane: 0usize];
                     if texture_ptr.is_null() {
                         Err(MacosVideoFrameError::Other("Failed to create metal texture".to_string()))
                     } else {
@@ -127,7 +136,7 @@ impl MetalVideoFrameExt for VideoFrame {
                     _ => return Err(MacosVideoFrameError::InvalidVideoPlaneTexture),
                 };
                 unsafe {
-                    let device_ref = metal_device.as_ref().unwrap().as_ref();
+                    let device_ref = metal_device.as_ref().unwrap().as_ptr();
                     let texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
                     texture_descriptor.set_pixel_format(texture_index);
@@ -136,7 +145,7 @@ impl MetalVideoFrameExt for VideoFrame {
                     texture_descriptor.set_sample_count(1);
                     texture_descriptor.set_mipmap_level_count(1);
                     texture_descriptor.set_storage_mode(metal::MTLStorageMode::Shared);
-                    let texture_ptr: *mut Object = msg_send![device_ref, newTextureWithDescriptor: texture_descriptor.as_ptr() iosurface: iosurface.0 plane: plane];
+                    let texture_ptr: *mut AnyObject = msg_send![device_ref as *mut AnyObject, newTextureWithDescriptor: texture_descriptor.as_ptr() as *mut AnyObject, iosurface: iosurface.0, plane: plane];
                     if texture_ptr.is_null() {
                         Err(MacosVideoFrameError::Other("Failed to create metal texture".to_string()))
                     } else {

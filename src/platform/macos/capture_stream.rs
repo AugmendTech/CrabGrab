@@ -1,7 +1,7 @@
 use std::{borrow::{Borrow, BorrowMut}, cell::{Cell, RefCell}, sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 use futures::executor::block_on;
-use objc::runtime::Object;
+use objc2::runtime::AnyObject;
 use parking_lot::Mutex;
 
 use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
@@ -279,7 +279,7 @@ impl MacosCaptureStream {
                                     if status_nsnumber_ptr.is_null() {
                                         return;
                                     }
-                                    let status_i32 = unsafe { NSNumber::from_id_unretained(status_nsnumber_ptr as *mut Object).as_i32() };
+                                    let status_i32 = unsafe { NSNumber::from_id_unretained(status_nsnumber_ptr as *mut AnyObject).as_i32() };
                                     let status_opt = SCFrameStatus::from_i32(status_i32);
                                     if status_opt.is_none() {
                                         return;

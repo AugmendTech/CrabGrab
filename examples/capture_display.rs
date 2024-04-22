@@ -16,7 +16,7 @@ async fn main() {
         println!("result: {:?}", result);
     }).unwrap();
 
-    std::thread::sleep(Duration::from_millis(2000));
+    std::thread::sleep(Duration::from_millis(20000));
 
     stream.stop().unwrap();
 }

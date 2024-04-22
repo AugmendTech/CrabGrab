@@ -13,12 +13,11 @@
 #[link(name = "AVFoundation", kind = "framework")]
 extern "C" {}
 
-use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut}, sync::Arc, time::{Duration, Instant}};
+use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut, NonNull}, sync::Arc, time::{Duration, Instant}};
 
-use block::{Block, ConcreteBlock, RcBlock};
+use block2::{ffi::Class, Block, RcBlock, StackBlock};
 use libc::{c_void, strlen};
-use objc::{class, declare::MethodImplementation, msg_send, runtime::{objc_copyProtocolList, objc_getProtocol, Class, Object, Protocol, Sel, BOOL}, sel, sel_impl, Encode, Encoding, Message};
-use objc2::runtime::Bool;
+use objc2::{class, declare::ClassBuilder, ffi::{objc_getClass, objc_getProtocol}, msg_send, rc::Id, runtime::{AnyClass, AnyObject, AnyProtocol, Bool, Ivar, Sel}, sel, Encode, Encoding, RefEncode};
 use mach2::mach_time::{mach_timebase_info, mach_timebase_info_data_t};
 
 use crate::{prelude::{AudioSampleRate, StreamCreateError, StreamError, StreamEvent, StreamStopError}};
@@ -48,69 +47,11 @@ type CGImageRef = CFTypeRef;
 type CGDataProviderRef = CFTypeRef;
 type CFDataRef = CFTypeRef;
 
-#[allow(unused)]
-fn debug_objc_class(name: &str) {
-    let class_name_cstring = CString::new(name).unwrap();
-    let class = unsafe { &*objc::runtime::objc_getClass(class_name_cstring.as_ptr()) };
-    println!("instance methods: ");
-    for method in class.instance_methods().iter() {
-        print!("METHOD {}::{}(", class.name(), method.name().name());
-        for i in 0 .. method.arguments_count() {
-            if i + 1 == method.arguments_count() {
-                println!("{}) -> {}", method.argument_type(i).unwrap().as_str(), method.return_type().as_str());
-            } else {
-                print!("{}, ", method.argument_type(i).unwrap().as_str());
-            }
-        }
-    }
-    println!("instance variables: ");
-    for ivar in class.instance_variables().iter() {
-        println!("IVAR {}::{}: {}", class.name(), ivar.name(), ivar.type_encoding().as_str());
-    }
-    let metaclass = class.metaclass();
-    let metaclass_ptr = metaclass as *const _;
-    println!("metaclass ptr: {:?}", metaclass_ptr);
-    println!("class methods: ");
-    for method in metaclass.instance_methods().iter() {
-        print!("CLASS METHOD {}::{}(", class.name(), method.name().name());
-        for i in 0 .. method.arguments_count() {
-            if i + 1 == method.arguments_count() {
-                println!("{}) -> {}", method.argument_type(i).unwrap().as_str(), method.return_type().as_str());
-            } else {
-                print!("{}, ", method.argument_type(i).unwrap().as_str());
-            }
-        }
-    }
+#[repr(C)]
+struct CFStringRefEncoded(CFStringRef);
 
-    println!("class ivars: ");
-    for ivar in metaclass.instance_variables().iter() {
-        println!("CLASS IVAR {}::{}: {}", class.name(), ivar.name(), ivar.type_encoding().as_str());
-    }
-
-    println!("protocols: ");
-    for protocol in class.adopted_protocols().iter() {
-        println!("PROTOCOL {}", protocol.name());
-    }
-    println!("end");
-}
-
-pub(crate) fn debug_objc_object(obj: *mut Object) {
-    if (obj.is_null()) {
-        println!("debug_objc_object: nil");
-        return;
-    } else {
-        println!("debug_objc_object: {:?}", obj);
-    }
-    unsafe {
-        let class_ptr = objc::runtime::object_getClass(obj);
-        if class_ptr.is_null() {
-            println!(" * class: nil");
-            return;
-        }
-        let class = &*class_ptr;
-        println!(" * class: {}", class.name());
-        debug_objc_class(class.name());
-    }
+unsafe impl Encode for CFStringRefEncoded {
+    const ENCODING: Encoding = Encoding::Pointer(&Encoding::Struct("__CFString", &[]));
 }
 
 extern "C" {
@@ -183,7 +124,7 @@ extern "C" {
     fn CGRequestScreenCaptureAccess() -> bool;
 
     //CGDisplayStreamRef CGDisplayStreamCreateWithDispatchQueue(CGDirectDisplayID display, size_t outputWidth, size_t outputHeight, int32_t pixelFormat, CFDictionaryRef properties, dispatch_queue_t queue, CGDisplayStreamFrameAvailableHandler handler);
-    fn CGDisplayStreamCreateWithDispatchQueue(display_id: u32, output_width: usize, output_height: usize, pixel_format: i32, properties: CFDictionaryRef, dispatch_queue: *mut Object, handler: *const c_void) -> CGDisplayStreamRef;
+    fn CGDisplayStreamCreateWithDispatchQueue(display_id: u32, output_width: usize, output_height: usize, pixel_format: i32, properties: CFDictionaryRef, dispatch_queue: *mut AnyObject, handler: *const c_void) -> CGDisplayStreamRef;
     fn CGDisplayStreamStart(stream: CGDisplayStreamRef) -> i32;
     fn CGDisplayStreamStop(stream: CGDisplayStreamRef) -> i32;
 
@@ -238,8 +179,8 @@ extern "C" {
     static mut _dispatch_queue_attr_concurrent: c_void;
 
     fn dispatch_queue_create(label: *const std::ffi::c_char, attr: DispatchQueueAttr) -> DispatchQueue;
-    fn dispatch_retain(object: *mut Object);
-    fn dispatch_release(object: *mut Object);
+    fn dispatch_retain(AnyObject: *mut AnyObject);
+    fn dispatch_release(AnyObject: *mut AnyObject);
 
     pub(crate) static SCStreamFrameInfoStatus       : CFStringRef;
     pub(crate) static SCStreamFrameInfoDisplayTime  : CFStringRef;
@@ -293,35 +234,37 @@ pub const kCFStringEncodingUTF8: u32 = 0x08000100;
 pub(crate) struct CGColorRef(CFTypeRef);
 
 unsafe impl Encode for CGColorRef {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("^{CGColor=}") }
-    }
+    const ENCODING: Encoding = Encoding::Pointer(&c_void::ENCODING_REF);
 }
 
 #[repr(C)]
-pub(crate) struct NSString(pub(crate) *mut Object);
+pub(crate) struct NSString(pub(crate) *mut AnyObject);
+
+unsafe impl Encode for NSString {
+    const ENCODING: Encoding = Encoding::Object;
+}
 
 impl NSString {
     pub(crate) fn new(s: &str) -> Self {
         unsafe {
             let bytes = s.as_bytes();
             let instance = CFStringCreateWithBytes(std::ptr::null(), bytes.as_ptr(), bytes.len() as isize, kCFStringEncodingUTF8, false);
-            NSString(instance as *mut Object)
+            NSString(instance as *mut AnyObject)
         }
     }
 
     pub(crate) fn from_ref_unretained(r: CFStringRef) -> Self {
         unsafe { CFRetain(r); }
-        Self(r as *mut Object)
+        Self(r as *mut AnyObject)
     }
 
     pub(crate) fn from_ref_retained(r: CFStringRef) -> Self {
-        Self(r as *mut Object)
+        Self(r as *mut AnyObject)
     }
 
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
         unsafe {
-            let _: () = msg_send![id, retain];
+            let _: *mut AnyObject = msg_send![id, retain];
             Self(id)
         }
     }
@@ -336,24 +279,22 @@ impl NSString {
     }
 }
 
-unsafe impl Encode for NSString {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("^@\"NSString\"") }
-    }
-}
-
 #[repr(C)]
 #[derive(Debug)]
-pub(crate) struct NSError(*mut Object);
+pub(crate) struct NSError(*mut AnyObject);
 unsafe impl Send for NSError {}
 
+unsafe impl Encode for NSError {
+    const ENCODING: Encoding = Encoding::Object;
+}
+
 impl NSError {
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
@@ -383,14 +324,6 @@ impl NSError {
     //pub(crate) fn user_info(&self) -> 
 }
 
-unsafe impl Encode for NSError {
-    fn encode() -> Encoding {
-        unsafe {
-            Encoding::from_str("@\"NSError\"")
-        }
-    }
-}
-
 impl Drop for NSError {
     fn drop(&mut self) {
         unsafe { let _: () = msg_send![self.0, release]; };
@@ -399,7 +332,7 @@ impl Drop for NSError {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub(crate) struct NSArrayRef(*mut Object);
+pub(crate) struct NSArrayRef(*mut AnyObject);
 
 impl NSArrayRef {
     pub(crate) fn is_null(&self) -> bool {
@@ -407,27 +340,21 @@ impl NSArrayRef {
     }
 }
 
-unsafe impl Encode for NSArrayRef {
-    fn encode() -> objc::Encoding {
-        unsafe { Encoding::from_str("@\"NSArray\"") }
-    }
-}
-
 #[repr(C)]
-pub(crate) struct NSArray(*mut Object);
+pub(crate) struct NSArray(*mut AnyObject);
 
 impl NSArray {
     pub(crate) fn new() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSArray), new];
+            let id: *mut AnyObject = msg_send![class!(NSArray), new];
             Self::from_id_retained(id)
         }
     }
 
     pub(crate) fn new_mutable() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSMutableArray), alloc];
-            let id: *mut Object = msg_send![id, init];
+            let id: *mut AnyObject = msg_send![class!(NSMutableArray), alloc];
+            let id: *mut AnyObject = msg_send![id, init];
             Self::from_id_retained(id)
         }
     }
@@ -436,12 +363,12 @@ impl NSArray {
         Self::from_id_unretained(r.0)
     }
 
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
@@ -449,13 +376,13 @@ impl NSArray {
         unsafe { msg_send![self.0, count] }
     }
 
-    pub(crate) fn add_object<T: 'static>(&mut self, object: T) {
+    pub(crate) fn add_object<T: 'static + Encode>(&mut self, object: T) {
         unsafe {
-            let _: () = msg_send![self.0, addObject: object];
+            let _: () = msg_send![self.0, addAnyObject: object];
         }
     }
 
-    pub(crate) fn obj_at_index<T: 'static>(&self, i: usize) -> T {
+    pub(crate) fn obj_at_index<T: 'static + Encode>(&self, i: usize) -> T {
         unsafe { msg_send![self.0, objectAtIndex: i] }
     }
 }
@@ -469,7 +396,7 @@ impl Drop for NSArray {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub(crate) struct NSDictionaryEncoded(*mut Object);
+pub(crate) struct NSDictionaryEncoded(*mut AnyObject);
 
 impl NSDictionaryEncoded {
     pub(crate) fn is_null(&self) -> bool {
@@ -477,45 +404,38 @@ impl NSDictionaryEncoded {
     }
 }
 
-unsafe impl Encode for NSDictionaryEncoded {
-    fn encode() -> objc::Encoding {
-        unsafe { Encoding::from_str("@\"NSDictionary\"") }
-    }
-}
-
-
 #[repr(C)]
-pub(crate) struct NSDictionary(pub(crate) *mut Object);
+pub(crate) struct NSDictionary(pub(crate) *mut AnyObject);
 
 impl NSDictionary {
     pub(crate) fn new() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSDictionary), new];
+            let id: *mut AnyObject = msg_send![class!(NSDictionary), new];
             Self::from_id_retained(id)
         }
     }
 
     pub(crate) fn new_mutable() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSMutableDictionary), new];
+            let id: *mut AnyObject = msg_send![class!(NSMutableDictionary), new];
             Self::from_id_retained(id)
         }
     }
 
     pub(crate) fn from_ref_unretained(r: CGDictionaryRef) -> Self {
-        Self::from_id_unretained(r as *mut Object)
+        Self::from_id_unretained(r as *mut AnyObject)
     }
 
     pub(crate) fn from_encoded(e: NSDictionaryEncoded) -> Self {
         Self::from_id_unretained(e.0)
     }
 
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
@@ -525,20 +445,20 @@ impl NSDictionary {
 
     pub(crate) fn all_keys(&self) -> NSArray {
         unsafe {
-            let keys: *mut Object = msg_send![self.0, allKeys];
+            let keys: *mut AnyObject = msg_send![self.0, allKeys];
             NSArray::from_id_retained(keys)
         }
     }
 
-    pub(crate) fn value_for_key(&self, key: CFStringRef) -> *mut Object {
+    pub(crate) fn value_for_key(&self, key: CFStringRef) -> *mut AnyObject {
         unsafe {
             msg_send![self.0, valueForKey: key]
         }
     }
 
-    pub(crate) fn set_object_for_key(&mut self, object: *mut Object, key: *mut Object) {
+    pub(crate) fn set_object_for_key(&mut self, AnyObject: *mut AnyObject, key: *mut AnyObject) {
         unsafe {
-            let _: () = msg_send![self.0, setObject: object forKey: key];
+            let _: () = msg_send![self.0, setAnyObject: AnyObject forKey: key];
         }
     }
 }
@@ -564,6 +484,10 @@ pub(crate) struct CGPoint {
     pub(crate) y: CGFloat,
 }
 
+unsafe impl Encode for CGPoint {
+    const ENCODING: Encoding = Encoding::Struct("CGPoint", &[Encoding::Double, Encoding::Double]);
+}
+
 impl CGPoint {
     pub(crate) const ZERO: CGPoint = CGPoint { x: 0.0, y: 0.0 };
     pub(crate) const INF: CGPoint = CGPoint { x: std::f64::INFINITY, y: std::f64::INFINITY };
@@ -576,14 +500,12 @@ pub(crate) struct CGSize {
     pub(crate) y: CGFloat,
 }
 
-impl CGSize {
-    pub(crate) const ZERO: CGSize = CGSize { x: 0.0, y: 0.0 };
+unsafe impl Encode for CGSize {
+    const ENCODING: Encoding = Encoding::Struct("CGSize", &[Encoding::Double, Encoding::Double]);
 }
 
-unsafe impl Encode for CGSize {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("{CGSize=\"width\"d\"height\"d}") }
-    }
+impl CGSize {
+    pub(crate) const ZERO: CGSize = CGSize { x: 0.0, y: 0.0 };
 }
 
 #[repr(C)]
@@ -591,6 +513,10 @@ unsafe impl Encode for CGSize {
 pub(crate) struct CGRect {
     pub(crate) origin: CGPoint,
     pub(crate) size: CGSize,
+}
+
+unsafe impl Encode for CGRect {
+    const ENCODING: Encoding = Encoding::Struct("CGRect", &[CGPoint::ENCODING, CGSize::ENCODING]);
 }
 
 impl CGRect {
@@ -626,12 +552,6 @@ impl CGRect {
     }
 }
 
-unsafe impl Encode for CGRect {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("{CGRect=\"origin\"{CGPoint=\"x\"d\"y\"d}\"size\"{CGSize=\"width\"d\"height\"d}}") }
-    }
-}
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) struct CGWindowID(pub(crate) u32);
@@ -645,16 +565,20 @@ impl CGWindowID {
 unsafe impl Send for CGWindowID {}
 
 #[repr(C)]
-pub(crate) struct SCWindow(*mut Object);
+pub(crate) struct SCWindow(*mut AnyObject);
 unsafe impl Send for SCWindow {}
 
+unsafe impl Encode for SCWindow {
+    const ENCODING: Encoding = Encoding::Object;
+}
+
 impl SCWindow {
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
@@ -667,20 +591,25 @@ impl SCWindow {
 
     pub(crate) fn title(&self) -> String {
         unsafe {
-            let title_cfstringref: CFStringRef = msg_send![self.0, title];
-            NSString::from_ref_unretained(title_cfstringref).as_string()
+            let title_nsstring: *mut AnyObject = msg_send![self.0, title];
+            NSString::from_id_unretained(title_nsstring).as_string()
         }
     }
 
     pub(crate) fn frame(&self) -> CGRect {
         unsafe {
-            *(*self.0).get_ivar("_frame")
+            // This ugly hack is necessary because the obc2 encoding for CGRect doesn't have field names like CoreGraphic's internal CGRect
+            let offset = (*self.0).class().instance_variable("_frame").unwrap().offset();
+            let raw_self_ptr = self.0 as *const c_void;
+            let raw_frame_ptr = raw_self_ptr.byte_add(offset as usize);
+            let frame_ptr = raw_frame_ptr as *const CGRect;
+            *frame_ptr
         }
     }
 
     pub(crate) fn owning_application(&self) -> SCRunningApplication {
         unsafe {
-            let scra_id: *mut Object = msg_send![self.0, owningApplication];
+            let scra_id: *mut AnyObject = msg_send![self.0, owningApplication];
             SCRunningApplication::from_id_unretained(scra_id)
         }
     }
@@ -692,15 +621,9 @@ impl SCWindow {
     }
 }
 
-unsafe impl Encode for SCWindow {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("^\"@SCWindow\"") }
-    }
-}
-
 impl Clone for SCWindow {
     fn clone(&self) -> Self {
-        unsafe { let _: () = msg_send![self.0, retain]; }
+        unsafe { let _: *mut AnyObject = msg_send![self.0, retain]; }
         SCWindow(self.0)
     }
 }
@@ -712,22 +635,26 @@ impl Drop for SCWindow {
 }
 
 #[repr(C)]
-pub(crate) struct SCDisplay(*mut Object);
+pub(crate) struct SCDisplay(*mut AnyObject);
 unsafe impl Send for SCDisplay {}
 
 impl SCDisplay {
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
     pub(crate) fn frame(&self) -> CGRect {
         unsafe {
-            *(*self.0).get_ivar("_frame")
+            let offset = (*self.0).class().instance_variable("_frame").unwrap().offset();
+            let raw_self_ptr = self.0 as *const c_void;
+            let raw_frame_ptr = raw_self_ptr.byte_add(offset as usize);
+            let frame_ptr = raw_frame_ptr as *const CGRect;
+            *frame_ptr
         }
     }
 
@@ -740,7 +667,7 @@ impl SCDisplay {
 
 impl Clone for SCDisplay {
     fn clone(&self) -> Self {
-        unsafe { let _: () = msg_send![self.0, retain]; }
+        unsafe { let _: *mut AnyObject = msg_send![self.0, retain]; }
         SCDisplay(self.0)
     }
 }
@@ -752,7 +679,7 @@ impl Drop for SCDisplay {
 }
 
 #[repr(C)]
-pub(crate) struct SCShareableContent(*mut Object);
+pub(crate) struct SCShareableContent(*mut AnyObject);
 unsafe impl Send for SCShareableContent {}
 unsafe impl Sync for SCShareableContent {}
 
@@ -762,23 +689,25 @@ impl SCShareableContent {
         onscreen_windows_only: bool,
         completion_handler: impl Fn(Result<SCShareableContent, NSError>) + Send + 'static,
     ) {
-        let completion_handler = Box::new(completion_handler);
-        let handler_block = ConcreteBlock::new(move |sc_shareable_content: *mut Object, error: *mut Object| {
-            if !error.is_null() {
-                let error = NSError::from_id_retained(error);
-                (completion_handler)(Err(error));
-            } else {
-                unsafe { let _:() = msg_send![sc_shareable_content, retain]; }
-                let sc_shareable_content = SCShareableContent(sc_shareable_content);
-                (completion_handler)(Ok(sc_shareable_content));
+        let completion_handler = Arc::new(completion_handler);
+        let handler_block = RcBlock::new(move |sc_shareable_content: Option<NonNull<AnyObject>>, error: Option<NonNull<AnyObject>>| {
+            unsafe {
+                if let Some(mut error) = error {
+                    (completion_handler)(Err(NSError::from_id_unretained(error.as_mut())));
+                } else {
+                    let mut sc_shareable_content = sc_shareable_content.unwrap();
+                    unsafe { let _: *mut AnyObject = msg_send![sc_shareable_content, retain]; }
+                    let sc_shareable_content = SCShareableContent(sc_shareable_content.as_mut());
+                    (completion_handler)(Ok(sc_shareable_content));
+                }
             }
-        }).copy();
+        });
         unsafe {
             let _: () = msg_send![
                 class!(SCShareableContent),
                 getShareableContentExcludingDesktopWindows: Bool::from_raw(excluding_desktop_windows)
                 onScreenWindowsOnly: Bool::from_raw(onscreen_windows_only)
-                completionHandler: handler_block
+                completionHandler: &*handler_block
             ];
         }
     }
@@ -786,12 +715,13 @@ impl SCShareableContent {
     pub(crate) fn windows(&self) -> Vec<SCWindow> {
         let mut windows = Vec::new();
         unsafe {
-            let windows_nsarray_ref: NSArrayRef = *(*self.0).get_ivar("_windows");
+            let windows_ivar = class!(SCShareableContent).instance_variable("_windows").expect("Expected _windows ivar on SCShareableContent");
+            let windows_nsarray_ref = NSArrayRef(*windows_ivar.load_mut(&mut *self.0));
             if !windows_nsarray_ref.is_null() {
                 let windows_ns_array = NSArray::from_ref(windows_nsarray_ref);
                 let count = windows_ns_array.count();
                 for i in 0..count {
-                    let window_id: *mut Object = windows_ns_array.obj_at_index(i);
+                    let window_id: *mut AnyObject = windows_ns_array.obj_at_index(i);
                     windows.push(SCWindow::from_id_unretained(window_id));
                 }
             }
@@ -802,12 +732,13 @@ impl SCShareableContent {
     pub(crate) fn displays(&self) -> Vec<SCDisplay> {
         let mut displays = Vec::new();
         unsafe {
-            let displays_ref: NSArrayRef = *(*self.0).get_ivar("_displays");
+            let displays_ivar = class!(SCShareableContent).instance_variable("_displays").expect("Expected _displays ivar on SCShareableContent");
+            let displays_ref = NSArrayRef(*displays_ivar.load_mut(&mut *self.0));
             if !displays_ref.is_null() {
                 let displays_ns_array = NSArray::from_ref(displays_ref);
                 let count = displays_ns_array.count();
                 for i in 0..count {
-                    let display_id: *mut Object = displays_ns_array.obj_at_index(i);
+                    let display_id: *mut AnyObject = displays_ns_array.obj_at_index(i);
                     displays.push(SCDisplay::from_id_unretained(display_id));
                 }
             }
@@ -818,12 +749,13 @@ impl SCShareableContent {
     pub(crate) fn applications(&self) -> Vec<SCRunningApplication> {
         let mut applications = Vec::new();
         unsafe {
-            let applicaitons_ref: NSArrayRef = *(*self.0).get_ivar("_applications");
+            let applications_ivar = class!(SCShareableContent).instance_variable("_applications").expect("Expected _applications ivar on SCShareableContent");
+            let applicaitons_ref = NSArrayRef(*applications_ivar.load_mut(&mut *self.0));
             if !applicaitons_ref.is_null() {
                 let applications_array = NSArray::from_ref(applicaitons_ref);
                 let count = applications_array.count();
                 for i in 0..count {
-                    let application_id: *mut Object = applications_array.obj_at_index(i);
+                    let application_id: *mut AnyObject = applications_array.obj_at_index(i);
                     applications.push(SCRunningApplication::from_id_unretained(application_id));
                 }
             }
@@ -853,9 +785,7 @@ impl OSType {
 }
 
 unsafe impl Encode for OSType {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("I") }
-    }
+    const ENCODING: Encoding = Encoding::UInt;
 }
 
 #[repr(C)]
@@ -906,20 +836,15 @@ impl SCStreamColorMatrix {
 }
 
 #[repr(C)]
-pub(crate) struct SCStreamConfiguration(pub(crate) *mut Object);
+pub(crate) struct SCStreamConfiguration(pub(crate) *mut AnyObject);
 unsafe impl Send for SCStreamConfiguration {}
 unsafe impl Sync for SCStreamConfiguration {}
-
-#[test]
-fn test_sc_stream_config_properties() {
-    debug_objc_class("SCStreamConfiguration");
-}
 
 impl SCStreamConfiguration {
     pub(crate) fn new() -> Self {
         unsafe {
-            let instance: *mut Object = msg_send![class!(SCStreamConfiguration), alloc];
-            let instance: *mut Object = msg_send![instance, init];
+            let instance: *mut AnyObject = msg_send![class!(SCStreamConfiguration), alloc];
+            let instance: *mut AnyObject = msg_send![instance, init];
             Self(instance)
         }
     }
@@ -948,13 +873,14 @@ impl SCStreamConfiguration {
 
     pub(crate) fn set_pixel_format(&mut self, format: SCStreamPixelFormat) {
         unsafe {
-            (*self.0).set_ivar("_pixelFormat", format.to_ostype());
+            let pixelformat_ivar = class!(SCStreamConfiguration).instance_variable("_pixelFormat").expect("_pixelFormat ivar on SCStreamConfiguration");
+            *pixelformat_ivar.load_mut(&mut *self.0) = format.to_ostype();
         }
     }
 
     pub(crate) fn set_color_matrix(&mut self, color_matrix: SCStreamColorMatrix) {
         unsafe {
-            let _: () = msg_send![self.0, setColorMatrix: color_matrix.to_cfstringref()];
+            let _: () = msg_send![self.0, setColorMatrix: CFStringRefEncoded(color_matrix.to_cfstringref())];
         }
     }
 
@@ -966,7 +892,8 @@ impl SCStreamConfiguration {
                 SCStreamBackgroundColor::Clear => kCGColorClear,
             };
             let bg_color = CGColorGetConstantColor(bg_color_name);
-            (*self.0).set_ivar("_backgroundColor", bg_color);
+            let bg_color_ivar = class!(SCStreamConfiguration).instance_variable("_backgroundColor").expect("_backgroundColor ivar on SCStreamConfiguration");
+            *bg_color_ivar.load_mut(&mut *self.0) = bg_color;
         }
     }
 
@@ -978,44 +905,54 @@ impl SCStreamConfiguration {
 
     pub(crate) fn set_minimum_time_interval(&mut self, interval: CMTime) {
         unsafe {
-            (*self.0).set_ivar("_minimumFrameInterval", interval);
+            let minimum_frame_interval_ivar = class!(SCStreamConfiguration).instance_variable("_minimumFrameInterval").expect("_minimumFrameInterval ivar on SCStreamConfiguration");
+            let offset = minimum_frame_interval_ivar.offset();
+            let raw_self_ptr = self.0 as *mut c_void;
+            let raw_frame_ptr = raw_self_ptr.byte_add(offset as usize);
+            let frame_ptr = raw_frame_ptr as *mut CMTime;
+            *frame_ptr = interval;
         }
     }
 
     pub(crate) fn set_sample_rate(&mut self, sample_rate: SCStreamSampleRate) {
         unsafe {
-            (*self.0).set_ivar("_sampleRate", sample_rate.to_isize());
+            let sample_rate_ivar = class!(SCStreamConfiguration).instance_variable("_sampleRate").expect("_sampleRate ivar on SCStreamConfiguration");
+            *sample_rate_ivar.load_mut(&mut *self.0) = sample_rate.to_isize();
         }
     }
 
     pub(crate) fn set_show_cursor(&mut self, show_cursor: bool) {
         unsafe {
-            (*self.0).set_ivar("_showsCursor", show_cursor);
+            let show_cursor_ivar = class!(SCStreamConfiguration).instance_variable("_showsCursor").expect("_showsCursor ivar on SCStreamConfiguration");
+            *show_cursor_ivar.load_mut(&mut *self.0) = Bool::from_raw(show_cursor);
         }
     }
 
     pub(crate) fn set_capture_audio(&mut self, capture_audio: bool) {
         unsafe {
-            (*self.0).set_ivar("_capturesAudio", BOOL::from(capture_audio));
+            let captures_audio_ivar = class!(SCStreamConfiguration).instance_variable("_capturesAudio").expect("_capturesAudio ivar on SCStreamConfiguration");
+            *captures_audio_ivar.load_mut(&mut *self.0) = Bool::from_raw(capture_audio);
         }
     }
 
     pub(crate) fn set_channel_count(&mut self, channel_count: isize) {
         unsafe {
-            (*self.0).set_ivar("_channelCount", channel_count);
+            let channel_count_ivar = class!(SCStreamConfiguration).instance_variable("_channelCount").expect("_channelCount ivar on SCStreamConfiguration");
+            *channel_count_ivar.load_mut(&mut *self.0) = channel_count
         }
     }
 
     pub(crate) fn set_exclude_current_process_audio(&mut self, exclude_current_process_audio: bool) {
         unsafe {
-            (*self.0).set_ivar("_excludesCurrentProcessAudio", exclude_current_process_audio);
+            let exclude_current_process_audio_ivar = class!(SCStreamConfiguration).instance_variable("_excludesCurrentProcessAudio").expect("_excludesCurrentProcessAudio ivar on SCStreamConfiguration");
+            *exclude_current_process_audio_ivar.load_mut(&mut *self.0) = Bool::from_raw(exclude_current_process_audio);
         }
     }
 }
 
 impl Clone for SCStreamConfiguration {
     fn clone(&self) -> Self {
-        unsafe { let _: () = msg_send![self.0, retain]; }
+        unsafe { let _: *mut AnyObject = msg_send![self.0, retain]; }
         SCStreamConfiguration(self.0)
     }
 }
@@ -1032,8 +969,17 @@ impl Drop for SCStreamConfiguration {
 pub(crate) struct CMTime {
     value: i64,
     scale: i32,
-    epoch: i64,
     flags: u32,
+    epoch: i64,
+}
+
+unsafe impl Encode for CMTime {
+    const ENCODING: Encoding = Encoding::Struct("?", &[
+        Encoding::LongLong,
+        Encoding::Int,
+        Encoding::UInt,
+        Encoding::LongLong,
+    ]);
 }
 
 pub(crate) const K_CMTIME_FLAGS_VALID                   : u32 = 1 << 0;
@@ -1139,12 +1085,6 @@ impl PartialOrd for CMTime {
     }
 }
 
-unsafe impl Encode for CMTime {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("{?=\"value\"q\"timescale\"i\"flags\"I\"epoch\"q}") }
-    }
-}
-
 impl CMTime {
     pub(crate) fn new_with_seconds(seconds: f64, timescale: i32) -> Self {
         unsafe { CMTimeMakeWithSeconds(seconds, timescale) }
@@ -1218,7 +1158,7 @@ impl SCStreamSampleRate {
 
 #[repr(C)]
 #[derive(Debug)]
-pub(crate) struct SCContentFilter(pub(crate) *mut Object);
+pub(crate) struct SCContentFilter(pub(crate) *mut AnyObject);
 
 unsafe impl Send for SCContentFilter {}
 unsafe impl Sync for SCContentFilter {}
@@ -1226,30 +1166,24 @@ unsafe impl Sync for SCContentFilter {}
 impl SCContentFilter {
     pub(crate) fn new_with_desktop_independent_window(window: &SCWindow) -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(SCContentFilter), alloc];
-            let _: *mut Object = msg_send![id, initWithDesktopIndependentWindow: window.clone()];
+            let id: *mut AnyObject = msg_send![class!(SCContentFilter), alloc];
+            let _: *mut AnyObject = msg_send![id, initWithDesktopIndependentWindow: window.clone()];
             Self(id)
         }
     }
 
     pub(crate) fn new_with_display_excluding_apps_excepting_windows(display: SCDisplay, excluded_applications: NSArray, excepting_windows: NSArray) -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(SCContentFilter), alloc];
-            let id: *mut Object = msg_send![id, initWithDisplay: display.0 excludingApplications: excluded_applications.0 exceptingWindows: excepting_windows.0];
+            let id: *mut AnyObject = msg_send![class!(SCContentFilter), alloc];
+            let id: *mut AnyObject = msg_send![id, initWithDisplay: display.0 excludingApplications: excluded_applications.0 exceptingWindows: excepting_windows.0];
             Self(id)
         }
     }
 }
 
-unsafe impl Encode for SCContentFilter {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"SCContentFilter\"") }
-    }
-}
-
 impl Clone for SCContentFilter {
     fn clone(&self) -> Self {
-        unsafe { let _: () = msg_send![self.0, retain]; }
+        unsafe { let _: *mut AnyObject = msg_send![self.0, retain]; }
         SCContentFilter(self.0)
     }
 }
@@ -1269,6 +1203,10 @@ pub(crate) enum SCStreamCallbackError {
 #[repr(C)]
 struct SCStreamCallbackContainer {
     callback: Box<dyn FnMut(Result<(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError>) + Send + 'static>
+}
+
+unsafe impl RefEncode for SCStreamCallbackContainer {
+    const ENCODING_REF: Encoding = Encoding::Void;
 }
 
 impl SCStreamCallbackContainer {
@@ -1301,7 +1239,7 @@ impl SCStreamOutputType {
         })
     }
 
-    fn from_encoded(x: usize) -> Option<Self> {
+    fn from_encoded(x: isize) -> Option<Self> {
         match x {
             0 => Some(Self::Screen),
             1 => Some(Self::Audio),
@@ -1311,101 +1249,76 @@ impl SCStreamOutputType {
 }
 
 #[repr(C)]
-struct SCStreamOutputTypeEncoded(usize);
+struct SCStreamOutputTypeEncoded(isize);
 
 unsafe impl Encode for SCStreamOutputTypeEncoded {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("q") }
-    }
+    const ENCODING: Encoding = Encoding::LongLong;
 }
 
 #[repr(C)]
-struct SCStreamEncoded(*mut Object);
+struct SCStreamEncoded(*mut AnyObject);
 
-unsafe impl Message for SCStreamEncoded {}
-
-unsafe impl Encode for SCStreamEncoded {
-    fn encode() -> Encoding {
-        unsafe {
-            Encoding::from_str("@\"SCStream\"")
-        }
-    }
-}
-
-extern fn sc_stream_output_did_output_sample_buffer_of_type(this: &Object, _sel: Sel, stream: SCStream, buffer: CMSampleBufferRef, output_type: SCStreamOutputTypeEncoded) {
+extern fn sc_stream_output_did_output_sample_buffer_of_type(this: *mut AnyObject, _sel: Sel, stream: SCStream, buffer: CMSampleBufferRef, output_type: SCStreamOutputTypeEncoded) {
     unsafe {
-        let callback_container: &mut SCStreamCallbackContainer = &mut *(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCStreamCallbackContainer);
+        let callback_container_ivar = SCStreamHandler::get_class().instance_variable("callback_container_ptr").expect("Expected callback_container_ptr ivar on SCStreamHandler");
+        let callback_container: *mut SCStreamCallbackContainer = *callback_container_ivar.load::<*mut c_void>(&mut *this) as *mut _;
         if let Ok(sample_buffer) = CMSampleBuffer::copy_from_ref(buffer) {
             let output_type = SCStreamOutputType::from_encoded(output_type.0).unwrap();
-            callback_container.call_output(sample_buffer, output_type);
+            (&mut *callback_container).call_output(sample_buffer, output_type);
         } else {
-            callback_container.call_error(SCStreamCallbackError::SampleBufferCopyFailed);
+            (&mut *callback_container).call_error(SCStreamCallbackError::SampleBufferCopyFailed);
         }
         std::mem::forget(stream);
     }
 }
 
-extern fn sc_stream_handler_did_stop_with_error(this: &Object, _sel: Sel, stream: SCStream, error: NSError) -> () {
+extern fn sc_stream_handler_did_stop_with_error(this: *mut AnyObject, _sel: Sel, stream: SCStream, error: NSError) -> () {
     unsafe {
-        let callback_container: &mut SCStreamCallbackContainer = &mut *(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCStreamCallbackContainer);
-        callback_container.call_error(SCStreamCallbackError::StreamStopped);
+        let callback_container_ivar = SCStreamHandler::get_class().instance_variable("callback_container_ptr").expect("Expected callback_container_ptr ivar on SCStreamHandler");
+        let callback_container: *mut SCStreamCallbackContainer = *callback_container_ivar.load(&mut *this);
+        (&mut *callback_container).call_error(SCStreamCallbackError::StreamStopped);
         std::mem::forget(error);
         std::mem::forget(stream);
     }
 }
 
-extern fn sc_stream_handler_dealloc(this: &mut Object, _sel: Sel) {
+extern fn sc_stream_handler_dealloc(this: *mut AnyObject, _sel: Sel) {
     unsafe {
-        let callback_container: Box<SCStreamCallbackContainer> = Box::from_raw(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCStreamCallbackContainer);
+        let callback_container_ivar = SCStreamHandler::get_class().instance_variable("callback_container_ptr").expect("Expected callback_container_ptr ivar on SCStreamHandler");
+        let callback_container: *mut SCStreamCallbackContainer = *callback_container_ivar.load(&mut *this);
+        let callback_container: Box<SCStreamCallbackContainer> = Box::from_raw(callback_container);
         drop(callback_container);
     }
 }
 
 #[repr(C)]
-pub(crate) struct SCStreamHandler(*mut Object);
-
-unsafe impl Message for SCStreamHandler {}
-
-unsafe impl Encode for SCStreamHandler {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"<SCStreamOutput, SCStreamDelegate>\"") }
-    }
-}
+pub(crate) struct SCStreamHandler(*mut AnyObject);
 
 impl SCStreamHandler {
     pub fn new(callback: impl FnMut(Result<(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError>) + Send + 'static) -> Self {
         let class = Self::get_class();
         let callback_container_ptr = Box::leak(Box::new(SCStreamCallbackContainer::new(callback)));
         unsafe {
-            let instance: *mut Object = msg_send![class!(SCStreamHandler), alloc];
-            let instance: *mut Object = msg_send![instance, init];
-            (*instance).set_ivar("callback_container_ptr", callback_container_ptr as *mut _ as *mut c_void);
+            let instance: *mut AnyObject = msg_send![class!(SCStreamHandler), alloc];
+            let instance: *mut AnyObject = msg_send![instance, init];
+            let callback_container_ivar = class.instance_variable("callback_container_ptr").expect("Expected callback_container_ptr ivar on SCStreamHandler");
+            *callback_container_ivar.load_mut(&mut *instance) = callback_container_ptr as *mut _ as *mut c_void;
             Self(instance)
         }
     }
 
-    fn get_class() -> &'static Class {
+    fn get_class() -> &'static AnyClass {
         unsafe {
-            let class_name = CString::new("SCStreamHandler").unwrap();
-            let class_ptr = objc::runtime::objc_getClass(class_name.as_ptr());
-            if !class_ptr.is_null() {
-                &*class_ptr
-            } else if let Some(mut class) = objc::declare::ClassDecl::new("SCStreamHandler", class!(NSObject)) {
-                class.add_method(sel!(stream:didOutputSampleBuffer:ofType:), sc_stream_output_did_output_sample_buffer_of_type as extern fn (&Object, Sel, SCStream, CMSampleBufferRef, SCStreamOutputTypeEncoded));
-                class.add_method(sel!(stream:didStopWithError:), sc_stream_handler_did_stop_with_error as extern fn(&Object, Sel, SCStream, NSError));
-                class.add_method(sel!(dealloc), sc_stream_handler_dealloc as extern fn(&mut Object, Sel));
-                
-                //let sc_stream_delegate_name = CString::new("SCStreamDelegate").unwrap();
-                //class.add_protocol(&*objc::runtime::objc_getProtocol(sc_stream_delegate_name.as_ptr()));
-                
-                //let sc_stream_output_name = CString::new("SCStreamOutput").unwrap();
-                //class.add_protocol(&*objc::runtime::objc_getProtocol(sc_stream_output_name.as_ptr()));
+            if let Some(mut class) = ClassBuilder::new("SCStreamHandler", class!(NSObject)) {
+                class.add_method(sel!(stream:didOutputSampleBuffer:ofType:), sc_stream_output_did_output_sample_buffer_of_type as extern fn (*mut AnyObject, Sel, SCStream, CMSampleBufferRef, SCStreamOutputTypeEncoded));
+                class.add_method(sel!(stream:didStopWithError:), sc_stream_handler_did_stop_with_error as extern fn(*mut AnyObject, Sel, SCStream, NSError));
+                class.add_method(sel!(dealloc), sc_stream_handler_dealloc as extern fn(*mut AnyObject, Sel));
 
                 class.add_ivar::<*mut c_void>("callback_container_ptr");
                 
-                class.register()
+                return class.register();
             } else {
-                panic!("Failed to register SCStreamHandler");
+                return class!(SCStreamHandler);
             }
         }
     }
@@ -1414,35 +1327,29 @@ impl SCStreamHandler {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SCStream(*mut Object);
+pub struct SCStream(*mut AnyObject);
+
+unsafe impl Encode for SCStream {
+    const ENCODING: Encoding = Encoding::Object;
+}
 
 unsafe impl Sync for SCStream {}
 unsafe impl Send for SCStream {}
 
-unsafe impl Encode for SCStream {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"SCStream\"") }
-    }
-}
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-struct SCStreamDelegate(*mut Object);
+struct SCStreamDelegate(*mut AnyObject);
 
 unsafe impl Encode for SCStreamDelegate {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"<SCStreamDelegate>\"") }
-    }
+    const ENCODING: Encoding = Encoding::Object;
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-struct SCStreamOutput(*mut Object);
+struct SCStreamOutput(*mut AnyObject);
 
 unsafe impl Encode for SCStreamOutput {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"<SCStreamOutput>\"") }
-    }
+    const ENCODING: Encoding = Encoding::Object;
 }
 
 impl SCStream {
@@ -1456,8 +1363,8 @@ impl SCStream {
         }.await
     }
 
-    pub fn from_id(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub fn from_id(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
@@ -1467,10 +1374,10 @@ impl SCStream {
 
     pub fn new(filter: SCContentFilter, config: SCStreamConfiguration, handler_queue: DispatchQueue, handler: SCStreamHandler) -> Result<Self, String> {
         unsafe {
-            let instance: *mut Object = msg_send![class!(SCStream), alloc];
-            let instance: *mut Object = msg_send![instance, initWithFilter: filter.0 configuration: config.0 delegate: SCStreamDelegate(handler.0)];
+            let instance: *mut AnyObject = msg_send![class!(SCStream), alloc];
+            let instance: *mut AnyObject = msg_send![instance, initWithFilter: filter.0 configuration: config.0 delegate: SCStreamDelegate(handler.0)];
             println!("SCStream instance: {:?}", instance);
-            let mut error: *mut Object = std::ptr::null_mut();
+            let mut error: *mut AnyObject = std::ptr::null_mut();
             let result: bool = msg_send![instance, addStreamOutput: SCStreamOutput(handler.0) type: SCStreamOutputType::Screen.to_encoded() sampleHandlerQueue: handler_queue error: &mut error as *mut _];
             println!("addStreamOutput result: {}", result);
             if !error.is_null() {
@@ -1483,8 +1390,8 @@ impl SCStream {
 
     pub fn start(&mut self) {
         unsafe {
-            let _: () = msg_send![self.0, startCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
-                |error: *mut Object| {
+            let _: () = msg_send![self.0, startCaptureWithCompletionHandler: &*StackBlock::new(Box::new(
+                |error: *mut AnyObject| {
                     if !error.is_null() {
                         let error =  NSError::from_id_unretained(error);
                         println!("startCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
@@ -1496,8 +1403,8 @@ impl SCStream {
 
     pub fn stop(&mut self) {
         unsafe {
-            let _: () = msg_send![self.0, stopCaptureWithCompletionHandler: ConcreteBlock::new(Box::new(
-                |error: *mut Object| {
+            let _: () = msg_send![self.0, stopCaptureWithCompletionHandler: &*StackBlock::new(Box::new(
+                |error: *mut AnyObject| {
                     if !error.is_null() {
                         let error =  NSError::from_id_unretained(error);
                         println!("stopCaptureWithCompletionHandler error: {:?}, reason: {:?}", error.description(), error.reason());
@@ -1717,13 +1624,17 @@ impl Drop for CMAudioFormatDescription {
     }
 }
 
-pub(crate) struct AVAudioFormat(*mut Object);
+pub(crate) struct AVAudioFormat(*mut AnyObject);
+
+unsafe impl Encode for AVAudioFormat {
+    const ENCODING: Encoding = Encoding::Object;
+}
 
 impl AVAudioFormat {
     pub fn new_with_standard_format_sample_rate_channels(sample_rate: f64, channel_count: u32) -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(AVAudioFormat), alloc];
-            let _: *mut Object = msg_send![id, initStandardFormatWithSampleRate: sample_rate channels: channel_count];
+            let id: *mut AnyObject = msg_send![class!(AVAudioFormat), alloc];
+            let _: *mut AnyObject = msg_send![id, initStandardFormatWithSampleRate: sample_rate channels: channel_count];
             Self(id)
         }
     }
@@ -1742,10 +1653,29 @@ pub(crate) struct AudioBuffer {
     data: *mut c_void,
 }
 
+unsafe impl Encode for AudioBuffer {
+    const ENCODING: Encoding = Encoding::Struct("AudioBuffer", &[
+        Encoding::UInt,
+        Encoding::UInt,
+        Encoding::Pointer(&Encoding::Void),
+    ]);
+}
+
 #[repr(C)]
 pub(crate) struct AudioBufferList {
     number_buffers: u32,
     buffers: *mut AudioBuffer,
+}
+
+unsafe impl Encode for AudioBufferList {
+    const ENCODING: Encoding = Encoding::Struct("AudioBufferList", &[
+        Encoding::UInt,
+        Encoding::Pointer(&AudioBuffer::ENCODING)
+    ]);
+}
+
+unsafe impl RefEncode for AudioBufferList {
+    const ENCODING_REF: Encoding = Self::ENCODING;
 }
 
 impl Default for AudioBufferList {
@@ -1778,13 +1708,13 @@ impl Drop for CMBlockBuffer {
     }
 }
 
-pub(crate) struct AVAudioPCMBuffer(*mut Object);
+pub(crate) struct AVAudioPCMBuffer(*mut AnyObject);
 
 impl AVAudioPCMBuffer {
     pub fn new_with_format_buffer_list_no_copy_deallocator(format: AVAudioFormat, buffer_list_no_copy: *const AudioBufferList) -> Result<Self, ()> {
         unsafe {
-            let id: *mut Object = msg_send![class!(AVAudioPCMBuffer), alloc];
-            let result: *mut Object = msg_send![id, initWithPCMFormat: format bufferListNoCopy: buffer_list_no_copy];
+            let id: *mut AnyObject = msg_send![class!(AVAudioPCMBuffer), alloc];
+            let result: *mut AnyObject = msg_send![id, initWithPCMFormat: format bufferListNoCopy: buffer_list_no_copy];
             if result.is_null() {
                 let _: () = msg_send![id, release];
                 Err(())
@@ -1906,7 +1836,11 @@ impl Drop for CFArray {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct DispatchQueue(*mut Object);
+pub struct DispatchQueue(*mut AnyObject);
+
+unsafe impl Encode for DispatchQueue {
+    const ENCODING: Encoding = Encoding::Object;
+}
 
 impl DispatchQueue {
     pub fn make_concurrent(name: String) -> Self {
@@ -1943,24 +1877,18 @@ impl Clone for DispatchQueue {
     }
 }
 
-unsafe impl Encode for DispatchQueue {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"NSObject<OS_dispatch_queue>\"") }
-    }
-}
-
 #[repr(C)]
 struct DispatchQueueAttr(*mut c_void);
 
-pub(crate) struct SCRunningApplication(pub(crate) *mut Object);
+pub(crate) struct SCRunningApplication(pub(crate) *mut AnyObject);
 
 impl SCRunningApplication {
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
@@ -1979,8 +1907,8 @@ impl SCRunningApplication {
 
     pub(crate) fn bundle_identifier(&self) -> String {
         unsafe {
-            let bundle_id_cfstringref: CFStringRef = msg_send![self.0, bundleIdentifier];
-            NSString::from_ref_unretained(bundle_id_cfstringref).as_string()
+            let bundle_id_nsstring: *mut AnyObject = msg_send![self.0, bundleIdentifier];
+            NSString::from_id_unretained(bundle_id_nsstring).as_string()
         }
     }
 }
@@ -2019,13 +1947,14 @@ impl CGDisplayStreamFrameStatus {
 
 pub(crate) struct CGDisplayStream{
     stream_ref: CGDisplayStreamRef,
-    callback_block: RcBlock<(i32, u64, IOSurfaceRef, CGDisplayStreamUpdateRef), ()>,
+    callback_block: RcBlock<dyn Fn(i32, u64, IOSurfaceRef, CGDisplayStreamUpdateRef)>,
 }
 
 impl CGDisplayStream {
     pub fn new(callback: impl Fn(CGDisplayStreamFrameStatus, Duration, IOSurface) + 'static, display_id: u32, size: (usize, usize), pixel_format: SCStreamPixelFormat, options_dict: NSDictionary, dispatch_queue: DispatchQueue) -> Self {
-        let absolute_time_start = Mutex::new(None);
-        let callback_block = ConcreteBlock::new(move |status: i32, display_time: u64, iosurface_ref: IOSurfaceRef, stream_update_ref: CGDisplayStreamUpdateRef| {
+        let absolute_time_start = Arc::new(Mutex::new(None));
+        let callback = Arc::new(callback);
+        let callback_block = StackBlock::new(move |status: i32, display_time: u64, iosurface_ref: IOSurfaceRef, stream_update_ref: CGDisplayStreamUpdateRef| {
             if let Some(status) = CGDisplayStreamFrameStatus::from_i32(status) {
                 let abs_time_start_opt = { *absolute_time_start.lock() };
                 let relative_time = if let Some(absolute_time_start) = abs_time_start_opt {
@@ -2374,28 +2303,28 @@ impl Drop for CFNumber {
     }
 }
 
-pub struct NSNumber(pub(crate) *mut Object);
+pub struct NSNumber(pub(crate) *mut AnyObject);
 
 impl NSNumber {
-    pub(crate) fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    pub(crate) fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    pub(crate) fn from_id_retained(id: *mut Object) -> Self {
+    pub(crate) fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
     pub(crate) fn new_isize(x: isize) -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSNumber), numberWithInteger: x];
+            let id: *mut AnyObject = msg_send![class!(NSNumber), numberWithInteger: x];
             Self(id)
         }
     }
 
     pub(crate) fn new_f32(x: f32) -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSNumber), numberWithFloat: x];
+            let id: *mut AnyObject = msg_send![class!(NSNumber), numberWithFloat: x];
             Self(id)
         }
     }
@@ -2426,21 +2355,21 @@ impl Drop for NSNumber {
     }
 }
 
-pub struct NSApplication(*mut Object);
+pub struct NSApplication(*mut AnyObject);
 
 impl NSApplication {
-    fn from_id_unretained(id: *mut Object) -> Self {
-        unsafe { let _: () = msg_send![id, retain]; }
+    fn from_id_unretained(id: *mut AnyObject) -> Self {
+        unsafe { let _: *mut AnyObject = msg_send![id, retain]; }
         Self(id)
     }
 
-    fn from_id_retained(id: *mut Object) -> Self {
+    fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
     pub fn shared() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(NSApplication), sharedApplication];
+            let id: *mut AnyObject = msg_send![class!(NSApplication), sharedApplication];
             Self::from_id_unretained(id)
         }
     }
@@ -2548,11 +2477,11 @@ impl Drop for CVPixelBuffer {
 
 
 #[repr(C)]
-struct NSValue(*mut Object);
+struct NSValue(*mut AnyObject);
 
 #[allow(unused)]
 impl NSValue {
-    fn from_id(id: *mut Object) -> Self {
+    fn from_id(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
@@ -2576,7 +2505,7 @@ impl Drop for NSValue {
 }
 
 #[repr(C)]
-pub struct NSScreen(*mut Object);
+pub struct NSScreen(*mut AnyObject);
 
 impl NSScreen {
     pub(crate) fn screens() -> Vec<NSScreen> {
@@ -2584,7 +2513,7 @@ impl NSScreen {
             let screens_ns_array = NSArray::from_id_retained(msg_send![class!(NSScreen), screens]);
             let mut screens_out = Vec::new();
             for i in 0..screens_ns_array.count() {
-                let screen: *mut Object = screens_ns_array.obj_at_index(i);
+                let screen: *mut AnyObject = screens_ns_array.obj_at_index(i);
                 screens_out.push(NSScreen(screen));
             }
             return screens_out;
@@ -2835,24 +2764,24 @@ pub const SCContentSharingPickerModeSingleApplication    : usize = 1 << 2;
 pub const SCContentSharingPickerModeMultipleApplications : usize = 1 << 3;
 pub const SCContentSharingPickerModeSingleDisplay        : usize = 1 << 4;
 
-pub struct SCContentSharingPickerConfiguration(*mut Object);
+pub struct SCContentSharingPickerConfiguration(*mut AnyObject);
 
 impl SCContentSharingPickerConfiguration {
     pub fn new() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(SCContentSharingPickerConfiguration), alloc];
-            let id: *mut Object = msg_send![id, init];
+            let id: *mut AnyObject = msg_send![class!(SCContentSharingPickerConfiguration), alloc];
+            let id: *mut AnyObject = msg_send![id, init];
             Self::from_id_retained(id)
         }
     }
 
-    pub fn from_id_retained(id: *mut Object) -> Self {
+    pub fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
-    pub fn from_id_unretained(id: *mut Object) -> Self {
+    pub fn from_id_unretained(id: *mut AnyObject) -> Self {
         unsafe {
-            let _: () = msg_send![id, retain];
+            let _: *mut AnyObject = msg_send![id, retain];
         }
         Self(id)
     }
@@ -2886,68 +2815,57 @@ impl Clone for SCContentSharingPickerConfiguration {
 }
 
 #[repr(C)]
-pub struct SCContentSharingPickerObserver(*mut Object);
-
-unsafe impl Message for SCContentSharingPickerObserver {}
+pub struct SCContentSharingPickerObserver(*mut AnyObject);
 
 unsafe impl Encode for SCContentSharingPickerObserver {
-    fn encode() -> Encoding {
-        unsafe { Encoding::from_str("@\"<SCContentSharingPickerObserver>\"") }
-    }
+    const ENCODING: Encoding = Encoding::Object;
 }
 
-extern fn sc_content_sharing_picker_observer_did_cancel_for_stream(this: &Object, _sel: Sel, picker: *mut Object, stream: *mut Object) {
+extern fn sc_content_sharing_picker_observer_did_cancel_for_stream(this: *mut AnyObject, _sel: Sel, picker: *mut AnyObject, stream: *mut AnyObject) {
     //println!("sc_content_sharing_picker_observer_did_cancel_for_stream");
 }
 
-extern fn sc_content_sharing_picker_observer_did_update_filter_for_stream(this: &Object, _sel: Sel, picker: *mut Object, filter: *mut Object, stream: *mut Object) {
+extern fn sc_content_sharing_picker_observer_did_update_filter_for_stream(this: *mut AnyObject, _sel: Sel, picker: *mut AnyObject, filter: *mut AnyObject, stream: *mut AnyObject) {
     //println!("sc_content_sharing_picker_observer_did_update_filter_for_stream");
-    //debug_objc_object(filter);
+    //debug_objc_AnyObject(filter);
 }
 
-extern fn sc_content_sharing_picker_observer_start_did_fail_with_error(this: &Object, _sel: Sel, error: *mut Object) {
+extern fn sc_content_sharing_picker_observer_start_did_fail_with_error(this: *mut AnyObject, _sel: Sel, error: *mut AnyObject) {
     //println!("sc_content_sharing_picker_observer_start_did_fail_with_error");
 }
 
-extern fn sc_content_sharing_picker_observer_dealloc(this: &mut Object, _sel: Sel) {
+extern fn sc_content_sharing_picker_observer_dealloc(this: *mut AnyObject, _sel: Sel) {
     unsafe {
-        let callback_container: Box<SCContentSharingPickerCallbackContainer> = Box::from_raw(*this.get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCContentSharingPickerCallbackContainer);
+        let callback_container: Box<SCContentSharingPickerCallbackContainer> = Box::from_raw(*(*this).get_ivar::<*mut c_void>("callback_container_ptr") as *mut SCContentSharingPickerCallbackContainer);
         drop(callback_container);
     }
 }
 
 impl SCContentSharingPickerObserver {
-    fn get_class() -> &'static Class {
+    fn get_class() -> &'static AnyClass {
         unsafe {
-            let class_name = CString::new("SCContentSharingPickerObserverImpl").unwrap();
-            let class_ptr = objc::runtime::objc_getClass(class_name.as_ptr());
-            if !class_ptr.is_null() {
-                &*class_ptr
-            } else if let Some(mut class) = objc::declare::ClassDecl::new("SCContentSharingPickerObserverImpl", class!(NSObject)) {
-                class.add_method(sel!(contentSharingPicker:didCancelForStream:), sc_content_sharing_picker_observer_did_cancel_for_stream as extern fn (&Object, Sel, *mut Object, *mut Object));
-                class.add_method(sel!(contentSharingPicker:didUpdateWithFilter:forStream:), sc_content_sharing_picker_observer_did_update_filter_for_stream as extern fn (&Object, Sel, *mut Object, *mut Object, *mut Object));
-                class.add_method(sel!(contentSharingPickerStartDidFailWithError:), sc_content_sharing_picker_observer_start_did_fail_with_error as extern fn (&Object, Sel, *mut Object));
-                class.add_method(sel!(dealloc), sc_content_sharing_picker_observer_dealloc as extern fn (&mut Object, Sel));
+            if let Some(mut class) = ClassBuilder::new("SCContentSharingPickerObserverImpl", class!(NSAnyObject)) {
+                class.add_method(sel!(contentSharingPicker:didCancelForStream:), sc_content_sharing_picker_observer_did_cancel_for_stream as extern fn (*mut AnyObject, Sel, *mut AnyObject, *mut AnyObject));
+                class.add_method(sel!(contentSharingPicker:didUpdateWithFilter:forStream:), sc_content_sharing_picker_observer_did_update_filter_for_stream as extern fn (*mut AnyObject, Sel, *mut AnyObject, *mut AnyObject, *mut AnyObject));
+                class.add_method(sel!(contentSharingPickerStartDidFailWithError:), sc_content_sharing_picker_observer_start_did_fail_with_error as extern fn (*mut AnyObject, Sel, *mut AnyObject));
+                class.add_method(sel!(dealloc), sc_content_sharing_picker_observer_dealloc as extern fn (*mut AnyObject, Sel));
 
                 class.add_ivar::<*mut c_void>("callback_container_ptr");
-
-                let sc_content_sharing_picker_observer_name = CString::new("SCContentSharingPickerObserver").unwrap();
-                class.add_protocol(&*objc::runtime::objc_getProtocol(sc_content_sharing_picker_observer_name.as_ptr()));
                 
                 class.register()
             } else {
-                panic!("Failed to register SCContentSharingPickerObserver");
+                class!(SCContentSharingPickerObserverImpl)
             }
         }
     }
 
-    pub fn from_id_retained(id: *mut Object) -> Self {
+    pub fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
-    pub fn from_id_unretained(id: *mut Object) -> Self {
+    pub fn from_id_unretained(id: *mut AnyObject) -> Self {
         unsafe {
-            let _: () = msg_send![id, retain];
+            let _: *mut AnyObject = msg_send![id, retain];
         }
         Self(id)
     }
@@ -2958,9 +2876,10 @@ impl SCContentSharingPickerObserver {
             let callback_container_ptr = Box::leak(callback_container) as *mut _ as *mut c_void;
 
             let class = Self::get_class();
-            let id: *mut Object = msg_send![class, alloc];
-            let id: *mut Object = msg_send![id, init];
-            (*id).set_ivar("callback_container_ptr", callback_container_ptr);
+            let id: *mut AnyObject = msg_send![class, alloc];
+            let id: *mut AnyObject = msg_send![id, init];
+            let callback_container_ptr_ivar = class!(SCShareableContent).instance_variable("callback_container_ptr").expect("Expected callback_container_ptr ivar on SCContentSharingPickerObserver");
+            *callback_container_ptr_ivar.load_mut(&mut *id) = callback_container_ptr;
 
             Self(id)
         }
@@ -3016,23 +2935,23 @@ pub enum SCShareableContentStyle {
     None
 }
 
-pub struct SCContentSharingPicker(*mut Object);
+pub struct SCContentSharingPicker(*mut AnyObject);
 
 impl SCContentSharingPicker {
     pub fn shared() -> Self {
         unsafe {
-            let id: *mut Object = msg_send![class!(SCContentSharingPicker), sharedPicker];
+            let id: *mut AnyObject = msg_send![class!(SCContentSharingPicker), sharedPicker];
             Self::from_id_unretained(id)
         }
     }
 
-    fn from_id_retained(id: *mut Object) -> Self {
+    fn from_id_retained(id: *mut AnyObject) -> Self {
         Self(id)
     }
 
-    fn from_id_unretained(id: *mut Object) -> Self {
+    fn from_id_unretained(id: *mut AnyObject) -> Self {
         unsafe {
-            let _: () = msg_send![id, retain];
+            let _: *mut AnyObject = msg_send![id, retain];
         }
         Self(id)
     }
@@ -3106,27 +3025,27 @@ impl SCScreenshotManager {
 
     pub fn capture_image_with_filter_and_configuration(filter: &SCContentFilter, config: &SCStreamConfiguration, completion_handler: impl FnMut(Result<CGImage, NSError>) + Send + 'static) {
         let completion_handler = Mutex::new(completion_handler);
-        let completion_block = ConcreteBlock::new(move |image: CGImageRef, error: *mut Object| {
+        let completion_block = RcBlock::new(move |image: CGImageRef, error: *mut AnyObject| {
             if error.is_null() {
                 (completion_handler.lock())(Ok(CGImage::from_ref_unretained(image)));
             } else {
                 (completion_handler.lock())(Err(NSError::from_id_unretained(error)));
             }
-        }).copy();
+        });
         unsafe {
             let _: () = msg_send![
                 class!(SCScreenshotManager),
                 captureImageWithFilter: filter.0
                 configuration: config.0
-                completionHandler: completion_block
+                completionHandler: &*completion_block
             ];
         }
     }
 
     pub fn capture_samplebuffer_with_filter_and_configuration(filter: SCContentFilter, config: SCStreamConfiguration, completion_handler: impl FnMut(Result<CMSampleBuffer, String>) + Send + 'static) {
         unsafe {
-            let completion_handler = Mutex::new(completion_handler);
-            let completion_block = ConcreteBlock::new(move |sample_buffer: CMSampleBufferRef, error: *mut Object| {
+            let completion_handler = Arc::new(Mutex::new(completion_handler));
+            let completion_block = StackBlock::new(move |sample_buffer: CMSampleBufferRef, error: *mut AnyObject| {
                 if error.is_null() {
                     (completion_handler.lock())(
                         CMSampleBuffer::copy_from_ref(sample_buffer)
@@ -3139,12 +3058,12 @@ impl SCScreenshotManager {
                     );
                 }
             }).copy();
-            let mut error: *mut Object = std::ptr::null_mut();
+            let mut error: *mut AnyObject = std::ptr::null_mut();
             let _: () = msg_send![
                 class!(SCScreenshotManager),
                 captureSampleBufferWithFilter: filter.0
                 configuration: config.0
-                completionHandler: completion_block
+                completionHandler: &*completion_block
             ];
         }
     }
