@@ -1376,10 +1376,8 @@ impl SCStream {
         unsafe {
             let instance: *mut AnyObject = msg_send![class!(SCStream), alloc];
             let instance: *mut AnyObject = msg_send![instance, initWithFilter: filter.0 configuration: config.0 delegate: SCStreamDelegate(handler.0)];
-            println!("SCStream instance: {:?}", instance);
             let mut error: *mut AnyObject = std::ptr::null_mut();
             let result: bool = msg_send![instance, addStreamOutput: SCStreamOutput(handler.0) type: SCStreamOutputType::Screen.to_encoded() sampleHandlerQueue: handler_queue error: &mut error as *mut _];
-            println!("addStreamOutput result: {}", result);
             if !error.is_null() {
                 let error = NSError::from_id_retained(error);
                 println!("error: {}, reason: {}", error.description(), error.reason());
@@ -1462,7 +1460,6 @@ impl CMSampleBuffer {
             &mut block_buffer as *mut _
         );
         if status != 0 {
-            println!("CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(...) failed: {}", status);
             return Err(());
         }
         Ok((audio_buffer_list, CMBlockBuffer::from_ref_retained(block_buffer)))
