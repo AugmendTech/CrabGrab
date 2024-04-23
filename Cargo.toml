@@ -15,7 +15,7 @@ exclude = ["spellcheck/", "update_doc_copy.ps1", "update_doc_copy.sh", "docs/", 
 
 [package.metadata.docs.rs]
 features = ["iosurface", "metal", "dxgi", "dx11", "bitmap", "screenshot", "wgpu"]
-targets = ["x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+targets = ["x86_64-pc-windows-msvc"]
 
 [package.metadata.spellcheck]
 config = "spellcheck/cfg.toml"

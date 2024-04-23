@@ -1,5 +1,10 @@
 //! A cross-platform screen/window/audio capture library
 //! 
+//! ## MacOS Docs
+//! 
+//! Since we depend on the metal crate, our docs won't build for macos under docs.rs's linux containers. As a workaround, you can see our build of the docs for MacOS here:
+//! [MacOS Documentation](https://augmendtech.github.io/CrabGrab/macos_docs/crabgrab/index.html)
+//! 
 //! ## Feature flags
 //! 
 //! ### GPU Inter-op
