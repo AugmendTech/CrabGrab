@@ -3066,6 +3066,7 @@
 <a href="#3066" id="3066">3066</a>
 <a href="#3067" id="3067">3067</a>
 <a href="#3068" id="3068">3068</a>
+<a href="#3069" id="3069">3069</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 #![allow(non_upper_case_globals)]
 
@@ -3524,9 +3525,9 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_object_for_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, AnyObject: <span class="kw-2">*mut </span>AnyObject, key: <span class="kw-2">*mut </span>AnyObject) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_object_for_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: <span class="kw-2">*mut </span>AnyObject, key: <span class="kw-2">*mut </span>AnyObject) {
         <span class="kw">unsafe </span>{
-            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setAnyObject: AnyObject forKey: key];
+            <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setAnyObject: object, forKey: key];
         }
     }
 }
@@ -3728,7 +3729,7 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>raw_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="kw">unsafe </span>{
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).get_ivar(<span class="string">&quot;_displayID&quot;</span>)
+            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).class().instance_variable(<span class="string">&quot;_displayID&quot;</span>).unwrap().load(<span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0</span>)
         }
     }
 }
@@ -5901,7 +5902,8 @@ kCFNumberCFIndexType = 14,
 
 <span class="kw">extern fn </span>sc_content_sharing_picker_observer_dealloc(this: <span class="kw-2">*mut </span>AnyObject, _sel: Sel) {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>callback_container: Box&lt;SCContentSharingPickerCallbackContainer&gt; = Box::from_raw(<span class="kw-2">*</span>(<span class="kw-2">*</span>this).get_ivar::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="string">&quot;callback_container_ptr&quot;</span>) <span class="kw">as </span><span class="kw-2">*mut </span>SCContentSharingPickerCallbackContainer);
+        
+        <span class="kw">let </span>callback_container: Box&lt;SCContentSharingPickerCallbackContainer&gt; = Box::from_raw(<span class="kw-2">*</span>(<span class="kw-2">&amp;*</span>this).class().instance_variable(<span class="string">&quot;callback_container_ptr&quot;</span>).unwrap().load::&lt;<span class="kw-2">*mut </span>c_void&gt;(<span class="kw-2">&amp;*</span>this) <span class="kw">as </span><span class="kw-2">*mut </span>SCContentSharingPickerCallbackContainer);
         drop(callback_container);
     }
 }

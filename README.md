@@ -3,6 +3,7 @@ A cross-platform screen-capturing crate for rust
 
 [![Crates.io Version](https://img.shields.io/crates/v/crabgrab)](https://crates.io/crates/crabgrab)
 [![docs.rs](https://img.shields.io/docsrs/crabgrab)](https://docs.rs/crabgrab/)
+[MacOS Documentation](https://augmendtech.github.io/CrabGrab/macos_docs/crabgrab/index.html)
 
 
 Capturing video from screens and applications can be very hard, and it's even worse when you want to do it in a cross-platform application. CrabGrab makes it easy to do continuous frame capture that can be used for individual screenshots or for capturing video. It also includes common functionality needed for enumerating screens and applications. You can get from a window to a pixel buffer in just a few lines of code that will work on both Windows and MacOS.
@@ -65,6 +66,10 @@ Small examples showing how to use the CrabGrab crate can be found at [crabgrab/e
 Note that feature examples will require that feature:
 
 `cargo run --example <example name> --feature <feature name>`
+
+MacOS Docs
+----------
+Unfortuantely due to our dependence on metal-rs, building docs for macos doesn't work on docs.rs, since they use linux containers. As a workaround, we host macos documentation in this repository - link above.
 
 
 Contributions

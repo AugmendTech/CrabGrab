@@ -1,7 +1,7 @@
 [package]
 name = "crabgrab"
 description = "A cross-platform screen/window capture crate"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Augmend, Inc. <https://github.com/AugmendTech>", "Liam Taylor <https://github.com/OutOfTheVoid>", "Tim Misiak <https://github.com/TimMisiak>"]
 documentation = "https://docs.rs/crabgrab"
@@ -15,7 +15,7 @@ exclude = ["spellcheck/", "update_doc_copy.ps1", "update_doc_copy.sh", "docs/", 
 
 [package.metadata.docs.rs]
 features = ["iosurface", "metal", "dxgi", "dx11", "bitmap", "screenshot", "wgpu"]
-targets = ["x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+targets = ["x86_64-pc-windows-msvc"]
 
 [package.metadata.spellcheck]
 config = "spellcheck/cfg.toml"
