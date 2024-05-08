@@ -69,7 +69,7 @@ Note that feature examples will require that feature:
 
 MacOS Docs
 ----------
-Unfortuantely due to our dependence on metal-rs, building docs for macos doesn't work on docs.rs, since they use linux containers. As a workaround, we host macos documentation in this repository - link above.
+Unfortunately due to our dependence on metal-rs, building docs for macos doesn't work on docs.rs, since they use linux containers. As a workaround, we host macos documentation in this repository - link above.
 
 
 Contributions
