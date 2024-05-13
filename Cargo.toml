@@ -79,7 +79,7 @@ windows = { version = "0.52", features = [
     "UI_Core",
     "ApplicationModel_Core",
 ] }
-wgpu = { version = "0.19", optional = true, features = ["dx12", "hal"] }
+wgpu = { version = "0.20", optional = true, features = ["dx12", "hal"] }
 d3d12 = "0.19"
 winapi = { version = "0.3", optional = true }
 

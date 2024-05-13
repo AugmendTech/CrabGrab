@@ -13,7 +13,9 @@ async fn main() {
     let config = CaptureConfig::with_display(content.displays().next().unwrap(), CapturePixelFormat::Bgra8888);
 
     let mut stream = CaptureStream::new(token, config, |result| {
-        println!("result: {:?}", result);
+        if let StreamEvent::Video(frame) = result.expect("Expected stream event") {
+            println!("Got frame: {}", frame.frame_id());
+        }
     }).unwrap();
 
     std::thread::sleep(Duration::from_millis(20000));
