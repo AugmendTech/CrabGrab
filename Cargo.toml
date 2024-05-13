@@ -80,7 +80,7 @@ windows = { version = "0.52", features = [
     "ApplicationModel_Core",
 ] }
 wgpu = { version = "0.20", optional = true, features = ["dx12", "hal"] }
-d3d12 = "0.19"
+d3d12 = "0.20"
 winapi = { version = "0.3", optional = true }
 
 [dev-dependencies]
