@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/platform/macos/frame.rs`."><title>frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/platform/macos/frame.rs`."><title>frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (3246e7951 2024-02-19)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-c37d3936c59ababd.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../crabgrab/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -209,10 +211,10 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) capture_time: Instant,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dictionary: RefCell&lt;<span class="prelude-ty">Option</span>&lt;CFDictionary&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_id: u64,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: <span class="prelude-ty">Option</span>&lt;metal::Device&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCGDisplayStreamVideoFrame {
@@ -223,14 +225,14 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_id: u64,
     <span class="kw">pub</span>(<span class="kw">crate</span>) source_rect: Rect,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dest_size: Size,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: metal::Device,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 }
 
 <span class="kw">impl </span>MacosSCStreamVideoFrame {
-    <span class="kw">fn </span>get_info_dict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, CFDictionary&gt; {
+    <span class="kw">fn </span>get_info_dict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">'_</span>, CFDictionary&gt; {
         <span class="kw">let </span>needs_dict = { <span class="self">self</span>.dictionary.borrow().is_none() };
         <span class="kw">if </span>needs_dict {
             <span class="kw">let </span><span class="kw-2">mut </span>dict_opt_mut = <span class="self">self</span>.dictionary.borrow_mut();
@@ -343,14 +345,14 @@
         }
     }
 
-    <span class="kw">fn </span>audio_channel_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel: usize) -&gt; <span class="prelude-ty">Result</span>&lt;AudioChannelData&lt;<span class="lifetime">&#39;_</span>&gt;, AudioBufferError&gt; {
+    <span class="kw">fn </span>audio_channel_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel: usize) -&gt; <span class="prelude-ty">Result</span>&lt;AudioChannelData&lt;<span class="lifetime">'_</span>&gt;, AudioBufferError&gt; {
         <span class="kw">let </span>pcm_audio_buffer_ref = <span class="kw">if </span><span class="self">self</span>.pcm_audio_buffer.is_some() {
             <span class="self">self</span>.pcm_audio_buffer.as_ref().unwrap()
         } <span class="kw">else </span>{
             <span class="kw">if </span><span class="self">self</span>.audio_format_description.format_flags == kAudioFormatFlagsCanonical {
                 <span class="kw">let </span>(audio_buffer_list, block_buffer) = <span class="kw">match unsafe </span>{ <span class="self">self</span>.sample_buffer.get_audio_buffer_list_with_block_buffer() } {
                     <span class="prelude-val">Ok</span>(x) =&gt; x,
-                    <span class="prelude-val">Err</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">&quot;CMSampleBuffer::get_audio_buffer_list_with_block_buffer() failed&quot;</span>.into()))
+                    <span class="prelude-val">Err</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">"CMSampleBuffer::get_audio_buffer_list_with_block_buffer() failed"</span>.into()))
                 };
                 <span class="self">self</span>.buffer_list = <span class="prelude-val">Some</span>(audio_buffer_list);
                 <span class="self">self</span>.block_buffer = <span class="prelude-val">Some</span>(block_buffer);
@@ -360,7 +362,7 @@
                     <span class="self">self</span>.pcm_audio_buffer = <span class="prelude-val">Some</span>(pcm_audio_buffer);
                     <span class="self">self</span>.pcm_audio_buffer.as_ref().unwrap()
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">&quot;Failed to build PCM audio buffer&quot;</span>.into()));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">"Failed to build PCM audio buffer"</span>.into()));
                 }
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::UnsupportedFormat);
@@ -379,7 +381,7 @@
             };
             <span class="kw">return </span><span class="prelude-val">Ok</span>(AudioChannelData::F32(data_samples));
         }
-        <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">&quot;Failed to get audio buffer&quot;</span>.into()))
+        <span class="kw">return </span><span class="prelude-val">Err</span>(AudioBufferError::Other(<span class="string">"Failed to get audio buffer"</span>.into()))
     }
 
     <span class="kw">fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; std::time::Duration {

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/feature/wgpu/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/feature/wgpu/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (3246e7951 2024-02-19)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-c37d3936c59ababd.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../crabgrab/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -322,33 +324,33 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::prelude::{CaptureConfig, CaptureStream, VideoFrame};
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVideoFrame};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::feature::metal::<span class="kw-2">*</span>;
-<span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
 </span><span class="kw">use </span>metal::MTLTextureUsage;
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::platform::windows::capture_stream::WindowsCaptureConfig;
-<span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::feature::dx11::<span class="kw-2">*</span>;
-<span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::feature::dxgi::<span class="kw-2">*</span>;
-<span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
 </span><span class="kw">use </span>windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Dxgi::IDXGIDevice, Direct3D11on12::ID3D11On12Device2, Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
 </span><span class="kw">use </span>std::ffi::c_void;
 
 <span class="doccomment">/// A capture config which can be supplied with a Wgpu device
 </span><span class="kw">pub trait </span>WgpuCaptureConfigExt: Sized {
-    <span class="kw">fn </span>with_wgpu_device(<span class="self">self</span>, device: Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt;;
+    <span class="kw">fn </span>with_wgpu_device(<span class="self">self</span>, device: Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt;;
 }
 
 <span class="kw">impl </span>WgpuCaptureConfigExt <span class="kw">for </span>CaptureConfig {
     <span class="doccomment">/// Supply a Wgpu device to the config, allowing the generation of Wgpu textures from video frames
-    </span><span class="kw">fn </span>with_wgpu_device(<span class="self">self</span>, wgpu_device: Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+    </span><span class="kw">fn </span>with_wgpu_device(<span class="self">self</span>, wgpu_device: Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
+        <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
         </span>{
             <span class="kw">unsafe </span>{
                 <span class="kw">let </span>device = AsRef::&lt;wgpu::Device&gt;::as_ref(<span class="kw-2">&amp;*</span>wgpu_device).as_hal::&lt;wgpu::hal::api::Metal, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw">move </span>|device| {
@@ -357,7 +359,7 @@
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
-                }).expect(<span class="string">&quot;Expected metal device underneath wgpu&quot;</span>);
+                }).expect(<span class="string">"Expected metal device underneath wgpu"</span>);
                 <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
                     impl_capture_config: MacosCaptureConfig {
                         metal_device: device,
@@ -368,7 +370,7 @@
                 </span>})
             }
         }
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
         </span>{
             <span class="kw">unsafe </span>{
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(d3d11_device) = 
@@ -392,17 +394,17 @@
                                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>d3d11_device <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>),
                                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>d3d11_device_context <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>),
                                 <span class="prelude-val">None
-                            </span>).map_err(|error| <span class="macro">format!</span>(<span class="string">&quot;Failed to create d3d11 device from wgpu d3d12 device: {}&quot;</span>, error.to_string()))<span class="question-mark">?</span>;
+                            </span>).map_err(|error| <span class="macro">format!</span>(<span class="string">"Failed to create d3d11 device from wgpu d3d12 device: {}"</span>, error.to_string()))<span class="question-mark">?</span>;
                             <span class="prelude-ty">Result</span>::&lt;<span class="kw">_</span>, String&gt;::Ok(d3d11_device.unwrap())
                         })
                     }).flatten() {
                         <span class="kw">let </span>d3d11_device = d3d11_device<span class="question-mark">?</span>;
                         <span class="kw">let </span>d3d11on12_device: ID3D11On12Device2 = d3d11_device.cast()
-                            .map_err(|error| <span class="macro">format!</span>(<span class="string">&quot;Failed to cast d3d11 device to d3d11on12 device: {}&quot;</span>, error.to_string()))<span class="question-mark">?</span>;
+                            .map_err(|error| <span class="macro">format!</span>(<span class="string">"Failed to cast d3d11 device to d3d11on12 device: {}"</span>, error.to_string()))<span class="question-mark">?</span>;
                         <span class="kw">let </span>dxgi_device: IDXGIDevice = d3d11on12_device.cast()
-                            .map_err(|error| <span class="macro">format!</span>(<span class="string">&quot;Failed to cast d3d11on12 device to dxgi device: {}&quot;</span>, error.to_string()))<span class="question-mark">?</span>;
+                            .map_err(|error| <span class="macro">format!</span>(<span class="string">"Failed to cast d3d11on12 device to dxgi device: {}"</span>, error.to_string()))<span class="question-mark">?</span>;
                         <span class="kw">let </span>dxgi_adapter = dxgi_device.GetAdapter()
-                            .map_err(|error| <span class="macro">format!</span>(<span class="string">&quot;Failed to get to dxgi adapter: {}&quot;</span>, error.to_string()))<span class="question-mark">?</span>;
+                            .map_err(|error| <span class="macro">format!</span>(<span class="string">"Failed to get to dxgi adapter: {}"</span>, error.to_string()))<span class="question-mark">?</span>;
                         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
                             impl_capture_config: WindowsCaptureConfig {
                                 d3d11_device: <span class="prelude-val">Some</span>(d3d11_device),
@@ -413,7 +415,7 @@
                             ..<span class="self">self
                         </span>})
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(<span class="string">&quot;Unimplemented for wgpu&#39;s vulkan backend&quot;</span>.into())
+                    <span class="prelude-val">Err</span>(<span class="string">"Unimplemented for wgpu's vulkan backend"</span>.into())
                 }   
             }
         }
@@ -435,9 +437,9 @@
 <span class="doccomment">/// Represents an error getting the texture from a video frame
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>WgpuVideoFrameError {
-    <span class="doccomment">/// the backend texture couldn&#39;t be fetched
+    <span class="doccomment">/// the backend texture couldn't be fetched
     </span>NoBackendTexture,
-    <span class="doccomment">/// The requested plane isn&#39;t valid for this frame
+    <span class="doccomment">/// The requested plane isn't valid for this frame
     </span>InvalidVideoPlaneTexture,
     <span class="doccomment">/// No Wgpu device was supplied to the capture stream
     </span>NoWgpuDevice,
@@ -446,23 +448,23 @@
 
 
 <span class="kw">impl </span>Display <span class="kw">for </span>WgpuVideoFrameError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::NoBackendTexture =&gt; f.write_str(<span class="string">&quot;WgpuVideoFrameError::NoBackendTexture&quot;</span>),
-            <span class="self">Self</span>::InvalidVideoPlaneTexture =&gt; f.write_str(<span class="string">&quot;WgpuVideoFrameError::InvalidVideoPlaneTexture&quot;</span>),
-            <span class="self">Self</span>::NoWgpuDevice =&gt; f.write_str(<span class="string">&quot;WgpuVideoFrameError::NoWgpuDevice&quot;</span>),
-            <span class="self">Self</span>::Other(error) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;MacosVideoFrameError::Other(\&quot;{}\&quot;)&quot;</span>, error)),
+            <span class="self">Self</span>::NoBackendTexture =&gt; f.write_str(<span class="string">"WgpuVideoFrameError::NoBackendTexture"</span>),
+            <span class="self">Self</span>::InvalidVideoPlaneTexture =&gt; f.write_str(<span class="string">"WgpuVideoFrameError::InvalidVideoPlaneTexture"</span>),
+            <span class="self">Self</span>::NoWgpuDevice =&gt; f.write_str(<span class="string">"WgpuVideoFrameError::NoWgpuDevice"</span>),
+            <span class="self">Self</span>::Other(error) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"MacosVideoFrameError::Other(\"{}\")"</span>, error)),
         }
     }
 }
 
 <span class="kw">impl </span>Error <span class="kw">for </span>WgpuVideoFrameError {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">'static</span>)&gt; {
         <span class="prelude-val">None
     </span>}
 
     <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="string">&quot;description() is deprecated; use Display&quot;
+        <span class="string">"description() is deprecated; use Display"
     </span>}
 
     <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Error&gt; {
@@ -473,12 +475,12 @@
 <span class="doccomment">/// A video frame which can be used to create Wgpu textures
 </span><span class="kw">pub trait </span>WgpuVideoFrameExt {
     <span class="doccomment">/// Get the texture for the given plane of the video frame
-    </span><span class="kw">fn </span>get_wgpu_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt;;
+    </span><span class="kw">fn </span>get_wgpu_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt;;
 }
 
 <span class="kw">impl </span>WgpuVideoFrameExt <span class="kw">for </span>VideoFrame {
-    <span class="kw">fn </span>get_wgpu_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt; {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+    <span class="kw">fn </span>get_wgpu_texture(<span class="kw-2">&amp;</span><span class="self">self</span>, plane: WgpuVideoFramePlaneTexture, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;wgpu::Texture, WgpuVideoFrameError&gt; {
+        <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
         </span>{
             <span class="kw">let </span>wgpu_device = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.impl_video_frame {
                 MacosVideoFrame::SCStream(sc_stream_frame) =&gt; sc_stream_frame.wgpu_device.clone(),
@@ -504,7 +506,7 @@
                             dimension: <span class="kw">match </span>metal_texture.texture_type() {
                                 metal::MTLTextureType::D2 |
                                 metal::MTLTextureType::D2Multisample=&gt; wgpu::TextureDimension::D2,
-                                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(<span class="string">&quot;Unsupported metal texture type&quot;</span>.to_string()))
+                                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(<span class="string">"Unsupported metal texture type"</span>.to_string()))
                             },
                             format: <span class="kw">match </span>metal_texture.pixel_format() {
                                 metal::MTLPixelFormat::BGRA8Unorm =&gt; wgpu::TextureFormat::Bgra8Unorm,
@@ -524,7 +526,7 @@
                                 metal::MTLPixelFormat::R8Snorm =&gt; wgpu::TextureFormat::R8Snorm,
                                 metal::MTLPixelFormat::R8Uint =&gt; wgpu::TextureFormat::R8Uint,
                                 metal::MTLPixelFormat::R8Unorm =&gt; wgpu::TextureFormat::R8Unorm,
-                                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(<span class="macro">format!</span>(<span class="string">&quot;Unsupported metal texture format: {:?}&quot;</span>, metal_texture.pixel_format()))),
+                                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(<span class="macro">format!</span>(<span class="string">"Unsupported metal texture format: {:?}"</span>, metal_texture.pixel_format()))),
                             },
                             usage: {
                                 <span class="kw">let </span>metal_usage = metal_texture.usage();
@@ -551,7 +553,7 @@
                 <span class="prelude-val">Err</span>(MacosVideoFrameError::Other(e)) =&gt; <span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(e)),
             }
         }
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
         </span>{
             <span class="kw">if </span>plane != WgpuVideoFramePlaneTexture::Rgba {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::InvalidVideoPlaneTexture);
@@ -568,7 +570,7 @@
                 DirectXPixelFormat::R10G10B10A2UInt =&gt; wgpu::TextureFormat::Rgb10a2Uint,
                 DirectXPixelFormat::R10G10B10A2UIntNormalized =&gt; wgpu::TextureFormat::Rgb10a2Unorm,
                 DirectXPixelFormat::R16G16B16A16Float =&gt; wgpu::TextureFormat::Rgba16Float,
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(<span class="string">&quot;Unsupported DirectXPixelFormat&quot;</span>.to_string()))
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(WgpuVideoFrameError::Other(<span class="string">"Unsupported DirectXPixelFormat"</span>.to_string()))
             };
             <span class="kw">unsafe </span>{
                 <span class="kw">let </span>size = <span class="self">self</span>.size();
@@ -582,7 +584,7 @@
                     <span class="kw">let </span>raw_queue_ptr = wgpu_dx12_device.unwrap().raw_queue().as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_void;
                     <span class="kw">let </span>d3d12_queue = ID3D12CommandQueue::from_raw_borrowed(<span class="kw-2">&amp;</span>raw_queue_ptr).unwrap().to_owned();
                     <span class="kw">let </span>d3d12_texture_resource = d3d11on12_device.UnwrapUnderlyingResource::&lt;<span class="kw-2">&amp;</span>ID3D11Texture2D, <span class="kw-2">&amp;</span>ID3D12CommandQueue, ID3D12Resource&gt;(<span class="kw-2">&amp;</span>frame_texture, <span class="kw-2">&amp;</span>d3d12_queue)
-                        .map_err(|error| WgpuVideoFrameError::Other(<span class="macro">format!</span>(<span class="string">&quot;Failed to unwrap d3d11on12 texture: {}&quot;</span>, error.to_string())))<span class="question-mark">?</span>;
+                        .map_err(|error| WgpuVideoFrameError::Other(<span class="macro">format!</span>(<span class="string">"Failed to unwrap d3d11on12 texture: {}"</span>, error.to_string())))<span class="question-mark">?</span>;
                     <span class="kw">let </span>d3d12_texture_desc = d3d12_texture_resource.GetDesc();
                     <span class="kw">let </span>hal_texture = wgpu::hal::dx12::Device::texture_from_raw(
                         d3d12::ComPtr::from_raw(d3d12_texture_resource.into_raw() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>),
@@ -616,23 +618,23 @@
 <span class="doccomment">/// A capture stream which may have had a Wgpu device instance supplied to it
 </span><span class="kw">pub trait </span>WgpuCaptureStreamExt {
     <span class="doccomment">/// Gets the Wgpu device wrapper supplied to `CaptureConfig::with_wgpu_device(..)`
-    </span><span class="kw">fn </span>get_wgpu_device_wrapper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;;
+    </span><span class="kw">fn </span>get_wgpu_device_wrapper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;;
     <span class="doccomment">/// Gets the Wgpu device referenced by device wrapper supplied to `CaptureConfig::with_wgpu_device(..)`
     </span><span class="kw">fn </span>get_wgpu_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>wgpu::Device&gt;;
 }
 
 <span class="kw">impl </span>WgpuCaptureStreamExt <span class="kw">for </span>CaptureStream {
     <span class="kw">fn </span>get_wgpu_device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>wgpu::Device&gt; {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
         </span>{ <span class="self">self</span>.impl_capture_stream.wgpu_device.as_ref().map(|wgpu_device| AsRef::&lt;wgpu::Device&gt;::as_ref(wgpu_device.as_ref())) }
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
         </span>{ <span class="self">self</span>.impl_capture_stream.wgpu_device.as_ref().map(|wgpu_device| AsRef::&lt;wgpu::Device&gt;::as_ref(wgpu_device.as_ref())) }
     }
 
-    <span class="kw">fn </span>get_wgpu_device_wrapper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt; {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+    <span class="kw">fn </span>get_wgpu_device_wrapper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt; {
+        <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
         </span>{ <span class="self">self</span>.impl_capture_stream.wgpu_device.clone() }
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
         </span>{ <span class="self">self</span>.impl_capture_stream.wgpu_device.clone() }
     }
 }

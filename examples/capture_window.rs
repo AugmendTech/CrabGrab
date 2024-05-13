@@ -16,6 +16,9 @@ fn main() {
         };
         let filter = CapturableContentFilter { windows: Some(window_filter), displays: false };
         let content = CapturableContent::new(filter).await.unwrap();
+        for window in content.windows() {
+            println!("app: {}, window: {}", window.application().identifier(), window.title());
+        }
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
             window.title().len() != 0 && (app_identifier.to_lowercase().contains("finder") || app_identifier.to_lowercase().contains("explorer"))

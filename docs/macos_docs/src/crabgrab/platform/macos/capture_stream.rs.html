@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/platform/macos/capture_stream.rs`."><title>capture_stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/platform/macos/capture_stream.rs`."><title>capture_stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (3246e7951 2024-02-19)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-c37d3936c59ababd.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../crabgrab/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -504,11 +506,11 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCaptureStream {
     stream: MacosCaptureStreamInternal,
     stopped_flag: Arc&lt;AtomicBool&gt;,
-    shared_callback: Arc&lt;Mutex&lt;Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;&gt;&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    shared_callback: Arc&lt;Mutex&lt;Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">'static</span>&gt;&gt;&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: metal::Device,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 }
 
 <span class="kw">pub trait </span>MacosCaptureConfigExt {
@@ -516,7 +518,7 @@
     </span><span class="kw">fn </span>with_scale_to_fit(<span class="self">self</span>, scale_to_fit: bool) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// Set the maximum capture frame-rate
     </span><span class="kw">fn </span>with_maximum_fps(<span class="self">self</span>, maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;) -&gt; <span class="self">Self</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
     </span><span class="doccomment">/// Set the metal device to use for texture creation
     </span><span class="kw">fn </span>with_metal_device(<span class="self">self</span>, metal_device: metal::Device) -&gt; <span class="self">Self</span>;
 }
@@ -525,15 +527,15 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosCaptureConfig {
     <span class="kw">pub</span>(<span class="kw">crate</span>) scale_to_fit: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) maximum_fps: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) metal_device: <span class="prelude-ty">Option</span>&lt;metal::Device&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>MacosCaptureConfig {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;MacosCaptureConfig&quot;</span>).field(<span class="string">&quot;scale_to_fit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.scale_to_fit).field(<span class="string">&quot;maximum_fps&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.maximum_fps).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"MacosCaptureConfig"</span>).field(<span class="string">"scale_to_fit"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.scale_to_fit).field(<span class="string">"maximum_fps"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.maximum_fps).finish()
     }
 }
 
@@ -542,9 +544,9 @@
         <span class="self">Self </span>{
             scale_to_fit: <span class="bool-val">true</span>,
             maximum_fps: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
             </span>metal_device: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
             </span>wgpu_device: <span class="prelude-val">None</span>,
         }
     }
@@ -571,7 +573,7 @@
         </span>}
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
     </span><span class="kw">fn </span>with_metal_device(<span class="self">self</span>, metal_device: metal::Device) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             impl_capture_config: MacosCaptureConfig {
@@ -625,7 +627,7 @@
 }
 
 <span class="kw">impl </span>MacosCaptureStream {
-    <span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[CapturePixelFormat] {
+    <span class="kw">pub fn </span>supported_pixel_formats() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[CapturePixelFormat] {
         <span class="kw-2">&amp;</span>[
             CapturePixelFormat::V420,
             CapturePixelFormat::F420,
@@ -650,25 +652,25 @@
         </span>}
     }
 
-    <span class="kw">pub fn </span>new(token: MacosCaptureAccessToken, capture_config: CaptureConfig, <span class="kw-2">mut </span>callback: Box&lt;<span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
+    <span class="kw">pub fn </span>new(token: MacosCaptureAccessToken, capture_config: CaptureConfig, <span class="kw-2">mut </span>callback: Box&lt;<span class="kw">impl </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, StreamCreateError&gt; {
         <span class="kw">let _ </span>= token;
-        <span class="kw">let </span>shared_callback = Arc::new(Mutex::new(callback <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">&#39;static</span>&gt;));
+        <span class="kw">let </span>shared_callback = Arc::new(Mutex::new(callback <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>FnMut(<span class="prelude-ty">Result</span>&lt;StreamEvent, StreamError&gt;) + Send + <span class="lifetime">'static</span>&gt;));
         <span class="kw">let </span>stream_shared_callback = shared_callback.clone();
-        <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
         </span><span class="kw">let </span><span class="kw-2">mut </span>metal_device = <span class="kw">match </span>capture_config.impl_capture_config.metal_device {
             <span class="prelude-val">Some</span>(metal_device) =&gt; metal_device,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">match </span>metal::Device::system_default() {
                     <span class="prelude-val">Some</span>(device) =&gt; device,
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">&quot;Failed to create system default metal device&quot;</span>.into()))
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">"Failed to create system default metal device"</span>.into()))
                 }
             }
         };
-        <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
         </span><span class="kw">let </span>callback_metal_device = metal_device.clone();
-        <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
         </span><span class="kw">let </span>wgpu_device = capture_config.impl_capture_config.wgpu_device.clone();
-        <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
         </span><span class="kw">let </span>callback_wgpu_device = wgpu_device.clone();
         <span class="kw">match </span>capture_config.target {
             Capturable::Window(window) =&gt; {
@@ -725,7 +727,7 @@
 
                 <span class="kw">let </span>filter = SCContentFilter::new_with_desktop_independent_window(<span class="kw-2">&amp;</span>window.impl_capturable_window.window);
 
-                <span class="kw">let </span>handler_queue = DispatchQueue::make_concurrent(<span class="string">&quot;com.augmend.crabgrab.window_capture&quot;</span>.into());
+                <span class="kw">let </span>handler_queue = DispatchQueue::make_concurrent(<span class="string">"com.augmend.crabgrab.window_capture"</span>.into());
 
                 <span class="kw">let </span><span class="kw-2">mut </span>audio_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>video_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
@@ -769,9 +771,9 @@
                                                     capture_time,
                                                     dictionary: RefCell::new(<span class="prelude-val">None</span>),
                                                     frame_id,
-                                                    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                                                    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
                                                     </span>metal_device: <span class="prelude-val">Some</span>(callback_metal_device.clone()),
-                                                    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                                                    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
                                                     </span>wgpu_device: callback_wgpu_device.clone(),
                                                 })
                                             };
@@ -805,8 +807,8 @@
                                     }
                                     <span class="prelude-val">Ok</span>(StreamEvent::End)
                                 },
-                                SCStreamCallbackError::SampleBufferCopyFailed =&gt; <span class="prelude-val">Err</span>(StreamError::Other(<span class="string">&quot;Failed to copy sample buffer&quot;</span>.into())),
-                                SCStreamCallbackError::Other(e) =&gt; <span class="prelude-val">Err</span>(StreamError::Other(<span class="macro">format!</span>(<span class="string">&quot;Internal stream failure: [description: {}, reason: {}, code: {}, domain: {}]&quot;</span>, e.description(), e.reason(), e.code(), e.domain()))),
+                                SCStreamCallbackError::SampleBufferCopyFailed =&gt; <span class="prelude-val">Err</span>(StreamError::Other(<span class="string">"Failed to copy sample buffer"</span>.into())),
+                                SCStreamCallbackError::Other(e) =&gt; <span class="prelude-val">Err</span>(StreamError::Other(<span class="macro">format!</span>(<span class="string">"Internal stream failure: [description: {}, reason: {}, code: {}, domain: {}]"</span>, e.description(), e.reason(), e.code(), e.domain()))),
                             };
                             (callback)(event);
                         }
@@ -822,16 +824,16 @@
                     stopped_flag,
                     shared_callback,
                     stream: MacosCaptureStreamInternal::Window(sc_stream),
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
                     </span>metal_device,
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
                     </span>wgpu_device
                 })
             },
             Capturable::Display(display) =&gt; {
                 <span class="kw">let </span>options_dict = NSDictionary::new_mutable();
 
-                <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
                 </span><span class="kw">let </span>callback_metal_device = metal_device.clone();
                 
                 <span class="kw">let </span>display_id = display.impl_capturable_display.display.raw_id();
@@ -845,7 +847,7 @@
                     CapturePixelFormat::F420 =&gt;        (SCStreamPixelFormat::F420, <span class="bool-val">true</span>),
                 };
 
-                <span class="kw">let </span>dispatch_queue = DispatchQueue::make_concurrent(<span class="string">&quot;crabgrab.capture&quot;</span>.into());
+                <span class="kw">let </span>dispatch_queue = DispatchQueue::make_concurrent(<span class="string">"crabgrab.capture"</span>.into());
                 
                 <span class="kw">let </span><span class="kw-2">mut </span>audio_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>video_frame_id_counter = AtomicU64::new(<span class="number">0</span>);
@@ -876,9 +878,9 @@
                                             size: Size { width: rect.size.x, height: rect.size.y },
                                         },
                                         dest_size: Size { width: w <span class="kw">as </span>f64, height: h <span class="kw">as </span>f64 },
-                                        <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                                        <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
                                         </span>metal_device: callback_metal_device.clone(),
-                                        <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                                        <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
                                         </span>wgpu_device: callback_wgpu_device.clone(),
                                     }
                                 )
@@ -907,15 +909,15 @@
 
                 <span class="kw">let </span>display_stream = CGDisplayStream::new(stream_callback, display_id, size, pixel_format, options_dict, dispatch_queue);
 
-                display_stream.start().map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">&quot;Stream failed to start&quot;</span>.into()))<span class="question-mark">?</span>;
+                display_stream.start().map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Stream failed to start"</span>.into()))<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(MacosCaptureStream {
                     stream: MacosCaptureStreamInternal::Display(display_stream),
                     stopped_flag,
                     shared_callback,
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;metal&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
                     </span>metal_device,
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;wgpu&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
                     </span>wgpu_device
                 }) 
             }
@@ -934,7 +936,7 @@
         }
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.stream {
             MacosCaptureStreamInternal::Window(stream) =&gt; { stream.stop(); <span class="prelude-val">Ok</span>(()) },
-            MacosCaptureStreamInternal::Display(stream) =&gt; stream.stop().map_err(|<span class="kw">_</span>| StreamStopError::Other(<span class="string">&quot;Unkown&quot;</span>.into())),
+            MacosCaptureStreamInternal::Display(stream) =&gt; stream.stop().map_err(|<span class="kw">_</span>| StreamStopError::Other(<span class="string">"Unkown"</span>.into())),
         }
     }
 }
