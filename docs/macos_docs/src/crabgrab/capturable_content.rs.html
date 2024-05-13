@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/capturable_content.rs`."><title>capturable_content.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/capturable_content.rs`."><title>capturable_content.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="crabgrab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (3246e7951 2024-02-19)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c37d3936c59ababd.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../crabgrab/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -267,20 +269,20 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>CapturableContentError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Other(message) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;CapturableContentError::Other(\&quot;{}\&quot;)&quot;</span>, message))
+            <span class="self">Self</span>::Other(message) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"CapturableContentError::Other(\"{}\")"</span>, message))
         }
     }
 }
 
 <span class="kw">impl </span>Error <span class="kw">for </span>CapturableContentError {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">'static</span>)&gt; {
         <span class="prelude-val">None
     </span>}
 
     <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="string">&quot;description() is deprecated; use Display&quot;
+        <span class="string">"description() is deprecated; use Display"
     </span>}
 
     <span class="kw">fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Error&gt; {
@@ -366,12 +368,12 @@
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>CapturableContent {}
 
 <span class="doccomment">/// An iterator over capturable windows
-</span><span class="kw">pub struct </span>CapturableWindowIterator&lt;<span class="lifetime">&#39;content</span>&gt; {
-    content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;content </span>CapturableContent,
+</span><span class="kw">pub struct </span>CapturableWindowIterator&lt;<span class="lifetime">'content</span>&gt; {
+    content: <span class="kw-2">&amp;</span><span class="lifetime">'content </span>CapturableContent,
     i: usize
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>CapturableWindowIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>CapturableWindowIterator&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = CapturableWindow;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -389,16 +391,16 @@
     }
 }
 
-<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>CapturableWindowIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>CapturableWindowIterator&lt;<span class="lifetime">'_</span>&gt; {
 }
 
 <span class="doccomment">/// An iterator over capturable displays
-</span><span class="kw">pub struct </span>CapturableDisplayIterator&lt;<span class="lifetime">&#39;content</span>&gt; {
-    content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;content </span>CapturableContent,
+</span><span class="kw">pub struct </span>CapturableDisplayIterator&lt;<span class="lifetime">'content</span>&gt; {
+    content: <span class="kw-2">&amp;</span><span class="lifetime">'content </span>CapturableContent,
     i: usize
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>CapturableDisplayIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>CapturableDisplayIterator&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = CapturableDisplay;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -416,7 +418,7 @@
     }
 }
 
-<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>CapturableDisplayIterator&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>CapturableDisplayIterator&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.content.impl_capturable_content.displays.len()
     }
@@ -434,12 +436,12 @@
     }
 
     <span class="doccomment">/// Get an iterator over the capturable windows
-    </span><span class="kw">pub fn </span>windows&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; CapturableWindowIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>windows&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; CapturableWindowIterator&lt;<span class="lifetime">'a</span>&gt; {
         CapturableWindowIterator { content: <span class="self">self</span>, i: <span class="number">0 </span>}
     }
 
     <span class="doccomment">/// Get an iterator over the capturable displays
-    </span><span class="kw">pub fn </span>displays&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; CapturableDisplayIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>displays&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; CapturableDisplayIterator&lt;<span class="lifetime">'a</span>&gt; {
         CapturableDisplayIterator { content: <span class="self">self</span>, i: <span class="number">0 </span>}
     }
 }
@@ -507,7 +509,7 @@
 }
 
 <span class="kw">impl </span>CapturableApplication {
-    <span class="doccomment">/// Gets the &quot;identifier&quot; of the application
+    <span class="doccomment">/// Gets the "identifier" of the application
     /// 
     /// On MacOS, this is the application bundle, and on windows, this is the application file name
     </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {

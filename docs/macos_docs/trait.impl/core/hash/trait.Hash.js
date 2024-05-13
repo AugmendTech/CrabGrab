@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"crabgrab":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.75.0/core/hash/trait.Hash.html\" title=\"trait core::hash::Hash\">Hash</a> for <a class=\"struct\" href=\"crabgrab/capturable_content/struct.CapturableWindow.html\" title=\"struct crabgrab::capturable_content::CapturableWindow\">CapturableWindow</a>"]]
+"crabgrab":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html\" title=\"trait core::hash::Hash\">Hash</a> for <a class=\"struct\" href=\"crabgrab/capturable_content/struct.CapturableWindow.html\" title=\"struct crabgrab::capturable_content::CapturableWindow\">CapturableWindow</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
