@@ -43,7 +43,7 @@ metal = { version = "0.27", optional = true }
 lazy_static = "1.4"
 core-graphics-types = "0.1"
 mach2 = "0.4"
-wgpu = { version = "^0.19", optional = true, features = ["metal", "hal"] }
+wgpu = { version = "^0.20", optional = true, features = ["metal", "hal"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.52", features = [
@@ -86,4 +86,4 @@ winapi = { version = "0.3", optional = true }
 [dev-dependencies]
 futures = "0.3"
 tokio = { version = "1.37", features = ["rt", "macros", "rt-multi-thread"] }
-wgpu = "0.19"
+wgpu = "0.20"
