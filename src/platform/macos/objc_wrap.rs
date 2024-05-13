@@ -13,7 +13,7 @@
 #[link(name = "AVFoundation", kind = "framework")]
 extern "C" {}
 
-use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{null, null_mut, NonNull}, sync::Arc, time::{Duration, Instant}};
+use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{addr_of_mut, null, null_mut, NonNull}, sync::Arc, time::{Duration, Instant}};
 
 use block2::{ffi::Class, Block, RcBlock, StackBlock};
 use libc::{c_void, strlen};
@@ -1842,7 +1842,7 @@ unsafe impl Encode for DispatchQueue {
 impl DispatchQueue {
     pub fn make_concurrent(name: String) -> Self {
         let cstring_name = CString::new(name.as_str()).unwrap();
-        unsafe { dispatch_queue_create(cstring_name.as_ptr(), DispatchQueueAttr(&mut _dispatch_queue_attr_concurrent as *mut c_void)) }
+        unsafe { dispatch_queue_create(cstring_name.as_ptr(), DispatchQueueAttr(addr_of_mut!(_dispatch_queue_attr_concurrent))) }
     }
 
     pub fn make_serial(name: String) -> Self {
