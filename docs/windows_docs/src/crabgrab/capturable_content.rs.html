@@ -258,6 +258,11 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::{Debug, Display}};
 
 <span class="kw">use crate</span>::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
@@ -514,6 +519,11 @@
     /// On MacOS, this is the application bundle, and on windows, this is the application file name
     </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.impl_capturable_application.identifier()
+    }
+
+    <span class="doccomment">/// Gets the friendly name of the application
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.impl_capturable_application.name()
     }
 }
 </code></pre></div></section></main></body></html>
