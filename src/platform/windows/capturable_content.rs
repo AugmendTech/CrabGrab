@@ -1,6 +1,8 @@
 use std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}, hash::Hash};
 
-use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, HWND, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
+use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
+
+pub use windows::Win32::Foundation::HWND;
 
 use crate::{prelude::{CapturableContentError, CapturableContentFilter}, util::{Point, Rect, Size}};
 
@@ -158,6 +160,10 @@ impl WindowsCapturableApplication {
             result.unwrap_or("".into())
         }
     }
+
+    pub fn name(&self) -> String {
+        self.identifier()
+    }
 }
 
 pub struct WindowsCapturableContent {
@@ -209,5 +215,15 @@ impl WindowsCapturableContent {
             windows,
             displays,
         })
+    }
+}
+
+pub trait WindowsCapturableWindowNativeWindowHandle {
+    fn get_native_window_handle(&self) -> HWND;
+}
+
+impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
+    fn get_native_window_handle(&self) -> HWND {
+        self.impl_capturable_window.0
     }
 }

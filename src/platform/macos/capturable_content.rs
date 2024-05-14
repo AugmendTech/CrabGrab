@@ -4,7 +4,7 @@ use futures::channel::oneshot;
 use libc::getpid;
 use parking_lot::Mutex;
 
-use crate::{capturable_content::{CapturableContentFilter, CapturableContentError}, util::{Rect, Point, Size}};
+use crate::{capturable_content::{CapturableContentError, CapturableContentFilter}, prelude::CapturableWindow, util::{Point, Rect, Size}};
 
 use super::objc_wrap::{CGMainDisplayID, SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
 
@@ -161,4 +161,19 @@ impl MacosCapturableApplication {
     pub fn identifier(&self) -> String {
         self.running_application.bundle_identifier()
     }
+
+    pub fn name(&self) -> String {
+        self.running_application.application_name()
+    }
 }
+
+pub trait MacosCapturableWindowNativeWindowId {
+    fn get_native_window_id(&self) -> u32;
+}
+
+impl MacosCapturableWindowNativeWindowId for CapturableWindow {
+    fn get_native_window_id(&self) -> u32 {
+       self.impl_capturable_window.window.id().0
+    }
+}
+

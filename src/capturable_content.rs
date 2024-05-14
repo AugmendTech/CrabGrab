@@ -255,4 +255,9 @@ impl CapturableApplication {
     pub fn identifier(&self) -> String {
         self.impl_capturable_application.identifier()
     }
+
+    /// Gets the friendly name of the application
+    pub fn name(&self) -> String {
+        self.impl_capturable_application.name()
+    }
 }
