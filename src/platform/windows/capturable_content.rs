@@ -164,6 +164,10 @@ impl WindowsCapturableApplication {
     pub fn name(&self) -> String {
         self.identifier()
     }
+
+    pub fn pid(&self) -> i32 {
+        self.0 as i32
+    }
 }
 
 pub struct WindowsCapturableContent {
