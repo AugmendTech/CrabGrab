@@ -21,3 +21,5 @@ pub(crate) use capture_stream::MacosCaptureAccessToken as ImplCaptureAccessToken
 pub use capture_stream::MacosAudioCaptureConfigExt;
 /// Macos-specific extensions for capture configs
 pub use capture_stream::MacosCaptureConfigExt;
+
+pub use capturable_content::MacosCapturableWindowNativeWindowId;
