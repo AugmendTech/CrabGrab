@@ -260,4 +260,9 @@ impl CapturableApplication {
     pub fn name(&self) -> String {
         self.impl_capturable_application.name()
     }
+
+    /// Gets the process id of the application
+    pub fn pid(&self) -> i32 {
+        self.impl_capturable_application.pid()
+    }
 }

@@ -165,6 +165,10 @@ impl MacosCapturableApplication {
     pub fn name(&self) -> String {
         self.running_application.application_name()
     }
+
+    pub fn pid(&self) -> i32 {
+        self.running_application.pid()
+    }
 }
 
 /// A capturable window on MacOS which allows getting the native window ID
