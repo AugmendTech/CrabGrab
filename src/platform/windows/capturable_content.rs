@@ -4,7 +4,7 @@ use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, LPARAM, RECT, TRUE}, Grap
 
 pub use windows::Win32::Foundation::HWND;
 
-use crate::{prelude::{CapturableContentError, CapturableContentFilter}, util::{Point, Rect, Size}};
+use crate::{prelude::{CapturableContentError, CapturableContentFilter, CapturableWindow}, util::{Point, Rect, Size}};
 
 use super::AutoHandle;
 

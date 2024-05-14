@@ -26,3 +26,6 @@ pub(crate) use capture_stream::WindowsCaptureAccessToken as ImplCaptureAccessTok
 
 pub(crate) use frame::WindowsVideoFrame as ImplVideoFrame;
 pub(crate) use frame::WindowsAudioFrame as ImplAudioFrame;
+
+#[cfg(feature = "native_window")]
+pub(crate) use capturable_content::WindowsCapturableWindowNativeWindowHandle;
