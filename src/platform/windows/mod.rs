@@ -28,3 +28,4 @@ pub(crate) use frame::WindowsVideoFrame as ImplVideoFrame;
 pub(crate) use frame::WindowsAudioFrame as ImplAudioFrame;
 
 pub use capturable_content::WindowsCapturableWindowNativeWindowHandle;
+pub use capturable_content::HWND;
