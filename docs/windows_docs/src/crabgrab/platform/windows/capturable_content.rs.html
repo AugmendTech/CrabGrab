@@ -229,6 +229,8 @@
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}, hash::Hash};
 
 <span class="kw">use </span>windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
@@ -449,8 +451,10 @@
     }
 }
 
-<span class="kw">pub trait </span>WindowsCapturableWindowNativeWindowHandle {
-    <span class="kw">fn </span>get_native_window_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HWND;
+<span class="doccomment">/// A capturable window on Windows which provides a native window handle. This is the `HWND` for the window.
+</span><span class="kw">pub trait </span>WindowsCapturableWindowNativeWindowHandle {
+    <span class="comment">// Get the HWND for this capturable window.
+    </span><span class="kw">fn </span>get_native_window_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HWND;
 }
 
 <span class="kw">impl </span>WindowsCapturableWindowNativeWindowHandle <span class="kw">for </span>CapturableWindow {

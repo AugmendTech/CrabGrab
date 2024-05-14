@@ -30,7 +30,6 @@
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>windows::Win32::Foundation::CloseHandle;
 <span class="kw">use </span>windows::Win32::Foundation::HANDLE;
 
@@ -60,6 +59,5 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>frame::WindowsVideoFrame <span class="kw">as </span>ImplVideoFrame;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>frame::WindowsAudioFrame <span class="kw">as </span>ImplAudioFrame;
 
-<span class="attr">#[cfg(feature = <span class="string">"native_window"</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::WindowsCapturableWindowNativeWindowHandle;
+<span class="kw">pub use </span>capturable_content::WindowsCapturableWindowNativeWindowHandle;
 </code></pre></div></section></main></body></html>
