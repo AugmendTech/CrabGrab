@@ -167,7 +167,10 @@ impl MacosCapturableApplication {
     }
 }
 
+/// A capturable window on MacOS which allows getting the native window ID
 pub trait MacosCapturableWindowNativeWindowId {
+    /// Get the native window id for this capturable window.
+    /// This is the `CGWindowID` for this window.
     fn get_native_window_id(&self) -> u32;
 }
 

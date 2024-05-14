@@ -179,6 +179,9 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, fmt::Debug, hash::Hash};
 
 <span class="kw">use </span>futures::channel::oneshot;
@@ -348,8 +351,11 @@
     }
 }
 
-<span class="kw">pub trait </span>MacosCapturableWindowNativeWindowId {
-    <span class="kw">fn </span>get_native_window_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
+<span class="doccomment">/// A capturable window on MacOS which allows getting the native window ID
+</span><span class="kw">pub trait </span>MacosCapturableWindowNativeWindowId {
+    <span class="doccomment">/// Get the native window id for this capturable window.
+    /// This is the `CGWindowID` for this window.
+    </span><span class="kw">fn </span>get_native_window_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
 }
 
 <span class="kw">impl </span>MacosCapturableWindowNativeWindowId <span class="kw">for </span>CapturableWindow {

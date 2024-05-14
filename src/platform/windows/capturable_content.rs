@@ -218,7 +218,9 @@ impl WindowsCapturableContent {
     }
 }
 
+/// A capturable window on Windows which provides a native window handle. This is the `HWND` for the window.
 pub trait WindowsCapturableWindowNativeWindowHandle {
+    // Get the HWND for this capturable window.
     fn get_native_window_handle(&self) -> HWND;
 }
 

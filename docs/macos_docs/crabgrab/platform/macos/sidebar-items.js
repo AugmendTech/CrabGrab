@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["MacosAudioCaptureConfigExt","MacosCaptureConfigExt"]};
+window.SIDEBAR_ITEMS = {"trait":["MacosAudioCaptureConfigExt","MacosCapturableWindowNativeWindowId","MacosCaptureConfigExt"]};
