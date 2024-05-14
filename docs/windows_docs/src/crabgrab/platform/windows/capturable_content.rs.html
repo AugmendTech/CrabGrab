@@ -231,6 +231,10 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}, hash::Hash};
 
 <span class="kw">use </span>windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
@@ -396,6 +400,10 @@
 
     <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.identifier()
+    }
+
+    <span class="kw">pub fn </span>pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+        <span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span>i32
     }
 }
 
