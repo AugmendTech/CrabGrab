@@ -21,7 +21,6 @@ impl MacosCapturableContent {
         let (tx, rx) = oneshot::channel();
         let mut tx = Mutex::new(Some(tx));
         SCShareableContent::get_shareable_content_with_completion_handler(exclude_desktop, onscreen_only, move |result| {
-            println!("get_shareable_content_with_completion_handler - handler");
             if let Some(tx) = tx.lock().take() {
                 let _ = tx.send(result);
             }

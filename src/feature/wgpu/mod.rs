@@ -7,6 +7,7 @@ use crate::prelude::{CaptureConfig, CaptureStream, VideoFrame};
 use crate::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVideoFrame};
 #[cfg(target_os = "macos")]
 use crate::feature::metal::*;
+use metal::MTLStorageMode;
 #[cfg(target_os = "macos")]
 use metal::MTLTextureUsage;
 
@@ -209,9 +210,17 @@ impl WgpuVideoFrameExt for VideoFrame {
                             },
                             usage: {
                                 let metal_usage = metal_texture.usage();
+                                let storage_mode = metal_texture.storage_mode();
                                 if metal_usage.contains(MTLTextureUsage::RenderTarget) { wgpu::TextureUsages::RENDER_ATTACHMENT } else { wgpu::TextureUsages::empty() }.union(
                                     if metal_usage.contains(MTLTextureUsage::ShaderRead ) { wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::STORAGE_BINDING } else { wgpu::TextureUsages::empty() } ).union( 
-                                    if metal_usage.contains(MTLTextureUsage::ShaderWrite) { wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::STORAGE_BINDING } else { wgpu::TextureUsages::empty() } )
+                                    if metal_usage.contains(MTLTextureUsage::ShaderWrite) { wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::STORAGE_BINDING } else { wgpu::TextureUsages::empty() } ).union(
+                                        match storage_mode {
+                                            MTLStorageMode::Managed |
+                                            MTLStorageMode::Private |
+                                            MTLStorageMode::Shared => wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::COPY_SRC,
+                                            MTLStorageMode::Memoryless => wgpu::TextureUsages::empty(),
+                                        }
+                                    )
                             },
                             view_formats: &[],
                         };
