@@ -5578,7 +5578,7 @@ kCFNumberCFIndexType = 14,
 <span class="kw">impl </span>NSScreen {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>screens() -&gt; Vec&lt;NSScreen&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>screens_ns_array = NSArray::from_id_retained(<span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSScreen), screens]);
+            <span class="kw">let </span>screens_ns_array = NSArray::from_id_unretained(<span class="macro">msg_send!</span>[<span class="macro">class!</span>(NSScreen), screens]);
             <span class="kw">let </span><span class="kw-2">mut </span>screens_out = Vec::new();
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..screens_ns_array.count() {
                 <span class="kw">let </span>screen: <span class="kw-2">*mut </span>AnyObject = screens_ns_array.obj_at_index(i);
