@@ -32,6 +32,7 @@ impl WindowsAudioCaptureConfigExt for CaptureConfig {
 
 #[derive(Clone)]
 pub struct WindowsCaptureConfig {
+    pub(crate) borderless: bool,
     pub(crate) dxgi_adapter: Option<IDXGIAdapter>,
     pub(crate) d3d11_device: Option<ID3D11Device>,
     #[cfg(feature = "wgpu")]
@@ -47,6 +48,7 @@ impl Debug for WindowsCaptureConfig {
 impl WindowsCaptureConfig {
     pub fn new() -> Self {
         Self {
+            borderless: false,
             dxgi_adapter: None,
             d3d11_device: None,
             #[cfg(feature = "wgpu")]
@@ -58,6 +60,7 @@ impl WindowsCaptureConfig {
 pub trait WindowsCaptureConfigExt {
     fn with_dxgi_adapter(self, dxgi_adapter: IDXGIAdapter) -> Self;
     fn with_d3d11_device(self, d3d11_device: ID3D11Device) -> Self;
+    fn with_borderless(self, borderless: bool) -> Self;
 }
 
 impl WindowsCaptureConfigExt for CaptureConfig {
@@ -75,6 +78,16 @@ impl WindowsCaptureConfigExt for CaptureConfig {
         Self {
             impl_capture_config: WindowsCaptureConfig {
                 d3d11_device: Some(d3d11_device),
+                ..self.impl_capture_config
+            },
+            ..self
+        }
+    }
+
+    fn with_borderless(self, borderless: bool) -> Self {
+        Self {
+            impl_capture_config: WindowsCaptureConfig {
+                borderless,
                 ..self.impl_capture_config
             },
             ..self
@@ -189,6 +202,10 @@ impl WindowsCaptureStream {
         let should_couninit = unsafe {
             CoInitializeEx(None, COINIT_APARTMENTTHREADED).is_ok()
         };
+
+        if config.impl_capture_config.borderless && !token.borderless {
+            return Err(StreamCreateError::UnauthorizedFeature("Borderless Capture".to_string()));
+        }
         
         let pixel_format = match config.pixel_format {
             CapturePixelFormat::Bgra8888 => DirectXPixelFormat::B8G8R8A8UIntNormalized,
@@ -348,6 +365,7 @@ impl WindowsCaptureStream {
 
         let capture_session = frame_pool.CreateCaptureSession(&graphics_capture_item)
             .map_err(|_| StreamCreateError::Other("Failed to create GraphicsCaptureSession".into()))?;
+        let _ = capture_session.SetIsBorderRequired(!config.impl_capture_config.borderless);
 
         let audio_stream = if let Some(audio_config) = config.capture_audio {
             let handler_config = audio_config.clone();

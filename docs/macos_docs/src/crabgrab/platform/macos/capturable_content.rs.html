@@ -185,7 +185,6 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, fmt::Debug, hash::Hash};
 
 <span class="kw">use </span>futures::channel::oneshot;
@@ -209,7 +208,6 @@
         <span class="kw">let </span>(tx, rx) = oneshot::channel();
         <span class="kw">let </span><span class="kw-2">mut </span>tx = Mutex::new(<span class="prelude-val">Some</span>(tx));
         SCShareableContent::get_shareable_content_with_completion_handler(exclude_desktop, onscreen_only, <span class="kw">move </span>|result| {
-            <span class="macro">println!</span>(<span class="string">"get_shareable_content_with_completion_handler - handler"</span>);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx.lock().take() {
                 <span class="kw">let _ </span>= tx.send(result);
             }

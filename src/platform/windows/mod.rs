@@ -27,6 +27,8 @@ pub(crate) use capture_stream::WindowsCaptureAccessToken as ImplCaptureAccessTok
 pub(crate) use frame::WindowsVideoFrame as ImplVideoFrame;
 pub(crate) use frame::WindowsAudioFrame as ImplAudioFrame;
 
+pub use capture_stream::WindowsCaptureConfigExt;
+
 pub use capturable_content::WindowsCapturableWindowNativeWindowHandle;
 /// Re-exported from the `windows` crate
 pub use capturable_content::HWND;

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["HWND"],"trait":["WindowsCapturableWindowNativeWindowHandle"]};
+window.SIDEBAR_ITEMS = {"struct":["HWND"],"trait":["WindowsCapturableWindowNativeWindowHandle","WindowsCaptureConfigExt"]};

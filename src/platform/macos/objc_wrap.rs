@@ -2507,7 +2507,7 @@ pub struct NSScreen(*mut AnyObject);
 impl NSScreen {
     pub(crate) fn screens() -> Vec<NSScreen> {
         unsafe {
-            let screens_ns_array = NSArray::from_id_retained(msg_send![class!(NSScreen), screens]);
+            let screens_ns_array = NSArray::from_id_unretained(msg_send![class!(NSScreen), screens]);
             let mut screens_out = Vec::new();
             for i in 0..screens_ns_array.count() {
                 let screen: *mut AnyObject = screens_ns_array.obj_at_index(i);
