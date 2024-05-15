@@ -201,6 +201,10 @@ impl WindowsCaptureStream {
         let should_couninit = unsafe {
             CoInitializeEx(None, COINIT_APARTMENTTHREADED).is_ok()
         };
+
+        if config.borderless && !token.borderless {
+            return Err(StreamCreateError::UnauthorizedFeature("Borderless Capture".to_string()));
+        }
         
         let pixel_format = match config.pixel_format {
             CapturePixelFormat::Bgra8888 => DirectXPixelFormat::B8G8R8A8UIntNormalized,
@@ -360,6 +364,7 @@ impl WindowsCaptureStream {
 
         let capture_session = frame_pool.CreateCaptureSession(&graphics_capture_item)
             .map_err(|_| StreamCreateError::Other("Failed to create GraphicsCaptureSession".into()))?;
+        let _ = capture_session.SetIsBorderRequired(!config.impl_capture_config.borderless);
 
         let audio_stream = if let Some(audio_config) = config.capture_audio {
             let handler_config = audio_config.clone();

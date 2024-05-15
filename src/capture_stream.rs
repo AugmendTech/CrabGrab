@@ -54,6 +54,8 @@ pub enum StreamCreateError {
     /// The supplied pixel format is unsupported by the implementation
     UnsupportedPixelFormat,
     //GpuLost,
+    /// Requested features are not authorized
+    UnauthorizedFeature(String),
 }
 
 unsafe impl Send for StreamCreateError {}
@@ -64,7 +66,8 @@ impl Display for StreamCreateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Other(message) => f.write_fmt(format_args!("StreamCreateError::Other(\"{}\")", message)),
-            Self::UnsupportedPixelFormat => f.write_fmt(format_args!("StreamCreateError::UnsupportedPixelFormat"))
+            Self::UnsupportedPixelFormat => f.write_fmt(format_args!("StreamCreateError::UnsupportedPixelFormat")),
+            Self::UnauthorizedFeature(feature) => f.write_fmt(format_args!("StreamCreateError::UnauthorizedFeature({})", feature)),
         }
     }
 }
