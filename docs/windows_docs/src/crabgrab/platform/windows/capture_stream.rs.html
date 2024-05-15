@@ -430,6 +430,24 @@
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
 <span class="kw">use crate</span>::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
@@ -464,6 +482,7 @@
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>WindowsCaptureConfig {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) borderless: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter: <span class="prelude-ty">Option</span>&lt;IDXGIAdapter&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) d3d11_device: <span class="prelude-ty">Option</span>&lt;ID3D11Device&gt;,
     <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
@@ -479,6 +498,7 @@
 <span class="kw">impl </span>WindowsCaptureConfig {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            borderless: <span class="bool-val">false</span>,
             dxgi_adapter: <span class="prelude-val">None</span>,
             d3d11_device: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
@@ -490,6 +510,7 @@
 <span class="kw">pub trait </span>WindowsCaptureConfigExt {
     <span class="kw">fn </span>with_dxgi_adapter(<span class="self">self</span>, dxgi_adapter: IDXGIAdapter) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>with_d3d11_device(<span class="self">self</span>, d3d11_device: ID3D11Device) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>with_borderless(<span class="self">self</span>, borderless: bool) -&gt; <span class="self">Self</span>;
 }
 
 <span class="kw">impl </span>WindowsCaptureConfigExt <span class="kw">for </span>CaptureConfig {
@@ -507,6 +528,16 @@
         <span class="self">Self </span>{
             impl_capture_config: WindowsCaptureConfig {
                 d3d11_device: <span class="prelude-val">Some</span>(d3d11_device),
+                ..<span class="self">self</span>.impl_capture_config
+            },
+            ..<span class="self">self
+        </span>}
+    }
+
+    <span class="kw">fn </span>with_borderless(<span class="self">self</span>, borderless: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            impl_capture_config: WindowsCaptureConfig {
+                borderless,
                 ..<span class="self">self</span>.impl_capture_config
             },
             ..<span class="self">self
@@ -621,6 +652,10 @@
         <span class="kw">let </span>should_couninit = <span class="kw">unsafe </span>{
             CoInitializeEx(<span class="prelude-val">None</span>, COINIT_APARTMENTTHREADED).is_ok()
         };
+
+        <span class="kw">if </span>config.impl_capture_config.borderless &amp;&amp; !token.borderless {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(StreamCreateError::UnauthorizedFeature(<span class="string">"Borderless Capture"</span>.to_string()));
+        }
         
         <span class="kw">let </span>pixel_format = <span class="kw">match </span>config.pixel_format {
             CapturePixelFormat::Bgra8888 =&gt; DirectXPixelFormat::B8G8R8A8UIntNormalized,
@@ -780,6 +815,7 @@
 
         <span class="kw">let </span>capture_session = frame_pool.CreateCaptureSession(<span class="kw-2">&amp;</span>graphics_capture_item)
             .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to create GraphicsCaptureSession"</span>.into()))<span class="question-mark">?</span>;
+        <span class="kw">let _ </span>= capture_session.SetIsBorderRequired(!config.impl_capture_config.borderless);
 
         <span class="kw">let </span>audio_stream = <span class="kw">if let </span><span class="prelude-val">Some</span>(audio_config) = config.capture_audio {
             <span class="kw">let </span>handler_config = audio_config.clone();

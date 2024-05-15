@@ -32,6 +32,7 @@ impl WindowsAudioCaptureConfigExt for CaptureConfig {
 
 #[derive(Clone)]
 pub struct WindowsCaptureConfig {
+    pub(crate) borderless: bool,
     pub(crate) dxgi_adapter: Option<IDXGIAdapter>,
     pub(crate) d3d11_device: Option<ID3D11Device>,
     #[cfg(feature = "wgpu")]
@@ -202,7 +203,7 @@ impl WindowsCaptureStream {
             CoInitializeEx(None, COINIT_APARTMENTTHREADED).is_ok()
         };
 
-        if config.borderless && !token.borderless {
+        if config.impl_capture_config.borderless && !token.borderless {
             return Err(StreamCreateError::UnauthorizedFeature("Borderless Capture".to_string()));
         }
         

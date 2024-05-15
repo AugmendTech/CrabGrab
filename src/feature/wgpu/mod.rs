@@ -7,6 +7,7 @@ use crate::prelude::{CaptureConfig, CaptureStream, VideoFrame};
 use crate::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVideoFrame};
 #[cfg(target_os = "macos")]
 use crate::feature::metal::*;
+#[cfg(target_os = "macos")]
 use metal::MTLStorageMode;
 #[cfg(target_os = "macos")]
 use metal::MTLTextureUsage;
