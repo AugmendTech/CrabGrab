@@ -339,6 +339,9 @@
 <a href="#337" id="337">337</a>
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::{error::Error, fmt::Display};
 
@@ -395,7 +398,9 @@
     <span class="doccomment">/// The supplied pixel format is unsupported by the implementation
     </span>UnsupportedPixelFormat,
     <span class="comment">//GpuLost,
-</span>}
+    </span><span class="doccomment">/// Requested features are not authorized
+    </span>UnauthorizedFeature(String),
+}
 
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>StreamCreateError {}
 <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>StreamCreateError {}
@@ -405,7 +410,8 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Other(message) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"StreamCreateError::Other(\"{}\")"</span>, message)),
-            <span class="self">Self</span>::UnsupportedPixelFormat =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"StreamCreateError::UnsupportedPixelFormat"</span>))
+            <span class="self">Self</span>::UnsupportedPixelFormat =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"StreamCreateError::UnsupportedPixelFormat"</span>)),
+            <span class="self">Self</span>::UnauthorizedFeature(feature) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"StreamCreateError::UnauthorizedFeature({})"</span>, feature)),
         }
     }
 }
