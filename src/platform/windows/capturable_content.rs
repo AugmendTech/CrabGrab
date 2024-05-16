@@ -228,7 +228,7 @@ pub trait WindowsCapturableWindowNativeWindowHandle {
     /// Get the HWND for this capturable window.
     fn get_native_window_handle(&self) -> HWND;
     /// Get a capturable window from an HWND
-    fn from_native_window_handle(&self, window_handle: HWND) -> Result<CapturableWindow, CapturableContentError>;
+    fn from_native_window_handle(window_handle: HWND) -> Result<CapturableWindow, CapturableContentError>;
 }
 
 impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
