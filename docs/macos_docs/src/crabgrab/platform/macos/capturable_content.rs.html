@@ -185,13 +185,26 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, fmt::Debug, hash::Hash};
 
 <span class="kw">use </span>futures::channel::oneshot;
 <span class="kw">use </span>libc::getpid;
 <span class="kw">use </span>parking_lot::Mutex;
 
-<span class="kw">use crate</span>::{capturable_content::{CapturableContentError, CapturableContentFilter}, prelude::CapturableWindow, util::{Point, Rect, Size}};
+<span class="kw">use crate</span>::{capturable_content::{CapturableContentError, CapturableContentFilter}, prelude::{CapturableContent, CapturableWindow}, util::{Point, Rect, Size}};
 
 <span class="kw">use </span><span class="kw">super</span>::objc_wrap::{CGMainDisplayID, SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
 
@@ -358,16 +371,29 @@
 }
 
 <span class="doccomment">/// A capturable window on MacOS which allows getting the native window ID
+/// and finding a capturable window from a native window ID
 </span><span class="kw">pub trait </span>MacosCapturableWindowNativeWindowId {
     <span class="doccomment">/// Get the native window id for this capturable window.
     /// This is the `CGWindowID` for this window.
     </span><span class="kw">fn </span>get_native_window_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
+    <span class="kw">fn </span>from_native_window_id(window_id: u32) -&gt; <span class="kw">impl </span>std::future::Future&lt;Output = <span class="prelude-ty">Result</span>&lt;CapturableWindow, CapturableContentError&gt;&gt;;
 }
 
 <span class="kw">impl </span>MacosCapturableWindowNativeWindowId <span class="kw">for </span>CapturableWindow {
     <span class="kw">fn </span>get_native_window_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
        <span class="self">self</span>.impl_capturable_window.window.id().<span class="number">0
     </span>}
-}
 
+    <span class="kw">fn </span>from_native_window_id(window_id: u32) -&gt; <span class="kw">impl </span>std::future::Future&lt;Output = <span class="prelude-ty">Result</span>&lt;CapturableWindow, CapturableContentError&gt;&gt; {
+        <span class="kw">async move </span>{
+            <span class="kw">let </span>content = CapturableContent::new(CapturableContentFilter::ALL_WINDOWS).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">for </span>window <span class="kw">in </span>content.windows().into_iter() {
+                <span class="kw">if </span>window.get_native_window_id() == window_id {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(window.clone());
+                }
+            }
+            <span class="prelude-val">Err</span>(CapturableContentError::Other(<span class="macro">format!</span>(<span class="string">"No capturable window with id: {} found"</span>, window_id)))
+        }
+    }
+}
 </code></pre></div></section></main></body></html>

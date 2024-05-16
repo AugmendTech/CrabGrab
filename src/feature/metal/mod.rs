@@ -121,6 +121,7 @@ impl MetalVideoFrameExt for VideoFrame {
                     texture_descriptor.set_sample_count(1);
                     texture_descriptor.set_mipmap_level_count(1);
                     texture_descriptor.set_storage_mode(metal::MTLStorageMode::Shared);
+                    texture_descriptor.set_cpu_cache_mode(metal::MTLCPUCacheMode::DefaultCache);
                     let texture_ptr: *mut AnyObject = msg_send![device_ref as *mut AnyObject, newTextureWithDescriptor: texture_descriptor.as_ptr() as *mut AnyObject, iosurface: IOSurfacePtrEncoded(iosurface.0), plane: 0usize];
                     if texture_ptr.is_null() {
                         Err(MacosVideoFrameError::Other("Failed to create metal texture".to_string()))
@@ -130,7 +131,7 @@ impl MetalVideoFrameExt for VideoFrame {
                 }
             },
             CVPixelFormat::V420 | CVPixelFormat::F420 => {
-                let (plane, texture_index) = match plane {
+                let (plane, pixel_format) = match plane {
                     MetalVideoFramePlaneTexture::Luminance => (0, metal::MTLPixelFormat::R8Uint),
                     MetalVideoFramePlaneTexture::Chroma => (1, metal::MTLPixelFormat::RG8Uint),
                     _ => return Err(MacosVideoFrameError::InvalidVideoPlaneTexture),
@@ -139,12 +140,13 @@ impl MetalVideoFrameExt for VideoFrame {
                     let device_ref = metal_device.as_ref().unwrap().as_ptr();
                     let texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
-                    texture_descriptor.set_pixel_format(texture_index);
+                    texture_descriptor.set_pixel_format(pixel_format);
                     texture_descriptor.set_width(iosurface.get_width() as u64);
                     texture_descriptor.set_height(iosurface.get_height_of_plane(plane) as u64);
                     texture_descriptor.set_sample_count(1);
                     texture_descriptor.set_mipmap_level_count(1);
                     texture_descriptor.set_storage_mode(metal::MTLStorageMode::Shared);
+                    texture_descriptor.set_cpu_cache_mode(metal::MTLCPUCacheMode::DefaultCache);
                     let texture_ptr: *mut AnyObject = msg_send![device_ref as *mut AnyObject, newTextureWithDescriptor: texture_descriptor.as_ptr() as *mut AnyObject, iosurface: iosurface.0, plane: plane];
                     if texture_ptr.is_null() {
                         Err(MacosVideoFrameError::Other("Failed to create metal texture".to_string()))

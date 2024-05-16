@@ -4,7 +4,7 @@ use futures::channel::oneshot;
 use libc::getpid;
 use parking_lot::Mutex;
 
-use crate::{capturable_content::{CapturableContentError, CapturableContentFilter}, prelude::CapturableWindow, util::{Point, Rect, Size}};
+use crate::{capturable_content::{CapturableContentError, CapturableContentFilter}, prelude::{CapturableContent, CapturableWindow}, util::{Point, Rect, Size}};
 
 use super::objc_wrap::{CGMainDisplayID, SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
 
@@ -171,15 +171,28 @@ impl MacosCapturableApplication {
 }
 
 /// A capturable window on MacOS which allows getting the native window ID
+/// and finding a capturable window from a native window ID
 pub trait MacosCapturableWindowNativeWindowId {
     /// Get the native window id for this capturable window.
     /// This is the `CGWindowID` for this window.
     fn get_native_window_id(&self) -> u32;
+    fn from_native_window_id(window_id: u32) -> impl std::future::Future<Output = Result<CapturableWindow, CapturableContentError>>;
 }
 
 impl MacosCapturableWindowNativeWindowId for CapturableWindow {
     fn get_native_window_id(&self) -> u32 {
        self.impl_capturable_window.window.id().0
     }
-}
 
+    fn from_native_window_id(window_id: u32) -> impl std::future::Future<Output = Result<CapturableWindow, CapturableContentError>> {
+        async move {
+            let content = CapturableContent::new(CapturableContentFilter::ALL_WINDOWS).await?;
+            for window in content.windows().into_iter() {
+                if window.get_native_window_id() == window_id {
+                    return Ok(window.clone());
+                }
+            }
+            Err(CapturableContentError::Other(format!("No capturable window with id: {} found", window_id)))
+        }
+    }
+}
