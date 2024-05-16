@@ -171,6 +171,8 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg(target_os = <span class="string">"macos"</span>)]
 #![cfg(feature = <span class="string">"metal"</span>)]
 
@@ -294,6 +296,7 @@
                     texture_descriptor.set_sample_count(<span class="number">1</span>);
                     texture_descriptor.set_mipmap_level_count(<span class="number">1</span>);
                     texture_descriptor.set_storage_mode(metal::MTLStorageMode::Shared);
+                    texture_descriptor.set_cpu_cache_mode(metal::MTLCPUCacheMode::DefaultCache);
                     <span class="kw">let </span>texture_ptr: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[device_ref <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject, newTextureWithDescriptor: texture_descriptor.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject, iosurface: IOSurfacePtrEncoded(iosurface.<span class="number">0</span>), plane: <span class="number">0usize</span>];
                     <span class="kw">if </span>texture_ptr.is_null() {
                         <span class="prelude-val">Err</span>(MacosVideoFrameError::Other(<span class="string">"Failed to create metal texture"</span>.to_string()))
@@ -303,7 +306,7 @@
                 }
             },
             CVPixelFormat::V420 | CVPixelFormat::F420 =&gt; {
-                <span class="kw">let </span>(plane, texture_index) = <span class="kw">match </span>plane {
+                <span class="kw">let </span>(plane, pixel_format) = <span class="kw">match </span>plane {
                     MetalVideoFramePlaneTexture::Luminance =&gt; (<span class="number">0</span>, metal::MTLPixelFormat::R8Uint),
                     MetalVideoFramePlaneTexture::Chroma =&gt; (<span class="number">1</span>, metal::MTLPixelFormat::RG8Uint),
                     <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MacosVideoFrameError::InvalidVideoPlaneTexture),
@@ -312,12 +315,13 @@
                     <span class="kw">let </span>device_ref = metal_device.as_ref().unwrap().as_ptr();
                     <span class="kw">let </span>texture_descriptor = metal::TextureDescriptor::new();
                     texture_descriptor.set_texture_type(metal::MTLTextureType::D2);
-                    texture_descriptor.set_pixel_format(texture_index);
+                    texture_descriptor.set_pixel_format(pixel_format);
                     texture_descriptor.set_width(iosurface.get_width() <span class="kw">as </span>u64);
                     texture_descriptor.set_height(iosurface.get_height_of_plane(plane) <span class="kw">as </span>u64);
                     texture_descriptor.set_sample_count(<span class="number">1</span>);
                     texture_descriptor.set_mipmap_level_count(<span class="number">1</span>);
                     texture_descriptor.set_storage_mode(metal::MTLStorageMode::Shared);
+                    texture_descriptor.set_cpu_cache_mode(metal::MTLCPUCacheMode::DefaultCache);
                     <span class="kw">let </span>texture_ptr: <span class="kw-2">*mut </span>AnyObject = <span class="macro">msg_send!</span>[device_ref <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject, newTextureWithDescriptor: texture_descriptor.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject, iosurface: iosurface.<span class="number">0</span>, plane: plane];
                     <span class="kw">if </span>texture_ptr.is_null() {
                         <span class="prelude-val">Err</span>(MacosVideoFrameError::Other(<span class="string">"Failed to create metal texture"</span>.to_string()))

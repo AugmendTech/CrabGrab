@@ -223,13 +223,31 @@ impl WindowsCapturableContent {
 }
 
 /// A capturable window on Windows which provides a native window handle. This is the `HWND` for the window.
+/// Additionally, a capturable window which can be created from a native window handle. (`HWND`)
 pub trait WindowsCapturableWindowNativeWindowHandle {
-    // Get the HWND for this capturable window.
+    /// Get the HWND for this capturable window.
     fn get_native_window_handle(&self) -> HWND;
+    /// Get a capturable window from an HWND
+    fn from_native_window_handle(&self, window_handle: HWND) -> Result<Self, CapturableContentError>;
 }
 
 impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
     fn get_native_window_handle(&self) -> HWND {
         self.impl_capturable_window.0
+    }
+
+    fn from_native_window_handle(&self, window_handle: HWND) -> Result<Self, CapturableContentError> {
+        if !IsWindow(window_handle).as_bool() {
+            return Err(CapturableContentError(format!("HWND {:016X} is not a window", hwnd.0)));
+        }
+        let mut window_display_affinity = 0;
+        if GetWindowDisplayAffinity(window_handle, &mut window_display_affinity as *mut _).is_ok() {
+            if (window_display_affinity & WDA_EXCLUDEFROMCAPTURE.0) != 0 {
+                return Err(CapturableContentError(format!("HWND {:016X} is not capturable a window", hwnd.0)));
+            }
+        }
+        return Ok(CapturableWindow {
+            impl_capturable_window: WindowsCapturableWindow(window_handle)
+        })
     }
 }
