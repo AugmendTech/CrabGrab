@@ -483,7 +483,7 @@
     <span class="doccomment">/// Get the HWND for this capturable window.
     </span><span class="kw">fn </span>get_native_window_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HWND;
     <span class="doccomment">/// Get a capturable window from an HWND
-    </span><span class="kw">fn </span>from_native_window_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, window_handle: HWND) -&gt; <span class="prelude-ty">Result</span>&lt;CapturableWindow, CapturableContentError&gt;;
+    </span><span class="kw">fn </span>from_native_window_handle(window_handle: HWND) -&gt; <span class="prelude-ty">Result</span>&lt;CapturableWindow, CapturableContentError&gt;;
 }
 
 <span class="kw">impl </span>WindowsCapturableWindowNativeWindowHandle <span class="kw">for </span>CapturableWindow {
@@ -491,7 +491,7 @@
         <span class="self">self</span>.impl_capturable_window.<span class="number">0
     </span>}
 
-    <span class="kw">fn </span>from_native_window_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, window_handle: HWND) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CapturableContentError&gt; {
+    <span class="kw">fn </span>from_native_window_handle(window_handle: HWND) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CapturableContentError&gt; {
         <span class="kw">if </span>!<span class="kw">unsafe </span>{ IsWindow(window_handle).as_bool() } {
             <span class="kw">return </span><span class="prelude-val">Err</span>(CapturableContentError::Other(<span class="macro">format!</span>(<span class="string">"HWND {:016X} is not a window"</span>, window_handle.<span class="number">0</span>)));
         }
