@@ -236,7 +236,7 @@ impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
         self.impl_capturable_window.0
     }
 
-    fn from_native_window_handle(&self, window_handle: HWND) -> Result<Self, CapturableContentError> {
+    fn from_native_window_handle(window_handle: HWND) -> Result<Self, CapturableContentError> {
         if !unsafe { IsWindow(window_handle).as_bool() } {
             return Err(CapturableContentError::Other(format!("HWND {:016X} is not a window", window_handle.0)));
         }
