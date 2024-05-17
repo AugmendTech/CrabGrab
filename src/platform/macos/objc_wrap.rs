@@ -13,7 +13,7 @@
 #[link(name = "AVFoundation", kind = "framework")]
 extern "C" {}
 
-use std::{cell::RefCell, ffi::CString, ops::{Add, Mul, Sub}, ptr::{addr_of_mut, null, null_mut, NonNull}, sync::Arc, time::{Duration, Instant}};
+use std::{cell::RefCell, collections::HashMap, ffi::CString, ops::{Add, Mul, Sub}, ptr::{addr_of_mut, null, null_mut, NonNull}, sync::Arc, time::{Duration, Instant}};
 
 use block2::{ffi::Class, Block, RcBlock, StackBlock};
 use libc::{c_void, strlen};
@@ -113,8 +113,10 @@ extern "C" {
     fn CVBufferRetain(buffer: CVPixelBufferRef) -> CVPixelBufferRef;
     fn CVBufferRelease(buffer: CVPixelBufferRef) -> CVPixelBufferRef;
 
+    fn CFArrayCreateMutable(allocator: CFAllocatorRef, capacity: isize, callbacks: *const CFArrayCallBacks) -> CFArrayRef;
     fn CFArrayGetCount(array: CFArrayRef) -> i32;
     fn CFArrayGetValueAtIndex(array: CFArrayRef, index: i32) -> CFTypeRef;
+    fn CFArrayAppendValue(array: CFArrayRef, value: *const c_void);
 
     fn CFStringCreateWithBytes(allocator: CFTypeRef, bytes: *const u8, byte_count: isize, encoding: u32, contains_byte_order_marker: bool) -> CFStringRef;
 
@@ -136,6 +138,10 @@ extern "C" {
 
     pub(crate) fn CGWindowListCreateImage(screen_bounds: CGRect, options: u32, window_id: u32, image_options: u32) -> CGImageRef;
 
+    static kCGWindowLayer: CFStringRef;
+
+    fn CGWindowListCreateDescriptionFromArray(window_array: CFArrayRef) -> CFArrayRef;
+
     fn CGImageRetain(image: CGImageRef);
     fn CGImageRelease(image: CGImageRef);
     fn CGImageGetWidth(image: CGImageRef) -> usize;
@@ -150,6 +156,8 @@ extern "C" {
     fn CGDataProviderRetain(data_provider: CGDataProviderRef);
     fn CGDataProviderRelease(data_provider: CGDataProviderRef);
     fn CGDataProviderCopyData(data_provider: CGDataProviderRef) -> CFDataRef;
+
+    fn CGWindowLevelForKey(key: i32) -> i32;
 
     pub(crate) fn IOSurfaceIncrementUseCount(r: IOSurfaceRef);
     pub(crate) fn IOSurfaceDecrementUseCount(r: IOSurfaceRef);
@@ -1794,10 +1802,49 @@ impl AVAudioPCMBuffer {
     }
 }
 
+/*
+typedef const void *	(*CFArrayRetainCallBack)(CFAllocatorRef allocator, const void *value);
+typedef void		(*CFArrayReleaseCallBack)(CFAllocatorRef allocator, const void *value);
+typedef CFStringRef	(*CFArrayCopyDescriptionCallBack)(const void *value);
+typedef Boolean		(*CFArrayEqualCallBack)(const void *value1, const void *value2);
+typedef struct {
+    CFIndex				version;
+    CFArrayRetainCallBack		retain;
+    CFArrayReleaseCallBack		release;
+    CFArrayCopyDescriptionCallBack	copyDescription;
+    CFArrayEqualCallBack		equal;
+} CFArrayCallBacks;
+*/
+#[repr(C)]
+struct CFArrayCallBacks {
+    version: isize,
+    retain: *const extern "C" fn(allocator: CFAllocatorRef, value: *const c_void) -> *const c_void,
+    release: *const extern "C" fn(allocator: CFAllocatorRef, value: *const c_void),
+    copy_description: *const extern "C" fn(value: *const c_void) -> CFStringRef,
+    equal: *const extern "C" fn(value_1: *const c_void, value_2: *const c_void) -> bool,
+}
+
 #[repr(C)]
 struct CFArray(CFArrayRef);
 
 impl CFArray {
+    pub(crate) fn new_mutable(capacity: Option<isize>, callbacks: Option<&CFArrayCallBacks>) -> Result<Self, ()> {
+        unsafe {
+            let new_array = CFArrayCreateMutable(kCFAllocatorDefault, capacity.unwrap_or(0), callbacks.map(|callbacks| callbacks as *const _).unwrap_or(std::ptr::null()));
+            if new_array.is_null() {
+                Err(())
+            } else {
+                Ok(Self::from_ref_retained(new_array))
+            }
+        }
+    }
+
+    pub(crate) fn append_value(&mut self, value: *const c_void) {
+        unsafe {
+            CFArrayAppendValue(self.0, value);
+        }
+    }
+
     pub(crate) fn from_ref_unretained(r: CFStringRef) -> Self {
         unsafe { CFRetain(r); }
         Self(r)
@@ -3020,7 +3067,6 @@ pub struct SCScreenshotManager();
 unsafe impl Send for SCScreenshotManager {}
 
 impl SCScreenshotManager {
-
     pub fn capture_image_with_filter_and_configuration(filter: &SCContentFilter, config: &SCStreamConfiguration, completion_handler: impl FnMut(Result<CGImage, NSError>) + Send + 'static) {
         let completion_handler = Mutex::new(completion_handler);
         let completion_block = RcBlock::new(move |image: CGImageRef, error: *mut AnyObject| {
@@ -3067,3 +3113,118 @@ impl SCScreenshotManager {
     }
 }
 
+pub(crate) struct WindowDescription {
+    pub window_layer: i32,
+}
+
+pub(crate) fn get_window_description(window: CGWindowID) -> Result<WindowDescription, ()> {
+    let mut window_array = CFArray::new_mutable(None, None)?;
+    window_array.append_value(window.0 as isize as *const c_void);
+    unsafe {
+        let description_array = CGWindowListCreateDescriptionFromArray(window_array.0);
+        if description_array.is_null() {
+            return Err(())
+        }
+        let descriptions = CFArray::from_ref_retained(description_array);
+        if descriptions.get_count() == 0 {
+            return Err(());
+        }
+        let description_dictionary = descriptions.get_value_at_index(0);
+        if description_dictionary.is_null() {
+            return Err(());
+        }
+        let description = CFDictionary::from_ref_unretained(description_dictionary);
+        let window_layer_nsnumber = description.get_value(kCGWindowLayer);
+        if window_layer_nsnumber.is_null() {
+            return Err(());
+        }
+        let window_layer = NSNumber::from_id_unretained(window_layer_nsnumber as *mut AnyObject);
+        
+        Ok(WindowDescription {
+            window_layer: window_layer.as_i32(),
+        })
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct WindowLevels {
+    pub base                : i32,
+    pub minimum             : i32,
+    pub desktop             : i32,
+    pub desktop_icon        : i32,
+    pub backstop            : i32,
+    pub normal              : i32,
+    pub floating            : i32,
+    pub torn_off_menu       : i32,
+    pub modal_panel         : i32,
+    pub utility             : i32,
+    pub dock                : i32,
+    pub main_menu           : i32,
+    pub status              : i32,
+    pub pop_up_menu         : i32,
+    pub overlay             : i32,
+    pub help                : i32,
+    pub dragging            : i32,
+    pub screen_saver        : i32,
+    pub assistive_tech_high : i32,
+    pub cursor              : i32,
+    pub maximum             : i32,
+}
+
+const kCGBaseWindowLevelKey              : i32 =  0;
+const kCGMinimumWindowLevelKey           : i32 =  1;
+const kCGDesktopWindowLevelKey           : i32 =  2;
+const kCGBackstopMenuLevelKey            : i32 =  3;
+const kCGNormalWindowLevelKey            : i32 =  4;
+const kCGFloatingWindowLevelKey          : i32 =  5;
+const kCGTornOffMenuWindowLevelKey       : i32 =  6;
+const kCGDockWindowLevelKey              : i32 =  7;
+const kCGMainMenuWindowLevelKey          : i32 =  8;
+const kCGStatusWindowLevelKey            : i32 =  9;
+const kCGModalPanelWindowLevelKey        : i32 = 10;
+const kCGPopUpMenuWindowLevelKey         : i32 = 11;
+const kCGDraggingWindowLevelKey          : i32 = 12;
+const kCGScreenSaverWindowLevelKey       : i32 = 13;
+const kCGMaximumWindowLevelKey           : i32 = 14;
+const kCGOverlayWindowLevelKey           : i32 = 15;
+const kCGHelpWindowLevelKey              : i32 = 16;
+const kCGUtilityWindowLevelKey           : i32 = 17;
+const kCGDesktopIconWindowLevelKey       : i32 = 18;
+const kCGCursorWindowLevelKey            : i32 = 19;
+const kCGAssistiveTechHighWindowLevelKey : i32 = 20;
+
+fn get_window_level_for_key(key: i32) -> i32 {
+    unsafe { CGWindowLevelForKey(key) }
+}
+
+lazy_static! {
+    static ref WINDOW_LEVELS: WindowLevels = {
+        WindowLevels {
+            base                : get_window_level_for_key(kCGBaseWindowLevelKey),
+            minimum             : get_window_level_for_key(kCGMinimumWindowLevelKey),
+            desktop             : get_window_level_for_key(kCGDesktopWindowLevelKey),
+            desktop_icon        : get_window_level_for_key(kCGDesktopIconWindowLevelKey),
+            backstop            : get_window_level_for_key(kCGBackstopMenuLevelKey),
+            normal              : get_window_level_for_key(kCGNormalWindowLevelKey),
+            floating            : get_window_level_for_key(kCGFloatingWindowLevelKey),
+            torn_off_menu       : get_window_level_for_key(kCGTornOffMenuWindowLevelKey),
+            dock                : get_window_level_for_key(kCGDockWindowLevelKey),
+            main_menu           : get_window_level_for_key(kCGMainMenuWindowLevelKey),
+            status              : get_window_level_for_key(kCGStatusWindowLevelKey),
+            modal_panel         : get_window_level_for_key(kCGModalPanelWindowLevelKey),
+            pop_up_menu         : get_window_level_for_key(kCGPopUpMenuWindowLevelKey),
+            dragging            : get_window_level_for_key(kCGDraggingWindowLevelKey),
+            screen_saver        : get_window_level_for_key(kCGScreenSaverWindowLevelKey),
+            maximum             : get_window_level_for_key(kCGMaximumWindowLevelKey),
+            overlay             : get_window_level_for_key(kCGOverlayWindowLevelKey),
+            help                : get_window_level_for_key(kCGHelpWindowLevelKey),
+            utility             : get_window_level_for_key(kCGUtilityWindowLevelKey),
+            cursor              : get_window_level_for_key(kCGCursorWindowLevelKey),
+            assistive_tech_high : get_window_level_for_key(kCGAssistiveTechHighWindowLevelKey),
+        }
+    };
+}
+
+pub(crate) fn get_window_levels() -> &'static WindowLevels {
+    &*WINDOW_LEVELS
+}

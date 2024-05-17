@@ -251,3 +251,16 @@ impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
         })
     }
 }
+
+pub(crate) struct WindowsCapturableContentFilter;
+
+impl Default for WindowsCapturableContentFilter {
+    fn default() -> Self {
+        Self
+    }
+}
+
+impl WindowsCapturableContentFilter {
+    pub(crate) const DEFAULT: Self = Self;
+    pub(crate) const NORMAL_WINDOWS: Self = Self;
+}

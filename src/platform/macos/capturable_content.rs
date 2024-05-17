@@ -1,4 +1,4 @@
-use std::{cell::Cell, fmt::Debug, hash::Hash};
+use std::{cell::Cell, fmt::Debug, hash::Hash, sync::Arc};
 
 use futures::channel::oneshot;
 use libc::getpid;
@@ -6,7 +6,7 @@ use parking_lot::Mutex;
 
 use crate::{capturable_content::{CapturableContentError, CapturableContentFilter}, prelude::{CapturableContent, CapturableWindow}, util::{Point, Rect, Size}};
 
-use super::objc_wrap::{CGMainDisplayID, SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
+use super::objc_wrap::{get_window_description, get_window_levels, CGMainDisplayID, CGWindowID, SCDisplay, SCRunningApplication, SCShareableContent, SCWindow};
 
 pub struct MacosCapturableContent {
     pub windows: Vec<SCWindow>,
@@ -28,8 +28,14 @@ impl MacosCapturableContent {
 
         match rx.await {
             Ok(Ok(content)) => {
-                let windows = content.windows();
-                let displays = content.displays();
+                let windows = content.windows()
+                    .into_iter()
+                    .filter(|window| filter.impl_capturable_content_filter.filter_scwindow(window))
+                    .collect();
+                let displays = content.displays()
+                    .into_iter()
+                    .filter(|display| filter.impl_capturable_content_filter.filter_scdisplay(display))
+                    .collect();
                 Ok(Self {
                     windows,
                     displays,
@@ -170,29 +176,216 @@ impl MacosCapturableApplication {
     }
 }
 
-/// A capturable window on MacOS which allows getting the native window ID
-/// and finding a capturable window from a native window ID
-pub trait MacosCapturableWindowNativeWindowId {
-    /// Get the native window id for this capturable window.
-    /// This is the `CGWindowID` for this window.
-    fn get_native_window_id(&self) -> u32;
-    fn from_native_window_id(window_id: u32) -> impl std::future::Future<Output = Result<CapturableWindow, CapturableContentError>>;
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+/// Represents the "window level" of a native Mac OS window. Windows within the same level are ordered above or below levels that are above below or above this level respectively.
+pub enum MacosWindowLevel {
+    BelowDesktop      =  0,
+    Desktop           =  1,
+    DesktopIcon       =  2,
+    Backstop          =  3,
+    Normal            =  4,
+    Floating          =  5,
+    TornOffMenu       =  6,
+    Dock              =  7,
+    MainMenu          =  8,
+    Status            =  9,
+    ModalPanel        = 10,
+    PopupMenu         = 11,
+    Dragging          = 12,
+    ScreenSaver       = 13,
+    Overlay           = 14,
+    Help              = 15,
+    Utility           = 16,
+    Cursor            = 17,
+    AssistiveTechHigh = 18,
 }
 
-impl MacosCapturableWindowNativeWindowId for CapturableWindow {
-    fn get_native_window_id(&self) -> u32 {
-       self.impl_capturable_window.window.id().0
+/// A capturable window with mac-os specific features
+pub trait MacosCapturableWindowExt {
+    /// Get the window layer of this window
+    fn get_window_layer(&self) -> Result<i32, CapturableContentError>;
+
+    /// Get the window level of this window
+    fn get_window_level(&self) -> Result<MacosWindowLevel, CapturableContentError>;
+
+    /// Get the native window id for this capturable window.
+    /// This is the `CGWindowID` for this window.
+    fn get_window_id(&self) -> u32;
+
+    /// Try and convert the given CGWindowID to a capturable window.
+    fn from_window_id(window_id: u32) -> impl std::future::Future<Output = Result<CapturableWindow, CapturableContentError>>;
+}
+
+fn get_window_layer(window_id: u32) -> Result<i32, ()> {
+    let window_description = get_window_description(CGWindowID(window_id))?;
+    Ok(window_description.window_layer)
+}
+
+fn get_window_level(window_id: u32) -> Result<MacosWindowLevel, ()> {
+    let window_levels = get_window_levels();
+    let level = get_window_layer(window_id)?;
+    Ok(
+        if (level < window_levels.desktop) {
+            MacosWindowLevel::BelowDesktop
+        } else if (level < window_levels.desktop_icon) {
+            MacosWindowLevel::Desktop
+        } else if (level < window_levels.backstop) {
+            MacosWindowLevel::DesktopIcon
+        } else if (level < window_levels.normal) {
+            MacosWindowLevel::Backstop
+        } else if (level < window_levels.floating) {
+            MacosWindowLevel::Normal
+        } else if (level < window_levels.torn_off_menu) {
+            MacosWindowLevel::Floating
+        } else if (level < window_levels.modal_panel) {
+            MacosWindowLevel::TornOffMenu
+        } else if (level < window_levels.utility) {
+            MacosWindowLevel::ModalPanel
+        } else if (level < window_levels.dock) {
+            MacosWindowLevel::Utility
+        } else if (level < window_levels.main_menu) {
+            MacosWindowLevel::Dock
+        } else if (level < window_levels.status) {
+            MacosWindowLevel::MainMenu
+        } else if (level < window_levels.pop_up_menu) {
+            MacosWindowLevel::Status
+        } else if (level < window_levels.overlay) {
+            MacosWindowLevel::PopupMenu
+        } else if (level < window_levels.help) {
+            MacosWindowLevel::Overlay
+        } else if (level < window_levels.dragging) {
+            MacosWindowLevel::Help
+        } else if (level < window_levels.screen_saver) {
+            MacosWindowLevel::Dragging
+        } else if (level < window_levels.assistive_tech_high) {
+            MacosWindowLevel::ScreenSaver
+        } else if (level < window_levels.cursor) {
+            MacosWindowLevel::AssistiveTechHigh
+        } else {
+            MacosWindowLevel::Cursor
+        }
+    )
+}
+
+impl MacosCapturableWindowExt for CapturableWindow {
+    fn get_window_layer(&self) -> Result<i32, CapturableContentError> {
+        get_window_layer(self.impl_capturable_window.window.id().0)
+            .map_err(|_| CapturableContentError::Other(("Failed to retreive window layer".to_string())))
     }
 
-    fn from_native_window_id(window_id: u32) -> impl std::future::Future<Output = Result<CapturableWindow, CapturableContentError>> {
-        async move {
-            let content = CapturableContent::new(CapturableContentFilter::ALL_WINDOWS).await?;
-            for window in content.windows().into_iter() {
-                if window.get_native_window_id() == window_id {
-                    return Ok(window.clone());
+    fn get_window_level(&self) -> Result<MacosWindowLevel, CapturableContentError> {
+        get_window_level(self.impl_capturable_window.window.id().0)
+            .map_err(|_| CapturableContentError::Other(("Failed to retreive window level".to_string())))
+    }
+
+    fn get_window_id(&self) -> u32 {
+        self.impl_capturable_window.window.id().0
+     }
+ 
+     fn from_window_id(window_id: u32) -> impl std::future::Future<Output = Result<CapturableWindow, CapturableContentError>> {
+         async move {
+             let content = CapturableContent::new(CapturableContentFilter::ALL_WINDOWS).await?;
+             for window in content.windows().into_iter() {
+                 if window.get_window_id() == window_id {
+                     return Ok(window.clone());
+                 }
+             }
+             Err(CapturableContentError::Other(format!("No capturable window with id: {} found", window_id)))
+         }
+     }
+}
+
+#[derive(Clone)]
+pub(crate) struct MacosCapturableContentFilter {
+    pub window_level_range: (Option<MacosWindowLevel>, Option<MacosWindowLevel>),
+    pub excluded_bundle_ids: Option<Arc<[String]>>,
+}
+
+impl Default for MacosCapturableContentFilter {
+    fn default() -> Self {
+        Self {
+            window_level_range: (None, None),
+            excluded_bundle_ids: None,
+        }
+    }
+}
+
+impl MacosCapturableContentFilter {
+    fn filter_scwindow(&self, window: &SCWindow) -> bool {
+        if self.window_level_range == (None, None) {
+            true
+        } else {
+            if let Ok(level) = get_window_level(window.id().0) {
+                match &self.window_level_range {
+                    (Some(min), Some(max)) => (level >= *min) && (level <= *max),
+                    (Some(min), None) => level >= *min,
+                    (None, Some(max)) => level <= *max,
+                    (None, None) => unreachable!(),
                 }
+            } else {
+                false
             }
-            Err(CapturableContentError::Other(format!("No capturable window with id: {} found", window_id)))
+        }
+    }
+
+    fn filter_scdisplay(&self, display: &SCDisplay) -> bool {
+        true
+    }
+
+    pub const DEFAULT: Self = MacosCapturableContentFilter {
+        window_level_range: (None, None),
+        excluded_bundle_ids: None,
+    };
+
+    pub const NORMAL_WINDOWS: Self = MacosCapturableContentFilter {
+        window_level_range: (Some(MacosWindowLevel::Normal), Some(MacosWindowLevel::TornOffMenu)),
+        excluded_bundle_ids: None,
+    };
+}
+
+/// A capturable content filter with Mac OS specific options
+pub trait MacosCapturableContentFilterExt: Sized {
+    /// Set the range of "window levels" to filter to (inclusive)
+    fn with_window_level_range(self, min: Option<MacosWindowLevel>, max: Option<MacosWindowLevel>) -> Result<Self, CapturableContentError>;
+    /// Exclude windows who's applications have the provided bundle ids
+    fn with_exclude_bundle_ids(self, bundle_id: &[&str]) -> Self;
+}
+
+impl MacosCapturableContentFilterExt for CapturableContentFilter {
+    fn with_window_level_range(self, min: Option<MacosWindowLevel>, max: Option<MacosWindowLevel>) -> Result<Self, CapturableContentError> {
+        match (&min, &max) {
+            (Some(min_level), Some(max_level)) => {
+                if *min_level as i32 > *max_level as i32 {
+                    return Err(CapturableContentError::Other(format!("Invalid window level range: minimum level: {:?} is greater than maximum level: {:?}", *min_level, *max_level)));
+                }
+            },
+            _ => {}
+        }
+        Ok(Self {
+            impl_capturable_content_filter: MacosCapturableContentFilter {
+                window_level_range: (min, max),
+                ..self.impl_capturable_content_filter
+            },
+            ..self
+        })
+    }
+
+    fn with_exclude_bundle_ids(self, excluded_bundle_ids: &[&str]) -> Self {
+        let mut new_bundle_id_list = vec![];
+        if let Some(current_bundle_ids) = &self.impl_capturable_content_filter.excluded_bundle_ids {
+            for bundle_id in current_bundle_ids.iter() {
+                new_bundle_id_list.push(bundle_id.to_owned());
+            }
+        }
+        for bundle_id in excluded_bundle_ids.iter() {
+            new_bundle_id_list.push((*bundle_id).to_owned());
+        }
+        Self {
+            impl_capturable_content_filter: MacosCapturableContentFilter {
+                excluded_bundle_ids: Some(new_bundle_id_list.into_boxed_slice().into()),
+                ..self.impl_capturable_content_filter
+            },
+            ..self
         }
     }
 }

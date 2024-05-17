@@ -14,7 +14,7 @@ fn main() {
             desktop_windows: false,
             onscreen_only: true,
         };
-        let filter = CapturableContentFilter { windows: Some(window_filter), displays: false };
+        let filter = CapturableContentFilter::NORMAL_WINDOWS;
         let content = CapturableContent::new(filter).await.unwrap();
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
