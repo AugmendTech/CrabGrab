@@ -17,7 +17,7 @@ fn main() {
         }
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
-            window.title().len() != 0 && (app_identifier.to_lowercase().contains("terminal") || app_identifier.to_lowercase().contains("explorer"))
+            window.title().len() != 0 && (app_identifier.to_lowercase().contains("finder") || app_identifier.to_lowercase().contains("explorer"))
         }).next();
         match window {
             Some(window) => {
