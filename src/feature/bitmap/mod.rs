@@ -20,13 +20,13 @@ use windows::Graphics::DirectX::DirectXPixelFormat;
 #[cfg(target_os = "windows")]
 use windows::core::ComInterface;
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Direct3D11::{D3D11_BOX, D3D11_CPU_ACCESS_READ, D3D11_MAPPED_SUBRESOURCE, D3D11_MAP_READ, D3D11_TEXTURE2D_DESC, D3D11_USAGE_STAGING};
+use windows::Win32::Graphics::Direct3D11::{D3D11_CPU_ACCESS_READ, D3D11_MAPPED_SUBRESOURCE, D3D11_MAP_READ, D3D11_TEXTURE2D_DESC, D3D11_USAGE_STAGING};
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_SAMPLE_DESC};
+use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM};
 #[cfg(target_os = "windows")]
 use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Direct3D11::{D3D11_STANDARD_MULTISAMPLE_QUALITY_LEVELS, D3D11_USAGE_DYNAMIC};
+use windows::Win32::Graphics::Direct3D11::D3D11_USAGE_DYNAMIC;
 
 /// A Bgra8888 format bitmap
 pub struct FrameBitmapBgraUnorm8x4 {
@@ -123,9 +123,9 @@ impl VideoFrameBitmap for VideoFrame {
             match self.get_dx11_surface() {
                 Err(WindowsDx11VideoFrameError::Other(x)) => Err(VideoFrameBitmapError::Other(x)),
                 Ok((surface, pixel_format)) => {
-                    let (pixel_size, dxgi_format) = match pixel_format {
-                        DirectXPixelFormat::B8G8R8A8UIntNormalized => (4, DXGI_FORMAT_B8G8R8A8_UNORM),
-                        DirectXPixelFormat::R10G10B10A2UIntNormalized => (4, DXGI_FORMAT_R10G10B10A2_UNORM),
+                    let dxgi_format = match pixel_format {
+                        DirectXPixelFormat::B8G8R8A8UIntNormalized => DXGI_FORMAT_B8G8R8A8_UNORM,
+                        DirectXPixelFormat::R10G10B10A2UIntNormalized => DXGI_FORMAT_R10G10B10A2_UNORM,
                         _ => return Err(VideoFrameBitmapError::Other("Unknown or unsupported pixel format on DXGISurface".to_string())),
                     };
                     

@@ -448,16 +448,20 @@
 <a href="#446" id="446">446</a>
 <a href="#447" id="447">447</a>
 <a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{sync::{atomic::{<span class="self">self</span>, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
-<span class="kw">use crate</span>::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
+<span class="kw">use </span><span class="kw">crate</span>::prelude::{AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame};
 
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
+<span class="kw">use </span>windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
 
 <span class="kw">use super</span>::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::WindowsVideoFrame, frame::WindowsAudioFrame};
 
 <span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[allow(unused)]
 </span><span class="kw">pub enum </span>WindowsPixelFormat {
     Bgra8888,
 }
@@ -472,8 +476,8 @@
     }
 }
 
-<span class="kw">pub trait </span>WindowsAudioCaptureConfigExt {
-
+<span class="attr">#[allow(unused)]
+</span><span class="kw">pub trait </span>WindowsAudioCaptureConfigExt {
 }
 
 <span class="kw">impl </span>WindowsAudioCaptureConfigExt <span class="kw">for </span>CaptureConfig {
@@ -545,7 +549,8 @@
     }
 }
 
-<span class="kw">pub struct </span>WindowsCaptureStream {
+<span class="attr">#[allow(unused)]
+</span><span class="kw">pub struct </span>WindowsCaptureStream {
     <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter: <span class="prelude-ty">Option</span>&lt;IDXGIAdapter&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_adapter_error: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) dxgi_device: IDXGIDevice,
@@ -641,7 +646,7 @@
             </span>);
             <span class="kw">match </span>d3d11_device_result {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; d3d11_device.map_or_else(|| <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="string">"Failed to create ID3D11Device"</span>.into())), |x| <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(dxgi_adapter), <span class="prelude-val">None</span>, x))),
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="macro">format!</span>(<span class="string">"Failed to create d3d11 device"</span>)))
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(StreamCreateError::Other(<span class="macro">format!</span>(<span class="string">"Failed to create d3d11 device"</span>)))
                 ,
             }
         }
@@ -816,6 +821,7 @@
         <span class="kw">let </span>capture_session = frame_pool.CreateCaptureSession(<span class="kw-2">&amp;</span>graphics_capture_item)
             .map_err(|<span class="kw">_</span>| StreamCreateError::Other(<span class="string">"Failed to create GraphicsCaptureSession"</span>.into()))<span class="question-mark">?</span>;
         <span class="kw">let _ </span>= capture_session.SetIsBorderRequired(!config.impl_capture_config.borderless);
+        <span class="kw">let _ </span>= capture_session.SetIsCursorCaptureEnabled(config.show_cursor);
 
         <span class="kw">let </span>audio_stream = <span class="kw">if let </span><span class="prelude-val">Some</span>(audio_config) = config.capture_audio {
             <span class="kw">let </span>handler_config = audio_config.clone();
@@ -838,7 +844,7 @@
                         });
                         (<span class="kw-2">*</span>audio_handler_data.callback.lock())(<span class="prelude-val">Ok</span>(event));
                     },
-                    <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         (<span class="kw-2">*</span>audio_handler_data.callback.lock())(<span class="prelude-val">Err</span>(StreamError::Other(<span class="string">"Audio stream error"</span>.to_string())));
                     }
                 }

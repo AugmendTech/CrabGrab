@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::{Debug, Display}};
 
-use crate::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
+use crate::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableContentFilter, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
 
 /// Represents an error that occurred when enumerating capturable content
 #[derive(Debug, Clone)]
@@ -30,6 +30,7 @@ impl Error for CapturableContentError {
     }
 }
 
+#[derive(Clone)]
 /// Selects the kind of windows to enumerate for capture
 pub struct CapturableWindowFilter {
     /// Desktop windows are elements of the desktop environment, E.G. the dock on MacOS or the start bar on Windows.
@@ -44,15 +45,27 @@ impl Default for CapturableWindowFilter {
     }
 }
 
+#[derive(Clone)]
 /// Selects the kind of capturable content to enumerate
 pub struct CapturableContentFilter {
     /// What kind of capturable windows, if Some, to enumerate
-    pub windows: Option<CapturableWindowFilter>,
+    pub(crate) windows: Option<CapturableWindowFilter>,
     /// Whether to enumerate capturable displays
-    pub displays: bool,
+    pub(crate) displays: bool,
+    /// Platform-specific filtering options
+    pub(crate) impl_capturable_content_filter: ImplCapturableContentFilter,
 }
 
 impl CapturableContentFilter {
+    /// Create a new content filter with the given filtering options
+    pub fn new(displays: bool, windows: Option<CapturableWindowFilter>) -> Self {
+        Self {
+            displays,
+            windows,
+            impl_capturable_content_filter: ImplCapturableContentFilter::default()
+        }
+    }
+
     /// Whether this filter allows any capturable content
     pub fn is_empty(&self) -> bool {
         !(
@@ -61,41 +74,51 @@ impl CapturableContentFilter {
         )
     }
 
+    /// All capturable displays, but no windows
     pub const DISPLAYS: Self = CapturableContentFilter {
         windows: None,
         displays: true,
+        impl_capturable_content_filter: ImplCapturableContentFilter::DEFAULT,
     };
 
+    /// All capturable windows, but no displays
     pub const ALL_WINDOWS: Self = CapturableContentFilter {
         windows: Some(CapturableWindowFilter {
             desktop_windows: true,
             onscreen_only: false,
         }),
         displays: false,
+        impl_capturable_content_filter: ImplCapturableContentFilter::DEFAULT,
     };
 
+    /// Everything that can be captured
     pub const EVERYTHING: Self = CapturableContentFilter {
         windows: Some(CapturableWindowFilter {
             desktop_windows: true,
             onscreen_only: false,
         }),
         displays: true,
+        impl_capturable_content_filter: ImplCapturableContentFilter::DEFAULT,
     };
 
+    /// Only normal windows - no modal panels, not the dock on macos, etc.
     pub const NORMAL_WINDOWS: Self = CapturableContentFilter {
         windows: Some(CapturableWindowFilter {
             desktop_windows: false,
             onscreen_only: true
         }),
         displays: false,
+        impl_capturable_content_filter: ImplCapturableContentFilter::NORMAL_WINDOWS,
     };
 
+    /// Only normal windows and displays
     pub const EVERYTHING_NORMAL: Self = CapturableContentFilter {
         windows: Some(CapturableWindowFilter {
             desktop_windows: false,
             onscreen_only: true,
         }),
         displays: true,
+        impl_capturable_content_filter: ImplCapturableContentFilter::NORMAL_WINDOWS,
     };
 }
 

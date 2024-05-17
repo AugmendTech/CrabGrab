@@ -1,7 +1,6 @@
 #![cfg(target_os = "windows")]
 #![cfg(feature = "dx11")]
 
-use futures::lock::Mutex;
 use windows::{core::ComInterface, Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::{Graphics::Direct3D11::{ID3D11Device, ID3D11Texture2D}, System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess}};
 
 use std::error::Error;

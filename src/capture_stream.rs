@@ -123,10 +123,11 @@ impl Error for StreamStopError {
 
 /// Configuration settings for audio streams
 #[derive(Clone, Debug)]
+#[allow(unused)]
 pub struct AudioCaptureConfig {
-    pub(crate)  sample_rate: AudioSampleRate, 
-    pub(crate)  channel_count: AudioChannelCount,
-    pub(crate)  impl_capture_audio_config: ImplAudioCaptureConfig,
+    pub(crate) sample_rate: AudioSampleRate, 
+    pub(crate) channel_count: AudioChannelCount,
+    pub(crate) impl_capture_audio_config: ImplAudioCaptureConfig,
 }
 
 impl AudioCaptureConfig {

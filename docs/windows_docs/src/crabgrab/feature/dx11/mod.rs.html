@@ -72,12 +72,10 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg(target_os = <span class="string">"windows"</span>)]
 #![cfg(feature = <span class="string">"dx11"</span>)]
 
-</span><span class="kw">use </span>futures::lock::Mutex;
-<span class="kw">use </span>windows::{core::ComInterface, Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::{Graphics::Direct3D11::{ID3D11Device, ID3D11Texture2D}, System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess}};
+</span><span class="kw">use </span>windows::{core::ComInterface, Graphics::DirectX::{Direct3D11::IDirect3DSurface, DirectXPixelFormat}, Win32::{Graphics::Direct3D11::{ID3D11Device, ID3D11Texture2D}, System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess}};
 
 <span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fmt::Display;

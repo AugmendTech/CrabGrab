@@ -342,6 +342,7 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::{error::Error, fmt::Display};
 
@@ -467,10 +468,11 @@
 
 <span class="doccomment">/// Configuration settings for audio streams
 </span><span class="attr">#[derive(Clone, Debug)]
+#[allow(unused)]
 </span><span class="kw">pub struct </span>AudioCaptureConfig {
-    <span class="kw">pub</span>(<span class="kw">crate</span>)  sample_rate: AudioSampleRate, 
-    <span class="kw">pub</span>(<span class="kw">crate</span>)  channel_count: AudioChannelCount,
-    <span class="kw">pub</span>(<span class="kw">crate</span>)  impl_capture_audio_config: ImplAudioCaptureConfig,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) sample_rate: AudioSampleRate, 
+    <span class="kw">pub</span>(<span class="kw">crate</span>) channel_count: AudioChannelCount,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) impl_capture_audio_config: ImplAudioCaptureConfig,
 }
 
 <span class="kw">impl </span>AudioCaptureConfig {

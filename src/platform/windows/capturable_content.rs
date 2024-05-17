@@ -1,6 +1,6 @@
-use std::{ffi::OsString, os::{raw::c_void, windows::ffi::OsStringExt}, hash::Hash};
+use std::{ffi::OsString, hash::Hash, os::{raw::c_void, windows::ffi::OsStringExt}, sync::Arc};
 
-use windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
+use windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
 
 pub use windows::Win32::Foundation::HWND;
 
@@ -121,10 +121,6 @@ impl Eq for WindowsCapturableDisplay {}
 pub struct WindowsCapturableApplication(pub(crate) u32);
 
 impl WindowsCapturableApplication {
-    pub fn from_impl(pid: u32) -> Self {
-        Self(pid)
-    }
-
     pub fn identifier(&self) -> String {
         unsafe {
             let process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, self.0);
@@ -210,6 +206,9 @@ impl WindowsCapturableContent {
                             return false;
                         }
                     }
+                    if !filter.impl_capturable_content_filter.filter_window_handle(hwnd) {
+                        return false;
+                    }
                     // TODO: filter desktop windows
                     true
                 }).map(|hwnd| *hwnd).collect();
@@ -222,21 +221,20 @@ impl WindowsCapturableContent {
     }
 }
 
-/// A capturable window on Windows which provides a native window handle. This is the `HWND` for the window.
-/// Additionally, a capturable window which can be created from a native window handle. (`HWND`)
-pub trait WindowsCapturableWindowNativeWindowHandle {
+/// Windows-specific extensions for capturable windows
+pub trait WindowsCapturableWindowExt {
     /// Get the HWND for this capturable window.
-    fn get_native_window_handle(&self) -> HWND;
+    fn get_window_handle(&self) -> HWND;
     /// Get a capturable window from an HWND
-    fn from_native_window_handle(window_handle: HWND) -> Result<CapturableWindow, CapturableContentError>;
+    fn from_window_handle(window_handle: HWND) -> Result<CapturableWindow, CapturableContentError>;
 }
 
-impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
-    fn get_native_window_handle(&self) -> HWND {
+impl WindowsCapturableWindowExt for CapturableWindow {
+    fn get_window_handle(&self) -> HWND {
         self.impl_capturable_window.0
     }
 
-    fn from_native_window_handle(window_handle: HWND) -> Result<Self, CapturableContentError> {
+    fn from_window_handle(window_handle: HWND) -> Result<Self, CapturableContentError> {
         if !unsafe { IsWindow(window_handle).as_bool() } {
             return Err(CapturableContentError::Other(format!("HWND {:016X} is not a window", window_handle.0)));
         }
@@ -251,3 +249,58 @@ impl WindowsCapturableWindowNativeWindowHandle for CapturableWindow {
         })
     }
 }
+
+#[derive(Clone)]
+pub(crate) struct WindowsCapturableContentFilter {
+    excluded_window_handles: Option<Arc<[HWND]>>,
+}
+
+impl Default for WindowsCapturableContentFilter {
+    fn default() -> Self {
+        Self {
+            excluded_window_handles: None,
+        }
+    }
+}
+
+impl WindowsCapturableContentFilter {
+    pub(crate) const DEFAULT: Self = Self {
+        excluded_window_handles: None,
+    };
+    pub(crate) const NORMAL_WINDOWS: Self = Self::DEFAULT;
+
+    fn filter_window_handle(&self, window_handle: &HWND) -> bool {
+        if let Some(excluded_window_handles) = &self.excluded_window_handles {
+            if excluded_window_handles.contains(window_handle) {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+pub trait WindowsCapturableContentFilterExt: Sized {
+    fn with_exclude_window_handles(self, window_handles: &[HWND]) -> Self;
+}
+
+impl WindowsCapturableContentFilterExt for CapturableContentFilter {
+    fn with_exclude_window_handles(self, excluded_window_handles: &[HWND]) -> Self {
+        let mut new_excluded_window_handles_list = vec![];
+        if let Some(current_excluded_window_handles) = &self.impl_capturable_content_filter.excluded_window_handles {
+            for window_handle in current_excluded_window_handles.iter() {
+                new_excluded_window_handles_list.push(window_handle.to_owned());
+            }
+        }
+        for window_handle in excluded_window_handles.iter() {
+            new_excluded_window_handles_list.push((*window_handle).to_owned());
+        }
+        Self {
+            impl_capturable_content_filter: WindowsCapturableContentFilter {
+                excluded_window_handles: Some(new_excluded_window_handles_list.into_boxed_slice().into()),
+                ..self.impl_capturable_content_filter
+            },
+            ..self
+        }
+    }
+}
+

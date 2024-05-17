@@ -34,6 +34,9 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>windows::Win32::Foundation::CloseHandle;
 <span class="kw">use </span>windows::Win32::Foundation::HANDLE;
 
@@ -53,11 +56,11 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::WindowsCapturableDisplay <span class="kw">as </span>ImplCapturableDisplay;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::WindowsCapturableWindow <span class="kw">as </span>ImplCapturableWindow;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::WindowsCapturableContent <span class="kw">as </span>ImplCapturableContent;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::WindowsCapturableContentFilter <span class="kw">as </span>ImplCapturableContentFilter;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::WindowsCaptureStream <span class="kw">as </span>ImplCaptureStream;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::WindowsCaptureConfig <span class="kw">as </span>ImplCaptureConfig;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::WindowsAudioCaptureConfig <span class="kw">as </span>ImplAudioCaptureConfig;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::WindowsPixelFormat <span class="kw">as </span>ImplPixelFormat;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::WindowsCaptureAccessToken <span class="kw">as </span>ImplCaptureAccessToken;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>frame::WindowsVideoFrame <span class="kw">as </span>ImplVideoFrame;
@@ -65,7 +68,10 @@
 
 <span class="kw">pub use </span>capture_stream::WindowsCaptureConfigExt;
 
-<span class="kw">pub use </span>capturable_content::WindowsCapturableWindowNativeWindowHandle;
+<span class="doccomment">/// Windows-specific extensions to capturable windows
+</span><span class="kw">pub use </span>capturable_content::WindowsCapturableWindowExt;
+<span class="doccomment">/// Windows-specific extensions to capturable content filters
+</span><span class="kw">pub use </span>capturable_content::WindowsCapturableContentFilterExt;
 <span class="doccomment">/// Re-exported from the `windows` crate
 </span><span class="kw">pub use </span>capturable_content::HWND;
 </code></pre></div></section></main></body></html>

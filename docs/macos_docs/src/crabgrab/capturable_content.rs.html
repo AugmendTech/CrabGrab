@@ -268,9 +268,32 @@
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::{Debug, Display}};
 
-<span class="kw">use crate</span>::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
+<span class="kw">use crate</span>::{platform::platform_impl::{ImplCapturableApplication, ImplCapturableContent, ImplCapturableContentFilter, ImplCapturableDisplay, ImplCapturableWindow}, util::Rect};
 
 <span class="doccomment">/// Represents an error that occurred when enumerating capturable content
 </span><span class="attr">#[derive(Debug, Clone)]
@@ -300,7 +323,8 @@
     }
 }
 
-<span class="doccomment">/// Selects the kind of windows to enumerate for capture
+<span class="attr">#[derive(Clone)]
+</span><span class="doccomment">/// Selects the kind of windows to enumerate for capture
 </span><span class="kw">pub struct </span>CapturableWindowFilter {
     <span class="doccomment">/// Desktop windows are elements of the desktop environment, E.G. the dock on MacOS or the start bar on Windows.
     </span><span class="kw">pub </span>desktop_windows: bool,
@@ -314,15 +338,27 @@
     }
 }
 
-<span class="doccomment">/// Selects the kind of capturable content to enumerate
+<span class="attr">#[derive(Clone)]
+</span><span class="doccomment">/// Selects the kind of capturable content to enumerate
 </span><span class="kw">pub struct </span>CapturableContentFilter {
     <span class="doccomment">/// What kind of capturable windows, if Some, to enumerate
-    </span><span class="kw">pub </span>windows: <span class="prelude-ty">Option</span>&lt;CapturableWindowFilter&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) windows: <span class="prelude-ty">Option</span>&lt;CapturableWindowFilter&gt;,
     <span class="doccomment">/// Whether to enumerate capturable displays
-    </span><span class="kw">pub </span>displays: bool,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) displays: bool,
+    <span class="doccomment">/// Platform-specific filtering options
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) impl_capturable_content_filter: ImplCapturableContentFilter,
 }
 
 <span class="kw">impl </span>CapturableContentFilter {
+    <span class="doccomment">/// Create a new content filter with the given filtering options
+    </span><span class="kw">pub fn </span>new(displays: bool, windows: <span class="prelude-ty">Option</span>&lt;CapturableWindowFilter&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            displays,
+            windows,
+            impl_capturable_content_filter: ImplCapturableContentFilter::default()
+        }
+    }
+
     <span class="doccomment">/// Whether this filter allows any capturable content
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !(
@@ -331,41 +367,51 @@
         )
     }
 
-    <span class="kw">pub const </span>DISPLAYS: <span class="self">Self </span>= CapturableContentFilter {
+    <span class="doccomment">/// All capturable displays, but no windows
+    </span><span class="kw">pub const </span>DISPLAYS: <span class="self">Self </span>= CapturableContentFilter {
         windows: <span class="prelude-val">None</span>,
         displays: <span class="bool-val">true</span>,
+        impl_capturable_content_filter: ImplCapturableContentFilter::DEFAULT,
     };
 
-    <span class="kw">pub const </span>ALL_WINDOWS: <span class="self">Self </span>= CapturableContentFilter {
+    <span class="doccomment">/// All capturable windows, but no displays
+    </span><span class="kw">pub const </span>ALL_WINDOWS: <span class="self">Self </span>= CapturableContentFilter {
         windows: <span class="prelude-val">Some</span>(CapturableWindowFilter {
             desktop_windows: <span class="bool-val">true</span>,
             onscreen_only: <span class="bool-val">false</span>,
         }),
         displays: <span class="bool-val">false</span>,
+        impl_capturable_content_filter: ImplCapturableContentFilter::DEFAULT,
     };
 
-    <span class="kw">pub const </span>EVERYTHING: <span class="self">Self </span>= CapturableContentFilter {
+    <span class="doccomment">/// Everything that can be captured
+    </span><span class="kw">pub const </span>EVERYTHING: <span class="self">Self </span>= CapturableContentFilter {
         windows: <span class="prelude-val">Some</span>(CapturableWindowFilter {
             desktop_windows: <span class="bool-val">true</span>,
             onscreen_only: <span class="bool-val">false</span>,
         }),
         displays: <span class="bool-val">true</span>,
+        impl_capturable_content_filter: ImplCapturableContentFilter::DEFAULT,
     };
 
-    <span class="kw">pub const </span>NORMAL_WINDOWS: <span class="self">Self </span>= CapturableContentFilter {
+    <span class="doccomment">/// Only normal windows - no modal panels, not the dock on macos, etc.
+    </span><span class="kw">pub const </span>NORMAL_WINDOWS: <span class="self">Self </span>= CapturableContentFilter {
         windows: <span class="prelude-val">Some</span>(CapturableWindowFilter {
             desktop_windows: <span class="bool-val">false</span>,
             onscreen_only: <span class="bool-val">true
         </span>}),
         displays: <span class="bool-val">false</span>,
+        impl_capturable_content_filter: ImplCapturableContentFilter::NORMAL_WINDOWS,
     };
 
-    <span class="kw">pub const </span>EVERYTHING_NORMAL: <span class="self">Self </span>= CapturableContentFilter {
+    <span class="doccomment">/// Only normal windows and displays
+    </span><span class="kw">pub const </span>EVERYTHING_NORMAL: <span class="self">Self </span>= CapturableContentFilter {
         windows: <span class="prelude-val">Some</span>(CapturableWindowFilter {
             desktop_windows: <span class="bool-val">false</span>,
             onscreen_only: <span class="bool-val">true</span>,
         }),
         displays: <span class="bool-val">true</span>,
+        impl_capturable_content_filter: ImplCapturableContentFilter::NORMAL_WINDOWS,
     };
 }
 

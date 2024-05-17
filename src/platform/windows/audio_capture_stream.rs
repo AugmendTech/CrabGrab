@@ -1,10 +1,8 @@
-use std::{ffi::c_void, sync::{atomic::{self, AtomicBool}, Arc}, time::Duration};
+use std::{ffi::c_void, time::Duration};
 
 use windows::{core::Interface, Win32::{Media::Audio::{eConsole, eRender, IAudioCaptureClient, IAudioClient, IMMDeviceEnumerator, MMDeviceEnumerator, AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, WAVEFORMATEX, WAVE_FORMAT_PCM}, System::Com::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED}}};
 
 use crate::prelude::{AudioCaptureConfig, AudioChannelCount, AudioSampleRate};
-
-use super::capture_stream::SharedHandlerData;
 
 pub struct WindowsAudioCaptureStream {
     should_couninit: bool,
@@ -25,6 +23,7 @@ pub enum WindowsAudioCaptureStreamError {
     GetBufferFailed,
 }
 
+#[allow(unused)]
 pub struct WindowsAudioCaptureStreamPacket<'a> {
     pub(crate) data: &'a [i16],
     pub(crate) channel_count: u32,
@@ -59,7 +58,7 @@ impl WindowsAudioCaptureStream {
                 .map_err(|_| WindowsAudioCaptureStreamCreateError::EndpointEnumerationFailed)?;
             
             let audio_client: IAudioClient = device.Activate(CLSCTX_ALL, None)
-                .map_err(|e| WindowsAudioCaptureStreamCreateError::AudioClientActivationFailed)?;
+                .map_err(|_| WindowsAudioCaptureStreamCreateError::AudioClientActivationFailed)?;
 
             let mut format = WAVEFORMATEX::default();
             format.wFormatTag = WAVE_FORMAT_PCM as u16;
@@ -95,7 +94,7 @@ impl WindowsAudioCaptureStream {
             let capture_client_send = SendCaptureClient::from_iaudiocaptureclient(capture_client);
 
             std::thread::spawn(move || {
-                unsafe {
+                {
                     let should_couninit = CoInitializeEx(None, COINIT_MULTITHREADED).is_ok();
 
                     let mut last_device_position = 0u64;
@@ -105,7 +104,7 @@ impl WindowsAudioCaptureStream {
                     loop {
                         std::thread::sleep(half_buffer_duration);
 
-                        let buffered_count = match capture_client.GetNextPacketSize() {
+                        let _buffered_count = match capture_client.GetNextPacketSize() {
                             Ok(count) => count,
                             Err(_) => {
                                 (callback)(Err(WindowsAudioCaptureStreamError::Other(format!("Stream failed - couldn't fetch packet size"))));

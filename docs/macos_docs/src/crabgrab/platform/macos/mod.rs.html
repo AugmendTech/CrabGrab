@@ -25,6 +25,14 @@
 <a href="#23" id="23">23</a>
 <a href="#24" id="24">24</a>
 <a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>capture_stream;
@@ -35,18 +43,26 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosCaptureStream <span class="kw">as </span>ImplCaptureStream;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosAudioCaptureConfig <span class="kw">as </span>ImplAudioCaptureConfig;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosCaptureConfig <span class="kw">as </span>ImplCaptureConfig;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosPixelFormat <span class="kw">as </span>ImplPixelFormat;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosCaptureAccessToken <span class="kw">as </span>ImplCaptureAccessToken;
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>frame::MacosAudioFrame <span class="kw">as </span>ImplAudioFrame;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>frame::MacosVideoFrame <span class="kw">as </span>ImplVideoFrame;
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::MacosCapturableContent <span class="kw">as </span>ImplCapturableContent;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::MacosCapturableWindow <span class="kw">as </span>ImplCapturableWindow;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::MacosCapturableDisplay <span class="kw">as </span>ImplCapturableDisplay;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosPixelFormat <span class="kw">as </span>ImplPixelFormat;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::MacosCapturableContentFilter <span class="kw">as </span>ImplCapturableContentFilter;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capturable_content::MacosCapturableApplication <span class="kw">as </span>ImplCapturableApplication;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>capture_stream::MacosCaptureAccessToken <span class="kw">as </span>ImplCaptureAccessToken;
 
-<span class="doccomment">/// Macos-specific extensions for audio capture configs
+<span class="doccomment">/// Mac OS specific extensions for audio capture configs
 </span><span class="kw">pub use </span>capture_stream::MacosAudioCaptureConfigExt;
-<span class="doccomment">/// Macos-specific extensions for capture configs
+<span class="doccomment">/// Mac OS specific extensions for capture configs
 </span><span class="kw">pub use </span>capture_stream::MacosCaptureConfigExt;
 
-<span class="kw">pub use </span>capturable_content::MacosCapturableWindowNativeWindowId;</code></pre></div></section></main></body></html>
+<span class="doccomment">/// Mac OS specific extensions for capturable windows
+</span><span class="kw">pub use </span>capturable_content::MacosCapturableWindowExt;
+<span class="doccomment">/// Mac OS specific extensions for capture content filters
+</span><span class="kw">pub use </span>capturable_content::MacosCapturableContentFilterExt;
+<span class="doccomment">/// Mac OS "window level"
+</span><span class="kw">pub use </span>capturable_content::MacosWindowLevel;</code></pre></div></section></main></body></html>

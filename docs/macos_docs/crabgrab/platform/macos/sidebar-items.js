@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["MacosAudioCaptureConfigExt","MacosCapturableWindowNativeWindowId","MacosCaptureConfigExt"]};
+window.SIDEBAR_ITEMS = {"enum":["MacosWindowLevel"],"trait":["MacosAudioCaptureConfigExt","MacosCapturableContentFilterExt","MacosCapturableWindowExt","MacosCaptureConfigExt"]};

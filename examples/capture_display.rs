@@ -8,7 +8,7 @@ async fn main() {
         Some(token) => token,
         None => CaptureStream::request_access(false).await.expect("Expected capture access")
     };
-    let filter = CapturableContentFilter { windows: None, displays: true };
+    let filter = CapturableContentFilter::DISPLAYS;
     let content = CapturableContent::new(filter).await.unwrap();
     let config = CaptureConfig::with_display(content.displays().next().unwrap(), CapturePixelFormat::Bgra8888);
 
