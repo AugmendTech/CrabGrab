@@ -161,6 +161,7 @@ impl VideoFrame {
         self.impl_video_frame.dpi()
     }
 
+    /// Get the rectangle of the frame representing containing the captured contents
     pub fn content_rect(&self) -> Rect {
         self.impl_video_frame.content_rect()
     }
