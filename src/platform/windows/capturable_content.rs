@@ -1,6 +1,6 @@
 use std::{ffi::OsString, hash::Hash, os::{raw::c_void, windows::ffi::OsStringExt}, sync::Arc};
 
-use windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
+use windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
 
 pub use windows::Win32::Foundation::HWND;
 
@@ -26,16 +26,16 @@ impl WindowsCapturableWindow {
 
     pub fn title(&self) -> String {
         unsafe {
-            let text_length = GetWindowTextLengthA(self.0);
+            let text_length = GetWindowTextLengthW(self.0);
             if text_length == 0 {
                 return "".into();
             }
-            let mut text_buffer = vec![0u8; text_length as usize + 1];
-            let text_length = GetWindowTextA(self.0, &mut text_buffer[..]);
+            let mut text_buffer = vec![0u16; text_length as usize + 1];
+            let text_length = GetWindowTextW(self.0, &mut text_buffer[..]);
             if (text_length as usize) < text_buffer.len() {
                 text_buffer.truncate(text_length as usize);
             }
-            String::from_utf8_lossy(&text_buffer).to_string()
+            String::from_utf16_lossy(&text_buffer).to_string()
         }
     }
 
