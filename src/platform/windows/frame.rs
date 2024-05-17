@@ -2,7 +2,7 @@ use std::{marker::PhantomData, sync::Arc, time::Duration};
 
 use windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
 
-use crate::{prelude::{AudioBufferError, AudioCaptureFrame, AudioChannelCount, AudioChannelDataSamples, AudioSampleRate, VideoCaptureFrame}, util::Size};
+use crate::{prelude::{AudioBufferError, AudioCaptureFrame, AudioChannelCount, AudioChannelDataSamples, AudioSampleRate, Point, Rect, VideoCaptureFrame}, util::Size};
 
 pub struct WindowsVideoFrame {
     pub(crate) device       : ID3D11Device,
@@ -45,6 +45,13 @@ impl VideoCaptureFrame for WindowsVideoFrame {
 
     fn frame_id(&self) -> u64 {
         self.frame_id
+    }
+
+    fn content_rect(&self) -> Rect {
+        Rect {
+            origin: Point::ZERO,
+            size: self.size()
+        }
     }
 }
 
