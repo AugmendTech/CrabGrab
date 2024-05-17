@@ -17,8 +17,6 @@ use crate::platform::windows::capture_stream::WindowsCaptureConfig;
 #[cfg(target_os = "windows")]
 use crate::feature::dx11::*;
 #[cfg(target_os = "windows")]
-use crate::feature::dxgi::*;
-#[cfg(target_os = "windows")]
 use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Dxgi::IDXGIDevice, Direct3D11on12::ID3D11On12Device2, Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D11on12::D3D11On12CreateDevice, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
 #[cfg(target_os = "windows")]
 use std::ffi::c_void;

@@ -175,14 +175,11 @@
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::c_void, sync::{atomic::{<span class="self">self</span>, AtomicBool}, Arc}, time::Duration};
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::c_void, time::Duration};
 
 <span class="kw">use </span>windows::{core::Interface, Win32::{Media::Audio::{eConsole, eRender, IAudioCaptureClient, IAudioClient, IMMDeviceEnumerator, MMDeviceEnumerator, AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, WAVEFORMATEX, WAVE_FORMAT_PCM}, System::Com::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED}}};
 
 <span class="kw">use </span><span class="kw">crate</span>::prelude::{AudioCaptureConfig, AudioChannelCount, AudioSampleRate};
-
-<span class="kw">use </span><span class="kw">super</span>::capture_stream::SharedHandlerData;
 
 <span class="kw">pub struct </span>WindowsAudioCaptureStream {
     should_couninit: bool,
@@ -203,7 +200,8 @@
     GetBufferFailed,
 }
 
-<span class="kw">pub struct </span>WindowsAudioCaptureStreamPacket&lt;<span class="lifetime">'a</span>&gt; {
+<span class="attr">#[allow(unused)]
+</span><span class="kw">pub struct </span>WindowsAudioCaptureStreamPacket&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[i16],
     <span class="kw">pub</span>(<span class="kw">crate</span>) channel_count: u32,
     <span class="kw">pub</span>(<span class="kw">crate</span>) origin_time: Duration,
@@ -237,7 +235,7 @@
                 .map_err(|<span class="kw">_</span>| WindowsAudioCaptureStreamCreateError::EndpointEnumerationFailed)<span class="question-mark">?</span>;
             
             <span class="kw">let </span>audio_client: IAudioClient = device.Activate(CLSCTX_ALL, <span class="prelude-val">None</span>)
-                .map_err(|e| WindowsAudioCaptureStreamCreateError::AudioClientActivationFailed)<span class="question-mark">?</span>;
+                .map_err(|<span class="kw">_</span>| WindowsAudioCaptureStreamCreateError::AudioClientActivationFailed)<span class="question-mark">?</span>;
 
             <span class="kw">let </span><span class="kw-2">mut </span>format = WAVEFORMATEX::default();
             format.wFormatTag = WAVE_FORMAT_PCM <span class="kw">as </span>u16;
@@ -273,7 +271,7 @@
             <span class="kw">let </span>capture_client_send = SendCaptureClient::from_iaudiocaptureclient(capture_client);
 
             std::thread::spawn(<span class="kw">move </span>|| {
-                <span class="kw">unsafe </span>{
+                {
                     <span class="kw">let </span>should_couninit = CoInitializeEx(<span class="prelude-val">None</span>, COINIT_MULTITHREADED).is_ok();
 
                     <span class="kw">let </span><span class="kw-2">mut </span>last_device_position = <span class="number">0u64</span>;
@@ -283,7 +281,7 @@
                     <span class="kw">loop </span>{
                         std::thread::sleep(half_buffer_duration);
 
-                        <span class="kw">let </span>buffered_count = <span class="kw">match </span>capture_client.GetNextPacketSize() {
+                        <span class="kw">let </span>_buffered_count = <span class="kw">match </span>capture_client.GetNextPacketSize() {
                             <span class="prelude-val">Ok</span>(count) =&gt; count,
                             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                                 (callback)(<span class="prelude-val">Err</span>(WindowsAudioCaptureStreamError::Other(<span class="macro">format!</span>(<span class="string">"Stream failed - couldn't fetch packet size"</span>))));

@@ -1,13 +1,14 @@
 use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
 
-use crate::{prelude::{AudioChannelCount, AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame}, util::Rect};
+use crate::prelude::{AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame};
 
 use parking_lot::Mutex;
-use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
+use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
 
 use super::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::WindowsVideoFrame, frame::WindowsAudioFrame};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[allow(unused)]
 pub enum WindowsPixelFormat {
     Bgra8888,
 }
@@ -22,8 +23,8 @@ impl WindowsAudioCaptureConfig {
     }
 }
 
+#[allow(unused)]
 pub trait WindowsAudioCaptureConfigExt {
-
 }
 
 impl WindowsAudioCaptureConfigExt for CaptureConfig {
@@ -95,6 +96,7 @@ impl WindowsCaptureConfigExt for CaptureConfig {
     }
 }
 
+#[allow(unused)]
 pub struct WindowsCaptureStream {
     pub(crate) dxgi_adapter: Option<IDXGIAdapter>,
     pub(crate) dxgi_adapter_error: Option<String>,
@@ -191,7 +193,7 @@ impl WindowsCaptureStream {
             );
             match d3d11_device_result {
                 Ok(_) => d3d11_device.map_or_else(|| Err(StreamCreateError::Other("Failed to create ID3D11Device".into())), |x| Ok((Some(dxgi_adapter), None, x))),
-                Err(e) => Err(StreamCreateError::Other(format!("Failed to create d3d11 device")))
+                Err(_) => Err(StreamCreateError::Other(format!("Failed to create d3d11 device")))
                 ,
             }
         }
@@ -366,6 +368,7 @@ impl WindowsCaptureStream {
         let capture_session = frame_pool.CreateCaptureSession(&graphics_capture_item)
             .map_err(|_| StreamCreateError::Other("Failed to create GraphicsCaptureSession".into()))?;
         let _ = capture_session.SetIsBorderRequired(!config.impl_capture_config.borderless);
+        let _ = capture_session.SetIsCursorCaptureEnabled(config.show_cursor);
 
         let audio_stream = if let Some(audio_config) = config.capture_audio {
             let handler_config = audio_config.clone();
@@ -388,7 +391,7 @@ impl WindowsCaptureStream {
                         });
                         (*audio_handler_data.callback.lock())(Ok(event));
                     },
-                    Err(e) => {
+                    Err(_) => {
                         (*audio_handler_data.callback.lock())(Err(StreamError::Other("Audio stream error".to_string())));
                     }
                 }

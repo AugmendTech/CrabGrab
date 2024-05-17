@@ -22,7 +22,6 @@ pub(crate) use capturable_content::WindowsCapturableContentFilter as ImplCaptura
 pub(crate) use capture_stream::WindowsCaptureStream as ImplCaptureStream;
 pub(crate) use capture_stream::WindowsCaptureConfig as ImplCaptureConfig;
 pub(crate) use capture_stream::WindowsAudioCaptureConfig as ImplAudioCaptureConfig;
-pub(crate) use capture_stream::WindowsPixelFormat as ImplPixelFormat;
 pub(crate) use capture_stream::WindowsCaptureAccessToken as ImplCaptureAccessToken;
 
 pub(crate) use frame::WindowsVideoFrame as ImplVideoFrame;
