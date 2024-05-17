@@ -2,9 +2,9 @@ use std::{cell::{Ref, RefCell}, marker::PhantomData, sync::Arc, time::{Duration,
 
 use objc2::runtime::AnyObject;
 
-use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate}, util::{Rect, Size}};
+use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate, Point}, util::{Rect, Size}};
 
-use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
+use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoContentRect, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
 pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) sample_buffer: CMSampleBuffer,
@@ -110,6 +110,30 @@ impl VideoCaptureFrame for MacosVideoFrame {
         match self {
             MacosVideoFrame::SCStream(sc_frame) => sc_frame.frame_id,
             MacosVideoFrame::CGDisplayStream(cgd_frame) => cgd_frame.frame_id
+        }
+    }
+
+    fn content_rect(&self) -> Rect {
+        match self {
+            MacosVideoFrame::SCStream(sc_frame) => {
+                let info_dict = sc_frame.get_info_dict();
+                let content_rect_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoContentRect) };
+                let content_rect_dict = unsafe { NSDictionary::from_id_unretained(content_rect_ptr as *mut AnyObject) };
+                let frame_content_rect = unsafe { CGRect::create_from_dictionary_representation(&content_rect_dict) };
+                Rect {
+                    origin: Point {
+                        x: frame_content_rect.origin.x,
+                        y: frame_content_rect.origin.y,
+                    },
+                    size: Size {
+                        width: frame_content_rect.size.x,
+                        height: frame_content_rect.origin.y
+                    }
+                }
+            },
+            MacosVideoFrame::CGDisplayStream(sc_fame) => {
+                todo!()
+            }
         }
     }
 }

@@ -120,6 +120,7 @@ pub(crate) trait VideoCaptureFrame {
     fn origin_time(&self) -> Duration;
     fn capture_time(&self) -> Instant;
     fn frame_id(&self) -> u64;
+    fn content_rect(&self) -> Rect;
 }
 
 /// A frame of captured video
@@ -158,6 +159,10 @@ impl VideoFrame {
     /// Get the dpi of the contents of the frame (accounting for capture scaling)
     pub fn dpi(&self) -> f64 {
         self.impl_video_frame.dpi()
+    }
+
+    pub fn content_rect(&self) -> Rect {
+        self.impl_video_frame.content_rect()
     }
 }
 
