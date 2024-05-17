@@ -686,7 +686,7 @@
                 }
                 config.set_pixel_format(pixel_format);
                 config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| <span class="number">1.0 </span>/ x).unwrap_or(<span class="number">1.0 </span>/ <span class="number">120.0</span>) <span class="kw">as </span>f64, <span class="number">240</span>));
-                config.set_source_rect(CGRect {
+                <span class="comment">/*config.set_source_rect(CGRect {
                     origin: CGPoint {
                         x: capture_config.source_rect.origin.x,
                         y: capture_config.source_rect.origin.y,
@@ -695,8 +695,8 @@
                         x: capture_config.source_rect.size.width,
                         y: capture_config.source_rect.size.height
                     }
-                });
-                config.set_size(CGSize {
+                });*/
+                </span>config.set_size(CGSize {
                     x: capture_config.output_size.width,
                     y: capture_config.output_size.height,
                 });

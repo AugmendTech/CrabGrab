@@ -10,10 +10,6 @@ fn main() {
             Some(token) => token,
             None => CaptureStream::request_access(false).await.expect("Expected capture access")
         };
-        let window_filter = CapturableWindowFilter {
-            desktop_windows: false,
-            onscreen_only: true,
-        };
         let filter = CapturableContentFilter::NORMAL_WINDOWS;
         let content = CapturableContent::new(filter).await.unwrap();
         let window = content.windows().filter(|window| {

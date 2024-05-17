@@ -69,23 +69,13 @@
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::time::Instant;
 
 <span class="kw">use </span><span class="kw">crate</span>::feature::screenshot::ScreenshotError;
 <span class="kw">use </span><span class="kw">crate</span>::frame::VideoFrame;
 <span class="kw">use </span><span class="kw">crate</span>::platform::macos::frame::{MacosSCStreamVideoFrame, MacosVideoFrame};
-<span class="kw">use </span><span class="kw">crate</span>::platform::macos::objc_wrap::{CGPoint, CGRect, CGSize, NSArray, SCContentFilter, SCScreenshotManager, SCStreamColorMatrix, SCStreamConfiguration, SCStreamPixelFormat};
+<span class="kw">use </span><span class="kw">crate</span>::platform::macos::objc_wrap::{CGSize, NSArray, SCContentFilter, SCScreenshotManager, SCStreamColorMatrix, SCStreamConfiguration, SCStreamPixelFormat};
 <span class="kw">use </span><span class="kw">crate</span>::platform::platform_impl::objc_wrap::CGMainDisplayID;
 <span class="kw">use </span><span class="kw">crate</span>::prelude::{Capturable, CaptureAccessToken, CaptureConfig, CapturePixelFormat};
 
@@ -110,16 +100,6 @@
         stream_config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
     }
     stream_config.set_pixel_format(pixel_format);
-    stream_config.set_source_rect(CGRect {
-        origin: CGPoint {
-            x: config.source_rect.origin.x,
-            y: config.source_rect.origin.y,
-        },
-        size: CGSize {
-            x: config.source_rect.size.width,
-            y: config.source_rect.size.height
-        }
-    });
     stream_config.set_size(CGSize {
         x: config.output_size.width,
         y: config.output_size.height,

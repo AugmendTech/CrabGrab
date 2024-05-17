@@ -4,7 +4,7 @@ use std::time::Instant;
 use crate::feature::screenshot::ScreenshotError;
 use crate::frame::VideoFrame;
 use crate::platform::macos::frame::{MacosSCStreamVideoFrame, MacosVideoFrame};
-use crate::platform::macos::objc_wrap::{CGPoint, CGRect, CGSize, NSArray, SCContentFilter, SCScreenshotManager, SCStreamColorMatrix, SCStreamConfiguration, SCStreamPixelFormat};
+use crate::platform::macos::objc_wrap::{CGSize, NSArray, SCContentFilter, SCScreenshotManager, SCStreamColorMatrix, SCStreamConfiguration, SCStreamPixelFormat};
 use crate::platform::platform_impl::objc_wrap::CGMainDisplayID;
 use crate::prelude::{Capturable, CaptureAccessToken, CaptureConfig, CapturePixelFormat};
 
@@ -29,16 +29,6 @@ pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -
         stream_config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
     }
     stream_config.set_pixel_format(pixel_format);
-    stream_config.set_source_rect(CGRect {
-        origin: CGPoint {
-            x: config.source_rect.origin.x,
-            y: config.source_rect.origin.y,
-        },
-        size: CGSize {
-            x: config.source_rect.size.width,
-            y: config.source_rect.size.height
-        }
-    });
     stream_config.set_size(CGSize {
         x: config.output_size.width,
         y: config.output_size.height,

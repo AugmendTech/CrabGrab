@@ -17,7 +17,7 @@ fn main() {
         }
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
-            window.title().len() != 0 && (app_identifier.to_lowercase().contains("finder") || app_identifier.to_lowercase().contains("explorer"))
+            window.title().len() != 0 && (app_identifier.to_lowercase().contains("terminal") || app_identifier.to_lowercase().contains("explorer"))
         }).next();
         match window {
             Some(window) => {
@@ -29,7 +29,6 @@ fn main() {
                             match event {
                                 StreamEvent::Video(frame) => {
                                     println!("Got frame: {}", frame.frame_id());
-                                    println!("Content rectangle: {:?}", frame.content_rect());
                                 },
                                 _ => {}
                             }
@@ -40,12 +39,12 @@ fn main() {
                     }
                 }).unwrap();
                 println!("stream created!"); 
-                tokio::task::block_in_place(|| std::thread::sleep(Duration::from_millis(4000)));
+                tokio::task::block_in_place(|| std::thread::sleep(Duration::from_millis(2000)));
                 stream.stop().unwrap();
             },
             None => { println!("Failed to find window"); }
         }
     });
     runtime.block_on(future).unwrap();
-    runtime.shutdown_timeout(Duration::from_millis(10000));
+    runtime.shutdown_timeout(Duration::from_millis(100000));
 }
