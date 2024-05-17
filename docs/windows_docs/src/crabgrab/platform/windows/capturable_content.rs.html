@@ -298,6 +298,14 @@
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::OsString, hash::Hash, os::{raw::c_void, windows::ffi::OsStringExt}, sync::Arc};
 
 <span class="kw">use </span>windows::Win32::{Foundation::{BOOL, FALSE, HANDLE, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoA, HDC, HMONITOR, MONITORINFO}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{GetProcessId, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
@@ -421,10 +429,6 @@
 </span><span class="kw">pub struct </span>WindowsCapturableApplication(<span class="kw">pub</span>(<span class="kw">crate</span>) u32);
 
 <span class="kw">impl </span>WindowsCapturableApplication {
-    <span class="kw">pub fn </span>from_impl(pid: u32) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(pid)
-    }
-
     <span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="number">0</span>);
@@ -510,6 +514,9 @@
                             <span class="kw">return </span><span class="bool-val">false</span>;
                         }
                     }
+                    <span class="kw">if </span>!filter.impl_capturable_content_filter.filter_window_handle(hwnd) {
+                        <span class="kw">return </span><span class="bool-val">false</span>;
+                    }
                     <span class="comment">// TODO: filter desktop windows
                     </span><span class="bool-val">true
                 </span>}).map(|hwnd| <span class="kw-2">*</span>hwnd).collect();
@@ -569,6 +576,15 @@
         excluded_window_handles: <span class="prelude-val">None</span>,
     };
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NORMAL_WINDOWS: <span class="self">Self </span>= <span class="self">Self</span>::DEFAULT;
+
+    <span class="kw">fn </span>filter_window_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, window_handle: <span class="kw-2">&amp;</span>HWND) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(excluded_window_handles) = <span class="kw-2">&amp;</span><span class="self">self</span>.excluded_window_handles {
+            <span class="kw">if </span>excluded_window_handles.contains(window_handle) {
+                <span class="kw">return </span><span class="bool-val">false</span>;
+            }
+        }
+        <span class="bool-val">true
+    </span>}
 }
 
 <span class="kw">pub trait </span>WindowsCapturableContentFilterExt: Sized {

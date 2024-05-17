@@ -121,10 +121,6 @@ impl Eq for WindowsCapturableDisplay {}
 pub struct WindowsCapturableApplication(pub(crate) u32);
 
 impl WindowsCapturableApplication {
-    pub fn from_impl(pid: u32) -> Self {
-        Self(pid)
-    }
-
     pub fn identifier(&self) -> String {
         unsafe {
             let process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, self.0);
@@ -210,6 +206,9 @@ impl WindowsCapturableContent {
                             return false;
                         }
                     }
+                    if !filter.impl_capturable_content_filter.filter_window_handle(hwnd) {
+                        return false;
+                    }
                     // TODO: filter desktop windows
                     true
                 }).map(|hwnd| *hwnd).collect();
@@ -269,6 +268,15 @@ impl WindowsCapturableContentFilter {
         excluded_window_handles: None,
     };
     pub(crate) const NORMAL_WINDOWS: Self = Self::DEFAULT;
+
+    fn filter_window_handle(&self, window_handle: &HWND) -> bool {
+        if let Some(excluded_window_handles) = &self.excluded_window_handles {
+            if excluded_window_handles.contains(window_handle) {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 pub trait WindowsCapturableContentFilterExt: Sized {
