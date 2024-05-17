@@ -127,7 +127,7 @@ impl VideoCaptureFrame for MacosVideoFrame {
                     },
                     size: Size {
                         width: frame_content_rect.size.x,
-                        height: frame_content_rect.origin.y
+                        height: frame_content_rect.size.y
                     }
                 }
             },
