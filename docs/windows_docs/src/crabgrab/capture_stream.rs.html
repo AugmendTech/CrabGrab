@@ -328,28 +328,13 @@
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::{error::Error, fmt::Display};
 
 <span class="kw">use </span><span class="kw">crate</span>::platform::platform_impl::{ImplAudioCaptureConfig, ImplCaptureAccessToken, ImplCaptureConfig, ImplCaptureStream};
 <span class="kw">use </span><span class="kw">crate</span>::capturable_content::Capturable;
 <span class="kw">use </span><span class="kw">crate</span>::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoFrame};
-<span class="kw">use </span><span class="kw">crate</span>::util::{Point, Rect, Size};
+<span class="kw">use </span><span class="kw">crate</span>::util::Size;
 
 <span class="doccomment">/// Represents an event in a capture stream
 </span><span class="attr">#[derive(Debug)]
@@ -510,7 +495,6 @@
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>CaptureConfig {
     <span class="kw">pub</span>(<span class="kw">crate</span>) target: Capturable,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) source_rect: Rect,
     <span class="kw">pub</span>(<span class="kw">crate</span>) output_size: Size,
     <span class="kw">pub</span>(<span class="kw">crate</span>) show_cursor: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pixel_format: CapturePixelFormat,
@@ -562,13 +546,6 @@
         <span class="prelude-val">Ok</span>(CaptureConfig {
             target: Capturable::Window(window),
             pixel_format,
-            source_rect: Rect {
-                origin: Point {
-                    x: <span class="number">0.0</span>,
-                    y: <span class="number">0.0</span>,
-                },
-                size: rect.size
-            },
             output_size: rect.size,
             show_cursor: <span class="bool-val">false</span>,
             impl_capture_config: ImplCaptureConfig::new(),
@@ -583,13 +560,6 @@
         CaptureConfig {
             target: Capturable::Display(display),
             pixel_format,
-            source_rect: Rect {
-                origin: Point {
-                    x: <span class="number">0.0</span>,
-                    y: <span class="number">0.0</span>,
-                },
-                size: rect.size
-            },
             output_size: rect.size,
             show_cursor: <span class="bool-val">false</span>,
             impl_capture_config: ImplCaptureConfig::new(),
