@@ -308,7 +308,7 @@
 <a href="#306" id="306">306</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::OsString, hash::Hash, os::{raw::c_void, windows::ffi::OsStringExt}, sync::Arc};
 
-<span class="kw">use </span>windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
+<span class="kw">use </span>windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
 
 <span class="kw">pub use </span>windows::Win32::Foundation::HWND;
 
@@ -334,16 +334,16 @@
 
     <span class="kw">pub fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>text_length = GetWindowTextLengthA(<span class="self">self</span>.<span class="number">0</span>);
+            <span class="kw">let </span>text_length = GetWindowTextLengthW(<span class="self">self</span>.<span class="number">0</span>);
             <span class="kw">if </span>text_length == <span class="number">0 </span>{
                 <span class="kw">return </span><span class="string">""</span>.into();
             }
-            <span class="kw">let </span><span class="kw-2">mut </span>text_buffer = <span class="macro">vec!</span>[<span class="number">0u8</span>; text_length <span class="kw">as </span>usize + <span class="number">1</span>];
-            <span class="kw">let </span>text_length = GetWindowTextA(<span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span>text_buffer[..]);
+            <span class="kw">let </span><span class="kw-2">mut </span>text_buffer = <span class="macro">vec!</span>[<span class="number">0u16</span>; text_length <span class="kw">as </span>usize + <span class="number">1</span>];
+            <span class="kw">let </span>text_length = GetWindowTextW(<span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span>text_buffer[..]);
             <span class="kw">if </span>(text_length <span class="kw">as </span>usize) &lt; text_buffer.len() {
                 text_buffer.truncate(text_length <span class="kw">as </span>usize);
             }
-            String::from_utf8_lossy(<span class="kw-2">&amp;</span>text_buffer).to_string()
+            String::from_utf16_lossy(<span class="kw-2">&amp;</span>text_buffer).to_string()
         }
     }
 
