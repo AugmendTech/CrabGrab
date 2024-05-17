@@ -299,6 +299,7 @@ impl MacosCapturableWindowExt for CapturableWindow {
 pub(crate) struct MacosCapturableContentFilter {
     pub window_level_range: (Option<MacosWindowLevel>, Option<MacosWindowLevel>),
     pub excluded_bundle_ids: Option<Arc<[String]>>,
+    pub excluded_window_ids: Option<Arc<[u32]>>,
 }
 
 impl Default for MacosCapturableContentFilter {
@@ -306,26 +307,36 @@ impl Default for MacosCapturableContentFilter {
         Self {
             window_level_range: (None, None),
             excluded_bundle_ids: None,
+            excluded_window_ids: None,
         }
     }
 }
 
 impl MacosCapturableContentFilter {
     fn filter_scwindow(&self, window: &SCWindow) -> bool {
-        if self.window_level_range == (None, None) {
-            true
-        } else {
+        let mut allow = true;
+        if self.window_level_range != (None, None) {
             if let Ok(level) = get_window_level(window.id().0) {
-                match &self.window_level_range {
+                allow &= match &self.window_level_range {
                     (Some(min), Some(max)) => (level >= *min) && (level <= *max),
                     (Some(min), None) => level >= *min,
                     (None, Some(max)) => level <= *max,
                     (None, None) => unreachable!(),
-                }
-            } else {
-                false
+                };
             }
         }
+        if let Some(excluded_bundle_ids) = &self.excluded_bundle_ids {
+            let bundle_id = window.owning_application().bundle_identifier();
+            if excluded_bundle_ids.contains(&bundle_id.to_lowercase()) {
+                allow = false;
+            }
+        }
+        if let Some(excluded_window_ids) = &self.excluded_window_ids {
+            if excluded_window_ids.contains(&window.id().0) {
+                allow = false;
+            }
+        }
+        allow
     }
 
     fn filter_scdisplay(&self, display: &SCDisplay) -> bool {
@@ -335,11 +346,13 @@ impl MacosCapturableContentFilter {
     pub const DEFAULT: Self = MacosCapturableContentFilter {
         window_level_range: (None, None),
         excluded_bundle_ids: None,
+        excluded_window_ids: None,
     };
 
     pub const NORMAL_WINDOWS: Self = MacosCapturableContentFilter {
         window_level_range: (Some(MacosWindowLevel::Normal), Some(MacosWindowLevel::TornOffMenu)),
         excluded_bundle_ids: None,
+        excluded_window_ids: None,
     };
 }
 
@@ -349,6 +362,8 @@ pub trait MacosCapturableContentFilterExt: Sized {
     fn with_window_level_range(self, min: Option<MacosWindowLevel>, max: Option<MacosWindowLevel>) -> Result<Self, CapturableContentError>;
     /// Exclude windows who's applications have the provided bundle ids
     fn with_exclude_bundle_ids(self, bundle_id: &[&str]) -> Self;
+    /// Exclude windows with the given CGWindowIDs
+    fn with_exclude_window_ids(self, window_ids: &[u32]) -> Self;
 }
 
 impl MacosCapturableContentFilterExt for CapturableContentFilter {
@@ -378,11 +393,30 @@ impl MacosCapturableContentFilterExt for CapturableContentFilter {
             }
         }
         for bundle_id in excluded_bundle_ids.iter() {
-            new_bundle_id_list.push((*bundle_id).to_owned());
+            new_bundle_id_list.push((*bundle_id).to_lowercase());
         }
         Self {
             impl_capturable_content_filter: MacosCapturableContentFilter {
                 excluded_bundle_ids: Some(new_bundle_id_list.into_boxed_slice().into()),
+                ..self.impl_capturable_content_filter
+            },
+            ..self
+        }
+    }
+
+    fn with_exclude_window_ids(self, excluded_window_ids: &[u32]) -> Self {
+        let mut new_excluded_window_id_list = vec![];
+        if let Some(current_excluded_window_ids) = &self.impl_capturable_content_filter.excluded_window_ids {
+            for window_id in current_excluded_window_ids.iter() {
+                new_excluded_window_id_list.push(*window_id);
+            }
+        }
+        for window_id in excluded_window_ids.iter() {
+            new_excluded_window_id_list.push(*window_id);
+        }
+        Self {
+            impl_capturable_content_filter: MacosCapturableContentFilter {
+                excluded_window_ids: Some(new_excluded_window_id_list.into_boxed_slice().into()),
                 ..self.impl_capturable_content_filter
             },
             ..self
