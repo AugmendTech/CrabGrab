@@ -17,6 +17,7 @@ pub(crate) use capturable_content::WindowsCapturableApplication as ImplCapturabl
 pub(crate) use capturable_content::WindowsCapturableDisplay as ImplCapturableDisplay;
 pub(crate) use capturable_content::WindowsCapturableWindow as ImplCapturableWindow;
 pub(crate) use capturable_content::WindowsCapturableContent as ImplCapturableContent;
+pub(crate) use capturable_content::WindowsCapturableContentFilter as ImplCapturableContentFilter;
 
 pub(crate) use capture_stream::WindowsCaptureStream as ImplCaptureStream;
 pub(crate) use capture_stream::WindowsCaptureConfig as ImplCaptureConfig;
@@ -29,6 +30,9 @@ pub(crate) use frame::WindowsAudioFrame as ImplAudioFrame;
 
 pub use capture_stream::WindowsCaptureConfigExt;
 
-pub use capturable_content::WindowsCapturableWindowNativeWindowHandle;
+/// Windows-specific extensions to capturable windows
+pub use capturable_content::WindowsCapturableWindowExt;
+/// Windows-specific extensions to capturable content filters
+pub use capturable_content::WindowsCapturableContentFilterExt;
 /// Re-exported from the `windows` crate
 pub use capturable_content::HWND;
