@@ -4,7 +4,7 @@ use std::{error::Error, fmt::Display};
 use crate::platform::platform_impl::{ImplAudioCaptureConfig, ImplCaptureAccessToken, ImplCaptureConfig, ImplCaptureStream};
 use crate::capturable_content::Capturable;
 use crate::prelude::{AudioChannelCount, AudioFrame, AudioSampleRate, CapturableDisplay, CapturableWindow, VideoFrame};
-use crate::util::{Point, Rect, Size};
+use crate::util::Size;
 
 /// Represents an event in a capture stream
 #[derive(Debug)]
@@ -165,7 +165,6 @@ pub enum CapturePixelFormat {
 #[derive(Clone, Debug)]
 pub struct CaptureConfig {
     pub(crate) target: Capturable,
-    pub(crate) source_rect: Rect,
     pub(crate) output_size: Size,
     pub(crate) show_cursor: bool,
     pub(crate) pixel_format: CapturePixelFormat,
@@ -217,13 +216,6 @@ impl CaptureConfig {
         Ok(CaptureConfig {
             target: Capturable::Window(window),
             pixel_format,
-            source_rect: Rect {
-                origin: Point {
-                    x: 0.0,
-                    y: 0.0,
-                },
-                size: rect.size
-            },
             output_size: rect.size,
             show_cursor: false,
             impl_capture_config: ImplCaptureConfig::new(),
@@ -238,13 +230,6 @@ impl CaptureConfig {
         CaptureConfig {
             target: Capturable::Display(display),
             pixel_format,
-            source_rect: Rect {
-                origin: Point {
-                    x: 0.0,
-                    y: 0.0,
-                },
-                size: rect.size
-            },
             output_size: rect.size,
             show_cursor: false,
             impl_capture_config: ImplCaptureConfig::new(),

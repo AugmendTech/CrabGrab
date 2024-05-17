@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use futures::executor::block_on;
 use crabgrab::prelude::*;
-use crabgrab::feature::wgpu::WgpuCaptureConfigExt;
-use crabgrab::feature::wgpu::WgpuVideoFrameExt;
+use crabgrab::feature::wgpu::WgpuCaptureConfigExt as _;
+use crabgrab::feature::wgpu::WgpuVideoFrameExt as _;
 
 #[allow(unused)]
 struct Gfx {

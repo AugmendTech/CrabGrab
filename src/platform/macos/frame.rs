@@ -4,7 +4,7 @@ use objc2::runtime::AnyObject;
 
 use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate, Point}, util::{Rect, Size}};
 
-use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoContentRect, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
+use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoBoundingRect, SCStreamFrameInfoContentRect, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
 pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) sample_buffer: CMSampleBuffer,

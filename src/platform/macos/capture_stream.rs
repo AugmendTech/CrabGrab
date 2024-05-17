@@ -211,7 +211,7 @@ impl MacosCaptureStream {
                 }
                 config.set_pixel_format(pixel_format);
                 config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| 1.0 / x).unwrap_or(1.0 / 120.0) as f64, 240));
-                config.set_source_rect(CGRect {
+                /*config.set_source_rect(CGRect {
                     origin: CGPoint {
                         x: capture_config.source_rect.origin.x,
                         y: capture_config.source_rect.origin.y,
@@ -220,7 +220,7 @@ impl MacosCaptureStream {
                         x: capture_config.source_rect.size.width,
                         y: capture_config.source_rect.size.height
                     }
-                });
+                });*/
                 config.set_size(CGSize {
                     x: capture_config.output_size.width,
                     y: capture_config.output_size.height,
