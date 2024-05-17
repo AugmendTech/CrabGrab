@@ -38,13 +38,8 @@
 //!         Some(token) => token,
 //!         None => CaptureStream::request_access(false).await.expect("Expected capture access")
 //!     };
-//!     // create a filter for the windows we're interested in capturing
-//!     let window_filter = CapturableWindowFilter {
-//!         desktop_windows: false,
-//!         onscreen_only: true,
-//!     };
-//!     // create an overall content filter
-//!     let filter = CapturableContentFilter { windows: Some(window_filter), displays: false };
+//!     // filter to normal windows
+//!     let filter = CapturableContentFilter::NORMAL_WINDOWS;
 //!     // get capturable content matching the filter
 //!     let content = CapturableContent::new(filter).await.unwrap();
 //!     // find the window we want to capture
