@@ -5,7 +5,7 @@ use objc2::runtime::AnyObject;
 use parking_lot::Mutex;
 
 use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
-use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, IOSurface, NSArray, NSDictionary, NSString, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
+use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, IOSurface, NSArray, NSDictionary, NSString, SCCaptureResolutionType, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
 
 pub type MacosPixelFormat = SCStreamPixelFormat;
 
@@ -38,6 +38,17 @@ pub(crate) struct MacosCaptureStream {
     pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+/// The "resolution type" of the capture
+pub enum MacosCaptureResolutionType {
+    /// Automatically select the resolution type
+    Automatic,
+    /// Select the highest available capture resolution (usually the physical resolution being rendered)
+    Best,
+    /// One linear screen unit per pixel, IE the "virtual resolution"
+    Nominal,
+}
+
 pub trait MacosCaptureConfigExt {
     /// Set whether or not to scale content to the output size
     fn with_scale_to_fit(self, scale_to_fit: bool) -> Self;
@@ -46,12 +57,15 @@ pub trait MacosCaptureConfigExt {
     #[cfg(feature = "metal")]
     /// Set the metal device to use for texture creation
     fn with_metal_device(self, metal_device: metal::Device) -> Self;
+    /// Set the resolution type of the capture
+    fn with_resolution_type(self, resolution_type: MacosCaptureResolutionType) -> Self;
 }
 
 #[derive(Clone)]
 pub(crate) struct MacosCaptureConfig {
     pub(crate) scale_to_fit: bool,
     pub(crate) maximum_fps: Option<f32>,
+    pub(crate) resolution_type: MacosCaptureResolutionType,
     #[cfg(feature = "metal")]
     pub(crate) metal_device: Option<metal::Device>,
     #[cfg(feature = "wgpu")]
@@ -69,6 +83,7 @@ impl MacosCaptureConfig {
         Self {
             scale_to_fit: true,
             maximum_fps: None,
+            resolution_type: MacosCaptureResolutionType::Nominal,
             #[cfg(feature = "metal")]
             metal_device: None,
             #[cfg(feature = "wgpu")]
@@ -103,6 +118,16 @@ impl MacosCaptureConfigExt for CaptureConfig {
         Self {
             impl_capture_config: MacosCaptureConfig {
                 metal_device: Some(metal_device),
+                ..self.impl_capture_config
+            },
+            ..self
+        }
+    }
+
+    fn with_resolution_type(self, resolution_type: MacosCaptureResolutionType) -> Self {
+        Self {
+            impl_capture_config: MacosCaptureConfig {
+                resolution_type,
                 ..self.impl_capture_config
             },
             ..self
@@ -221,6 +246,12 @@ impl MacosCaptureStream {
                         y: capture_config.source_rect.size.height
                     }
                 });*/
+                let resolution_type = match capture_config.impl_capture_config.resolution_type {
+                    MacosCaptureResolutionType::Automatic => SCCaptureResolutionType::SCCaptureResolutionAutomatic,
+                    MacosCaptureResolutionType::Best => SCCaptureResolutionType::SCCaptureResolutionBest,
+                    MacosCaptureResolutionType::Nominal => SCCaptureResolutionType::SCCaptureResolutionNominal,
+                };
+                config.set_resolution_type(resolution_type);
                 config.set_size(CGSize {
                     x: capture_config.output_size.width,
                     y: capture_config.output_size.height,

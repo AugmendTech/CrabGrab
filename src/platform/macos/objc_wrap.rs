@@ -843,6 +843,19 @@ impl SCStreamColorMatrix {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum SCCaptureResolutionType {
+    SCCaptureResolutionAutomatic = 0,
+    SCCaptureResolutionBest      = 1,
+    SCCaptureResolutionNominal   = 2,
+}
+
+impl SCCaptureResolutionType {
+    fn to_isize(&self) -> isize {
+        *self as isize
+    }
+}
+
 #[repr(C)]
 pub(crate) struct SCStreamConfiguration(pub(crate) *mut AnyObject);
 unsafe impl Send for SCStreamConfiguration {}
@@ -889,6 +902,18 @@ impl SCStreamConfiguration {
     pub(crate) fn set_color_matrix(&mut self, color_matrix: SCStreamColorMatrix) {
         unsafe {
             let _: () = msg_send![self.0, setColorMatrix: CFStringRefEncoded(color_matrix.to_cfstringref())];
+        }
+    }
+
+    pub(crate) fn set_resolution_type(&mut self, resolution_type: SCCaptureResolutionType) -> Result<(), ()> {
+        unsafe {
+            let has_property: Bool = msg_send![self.0, respondsToSelector: sel!(setResolutionType:)];
+            if !has_property.as_bool() {
+                return Err(())
+            } else {
+                let _: () = msg_send![self.0, setResolutionType: resolution_type.to_isize()];
+                Ok(())
+            }
         }
     }
 
