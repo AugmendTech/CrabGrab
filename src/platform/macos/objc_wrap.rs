@@ -713,8 +713,8 @@ impl SCShareableContent {
         unsafe {
             let _: () = msg_send![
                 class!(SCShareableContent),
-                getShareableContentExcludingDesktopWindows: Bool::from_raw(excluding_desktop_windows)
-                onScreenWindowsOnly: Bool::from_raw(onscreen_windows_only)
+                getShareableContentExcludingDesktopWindows: Bool::new(excluding_desktop_windows)
+                onScreenWindowsOnly: Bool::new(onscreen_windows_only)
                 completionHandler: &*handler_block
             ];
         }
@@ -932,14 +932,14 @@ impl SCStreamConfiguration {
     pub(crate) fn set_show_cursor(&mut self, show_cursor: bool) {
         unsafe {
             let show_cursor_ivar = class!(SCStreamConfiguration).instance_variable("_showsCursor").expect("_showsCursor ivar on SCStreamConfiguration");
-            *show_cursor_ivar.load_mut(&mut *self.0) = Bool::from_raw(show_cursor);
+            *show_cursor_ivar.load_mut(&mut *self.0) = Bool::new(show_cursor);
         }
     }
 
     pub(crate) fn set_capture_audio(&mut self, capture_audio: bool) {
         unsafe {
             let captures_audio_ivar = class!(SCStreamConfiguration).instance_variable("_capturesAudio").expect("_capturesAudio ivar on SCStreamConfiguration");
-            *captures_audio_ivar.load_mut(&mut *self.0) = Bool::from_raw(capture_audio);
+            *captures_audio_ivar.load_mut(&mut *self.0) = Bool::new(capture_audio);
         }
     }
 
@@ -953,7 +953,7 @@ impl SCStreamConfiguration {
     pub(crate) fn set_exclude_current_process_audio(&mut self, exclude_current_process_audio: bool) {
         unsafe {
             let exclude_current_process_audio_ivar = class!(SCStreamConfiguration).instance_variable("_excludesCurrentProcessAudio").expect("_excludesCurrentProcessAudio ivar on SCStreamConfiguration");
-            *exclude_current_process_audio_ivar.load_mut(&mut *self.0) = Bool::from_raw(exclude_current_process_audio);
+            *exclude_current_process_audio_ivar.load_mut(&mut *self.0) = Bool::new(exclude_current_process_audio);
         }
     }
 }
