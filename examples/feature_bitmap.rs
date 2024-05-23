@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crabgrab::{feature::bitmap::VideoFrameBitmap, prelude::*};
+use crabgrab::{feature::bitmap::VideoFrameBitmap as _, prelude::*};
 
 fn main() { 
     let runtime = tokio::runtime::Builder::new_multi_thread()

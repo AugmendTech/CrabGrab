@@ -57,7 +57,7 @@ pub trait MacosCaptureConfigExt {
     #[cfg(feature = "metal")]
     /// Set the metal device to use for texture creation
     fn with_metal_device(self, metal_device: metal::Device) -> Self;
-    /// Set the resolution type of the capture
+    /// Set the resolution type of the capture. Does nothing on macos before OS 14.0
     fn with_resolution_type(self, resolution_type: MacosCaptureResolutionType) -> Self;
 }
 
@@ -251,7 +251,7 @@ impl MacosCaptureStream {
                     MacosCaptureResolutionType::Best => SCCaptureResolutionType::SCCaptureResolutionBest,
                     MacosCaptureResolutionType::Nominal => SCCaptureResolutionType::SCCaptureResolutionNominal,
                 };
-                config.set_resolution_type(resolution_type);
+                _ = config.set_resolution_type(resolution_type);
                 config.set_size(CGSize {
                     x: capture_config.output_size.width,
                     y: capture_config.output_size.height,
