@@ -3945,8 +3945,8 @@
         <span class="kw">unsafe </span>{
             <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[
                 <span class="macro">class!</span>(SCShareableContent),
-                getShareableContentExcludingDesktopWindows: Bool::from_raw(excluding_desktop_windows)
-                onScreenWindowsOnly: Bool::from_raw(onscreen_windows_only)
+                getShareableContentExcludingDesktopWindows: Bool::new(excluding_desktop_windows)
+                onScreenWindowsOnly: Bool::new(onscreen_windows_only)
                 completionHandler: <span class="kw-2">&amp;*</span>handler_block
             ];
         }
@@ -4164,14 +4164,14 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_show_cursor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, show_cursor: bool) {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>show_cursor_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">"_showsCursor"</span>).expect(<span class="string">"_showsCursor ivar on SCStreamConfiguration"</span>);
-            <span class="kw-2">*</span>show_cursor_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::from_raw(show_cursor);
+            <span class="kw-2">*</span>show_cursor_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::new(show_cursor);
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_capture_audio(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capture_audio: bool) {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>captures_audio_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">"_capturesAudio"</span>).expect(<span class="string">"_capturesAudio ivar on SCStreamConfiguration"</span>);
-            <span class="kw-2">*</span>captures_audio_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::from_raw(capture_audio);
+            <span class="kw-2">*</span>captures_audio_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::new(capture_audio);
         }
     }
 
@@ -4185,7 +4185,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_exclude_current_process_audio(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exclude_current_process_audio: bool) {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>exclude_current_process_audio_ivar = <span class="macro">class!</span>(SCStreamConfiguration).instance_variable(<span class="string">"_excludesCurrentProcessAudio"</span>).expect(<span class="string">"_excludesCurrentProcessAudio ivar on SCStreamConfiguration"</span>);
-            <span class="kw-2">*</span>exclude_current_process_audio_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::from_raw(exclude_current_process_audio);
+            <span class="kw-2">*</span>exclude_current_process_audio_ivar.load_mut(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>) = Bool::new(exclude_current_process_audio);
         }
     }
 }
