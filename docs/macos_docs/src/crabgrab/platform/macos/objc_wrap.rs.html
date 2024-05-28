@@ -3230,6 +3230,31 @@
 <a href="#3228" id="3228">3228</a>
 <a href="#3229" id="3229">3229</a>
 <a href="#3230" id="3230">3230</a>
+<a href="#3231" id="3231">3231</a>
+<a href="#3232" id="3232">3232</a>
+<a href="#3233" id="3233">3233</a>
+<a href="#3234" id="3234">3234</a>
+<a href="#3235" id="3235">3235</a>
+<a href="#3236" id="3236">3236</a>
+<a href="#3237" id="3237">3237</a>
+<a href="#3238" id="3238">3238</a>
+<a href="#3239" id="3239">3239</a>
+<a href="#3240" id="3240">3240</a>
+<a href="#3241" id="3241">3241</a>
+<a href="#3242" id="3242">3242</a>
+<a href="#3243" id="3243">3243</a>
+<a href="#3244" id="3244">3244</a>
+<a href="#3245" id="3245">3245</a>
+<a href="#3246" id="3246">3246</a>
+<a href="#3247" id="3247">3247</a>
+<a href="#3248" id="3248">3248</a>
+<a href="#3249" id="3249">3249</a>
+<a href="#3250" id="3250">3250</a>
+<a href="#3251" id="3251">3251</a>
+<a href="#3252" id="3252">3252</a>
+<a href="#3253" id="3253">3253</a>
+<a href="#3254" id="3254">3254</a>
+<a href="#3255" id="3255">3255</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 #![allow(non_upper_case_globals)]
 
@@ -4075,6 +4100,19 @@
     }
 }
 
+<span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>SCCaptureResolutionType {
+    SCCaptureResolutionAutomatic = <span class="number">0</span>,
+    SCCaptureResolutionBest      = <span class="number">1</span>,
+    SCCaptureResolutionNominal   = <span class="number">2</span>,
+}
+
+<span class="kw">impl </span>SCCaptureResolutionType {
+    <span class="kw">fn </span>to_isize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; isize {
+        <span class="kw-2">*</span><span class="self">self </span><span class="kw">as </span>isize
+    }
+}
+
 <span class="attr">#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SCStreamConfiguration(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">*mut </span>AnyObject);
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>SCStreamConfiguration {}
@@ -4121,6 +4159,18 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_color_matrix(<span class="kw-2">&amp;mut </span><span class="self">self</span>, color_matrix: SCStreamColorMatrix) {
         <span class="kw">unsafe </span>{
             <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setColorMatrix: CFStringRefEncoded(color_matrix.to_cfstringref())];
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_resolution_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, resolution_type: SCCaptureResolutionType) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>has_property: Bool = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, respondsToSelector: <span class="macro">sel!</span>(setResolutionType:)];
+            <span class="kw">if </span>!has_property.as_bool() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(())
+            } <span class="kw">else </span>{
+                <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, setResolutionType: resolution_type.to_isize()];
+                <span class="prelude-val">Ok</span>(())
+            }
         }
     }
 

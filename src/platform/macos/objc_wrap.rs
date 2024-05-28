@@ -876,7 +876,9 @@ impl SCStreamConfiguration {
             origin: CGPoint::ZERO,
         };
         unsafe {
-            let _: () = msg_send![self.0, setDestinationRect: dest_rect];
+            //let _: () = msg_send![self.0, setDestinationRect: dest_rect];
+            let _: () = msg_send![self.0, setWidth: size.x as usize];
+            let _: () = msg_send![self.0, setHeight: size.y as usize];
         }
     }
 
@@ -888,7 +890,7 @@ impl SCStreamConfiguration {
 
     pub(crate) fn set_scales_to_fit(&mut self, scale_to_fit: bool) {
         unsafe {
-            let _: () = msg_send![self.0, setScalesToFit: scale_to_fit];
+            let _: () = msg_send![self.0, setScalesToFit: Bool::new(scale_to_fit)];
         }
     }
 
@@ -907,11 +909,11 @@ impl SCStreamConfiguration {
 
     pub(crate) fn set_resolution_type(&mut self, resolution_type: SCCaptureResolutionType) -> Result<(), ()> {
         unsafe {
-            let has_property: Bool = msg_send![self.0, respondsToSelector: sel!(setResolutionType:)];
+            let has_property: Bool = msg_send![self.0, respondsToSelector: sel!(setCaptureResolution:)];
             if !has_property.as_bool() {
                 return Err(())
             } else {
-                let _: () = msg_send![self.0, setResolutionType: resolution_type.to_isize()];
+                let _: () = msg_send![self.0, setCaptureResolution: resolution_type.to_isize()];
                 Ok(())
             }
         }

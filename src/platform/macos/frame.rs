@@ -4,7 +4,7 @@ use objc2::runtime::AnyObject;
 
 use crate::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate, Point}, util::{Rect, Size}};
 
-use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoBoundingRect, SCStreamFrameInfoContentRect, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
+use super::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoBoundingRect, SCStreamFrameInfoContentRect, SCStreamFrameInfoContentScale, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
 pub(crate) struct MacosSCStreamVideoFrame {
     pub(crate) sample_buffer: CMSampleBuffer,
@@ -118,16 +118,18 @@ impl VideoCaptureFrame for MacosVideoFrame {
             MacosVideoFrame::SCStream(sc_frame) => {
                 let info_dict = sc_frame.get_info_dict();
                 let content_rect_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoContentRect) };
+                let content_scale_ptr = unsafe { info_dict.get_value(SCStreamFrameInfoScaleFactor) };
                 let content_rect_dict = unsafe { NSDictionary::from_id_unretained(content_rect_ptr as *mut AnyObject) };
+                let content_scale_nsnumber = unsafe { NSNumber::from_id_unretained(content_scale_ptr as *mut AnyObject) };
                 let frame_content_rect = unsafe { CGRect::create_from_dictionary_representation(&content_rect_dict) };
                 Rect {
                     origin: Point {
-                        x: frame_content_rect.origin.x,
-                        y: frame_content_rect.origin.y,
+                        x: frame_content_rect.origin.x * content_scale_nsnumber.as_f64(),
+                        y: frame_content_rect.origin.y * content_scale_nsnumber.as_f64(),
                     },
                     size: Size {
-                        width: frame_content_rect.size.x,
-                        height: frame_content_rect.size.y
+                        width: frame_content_rect.size.x * content_scale_nsnumber.as_f64(),
+                        height: frame_content_rect.size.y * content_scale_nsnumber.as_f64()
                     }
                 }
             },
