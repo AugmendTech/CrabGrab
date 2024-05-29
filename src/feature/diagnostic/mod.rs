@@ -1,3 +1,6 @@
+#[cfg(target_os = "windows")]
+use windows::{Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_11_0, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_11_1, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_0, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_1, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_2, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_1_0_CORE};
+
 #[cfg(target_os = "macos")]
 use crate::platform::platform_impl::objc_wrap::{IOSurface, CGRect, NSDictionary, NSNumber, NSString, SCStreamFrameInfoBoundingRect, SCStreamFrameInfoContentRect, SCStreamFrameInfoContentScale, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoStatus};
 
@@ -29,12 +32,24 @@ pub struct FrameIOSurfaceInfo {
     planes: Vec<FrameIOSurfacePlaneInfo>,
 }
 
+#[cfg(target_os = "windows")]
+#[derive(Debug, Clone)]
+pub struct FrameDx11SurfaceInfo {
+    pixel_format: String,
+    width: usize,
+    height: usize,
+}
+
 #[derive(Debug, Clone)]
 pub struct FrameDiagnostic {
     #[cfg(target_os = "macos")]
     pub iosurface_info: Option<FrameIOSurfaceInfo>,
     #[cfg(target_os = "macos")]
     pub info_dictionary: Vec<(String, String)>,
+    #[cfg(target_os = "windows")]
+    pub dx11_surface_info: FrameDx11SurfaceInfo,
+    #[cfg(target_os = "windows")]
+    pub dx_feature_level: String,
 }
 
 pub trait FrameDiagnosticExt {
@@ -135,7 +150,29 @@ impl FrameDiagnosticExt for crate::prelude::VideoFrame {
         }
         #[cfg(target_os = "windows")]
         {
-            todo!()
+            let pixel_format = match self.impl_video_frame.pixel_format {
+                DirectXPixelFormat::B8G8R8A8UIntNormalized => "B8G8R8A8UIntNormalized",
+                DirectXPixelFormat::R10G10B10A2UIntNormalized => "R10G10B10A2UIntNormalized",
+                _ => "unknown"
+            }.to_string();
+            let (width, height) = self.impl_video_frame.frame_size;
+            let dx_feature_level = match unsafe { self.impl_video_frame.device.GetFeatureLevel() } {
+                D3D_FEATURE_LEVEL_11_0 => "11_0",
+                D3D_FEATURE_LEVEL_11_1 => "11_1",
+                D3D_FEATURE_LEVEL_12_0 => "12_0",
+                D3D_FEATURE_LEVEL_12_1 => "12_1",
+                D3D_FEATURE_LEVEL_12_2 => "12_2",
+                D3D_FEATURE_LEVEL_1_0_CORE => "1_0_CORE",
+                _ => "unknown"
+            }.to_string();
+            FrameDiagnostic {
+                dx11_surface_info: FrameDx11SurfaceInfo {
+                    pixel_format,
+                    width,
+                    height,
+                },
+                dx_feature_level
+            }
         }
     }
 }
