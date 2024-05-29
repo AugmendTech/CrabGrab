@@ -32,7 +32,7 @@ pub(crate) struct MacosCGDisplayStreamVideoFrame {
 }
 
 impl MacosSCStreamVideoFrame {
-    fn get_info_dict(&self) -> Ref<'_, CFDictionary> {
+    pub(crate) fn get_info_dict(&self) -> Ref<'_, CFDictionary> {
         let needs_dict = { self.dictionary.borrow().is_none() };
         if needs_dict {
             let mut dict_opt_mut = self.dictionary.borrow_mut();

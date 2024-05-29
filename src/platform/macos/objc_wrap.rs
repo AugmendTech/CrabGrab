@@ -67,6 +67,7 @@ extern "C" {
 
     //CFNumberRef CFNumberCreate(CFAllocatorRef allocator, CFNumberType theType, const void *valuePtr);
     fn CFNumberCreate(allocator: CFAllocatorRef, the_type: isize, value_ptr: *const c_void) -> CFNumberRef;
+    fn CFNumberGetValue(number: CFNumberRef, number_type: isize, value_ptr: *mut c_void) -> Bool;
 
     fn CGColorGetConstantColor(color_name: CFStringRef) -> CGColorRef;
 
@@ -183,6 +184,11 @@ extern "C" {
     fn IOSurfaceGetElementWidthOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
     fn IOSurfaceGetBytesPerElementOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
     fn IOSurfaceGetNumberOfComponentsOfPlane(surface: IOSurfaceRef, plane: usize) -> usize;
+    fn IOSurfaceGetNameOfComponentOfPlane(surface: IOSurfaceRef, plane: usize, component: usize) -> i32;
+    fn IOSurfaceGetTypeOfComponentOfPlane(surface: IOSurfaceRef, plane: usize, component: usize) -> i32;
+    fn IOSurfaceGetBitDepthOfComponentOfPlane(surface: IOSurfaceRef, plane: usize, component: usize) -> usize;
+    fn IOSurfaceGetBitOffsetOfComponentOfPlane(surface: IOSurfaceRef, plane: usize, component: usize) -> usize;
+    fn IOSurfaceCopyValue(surface: IOSurfaceRef, value: CFStringRef) -> *mut c_void;
 
     static mut _dispatch_queue_attr_concurrent: c_void;
 
@@ -216,6 +222,8 @@ extern "C" {
 
     pub(crate) static CGRectNull     : CGRect;
     pub(crate) static CGRectInfinite : CGRect;
+
+    pub(crate) static kIOSurfaceCacheMode: CFStringRef;
 }
 
 const SCSTREAM_ERROR_CODE_USER_STOPPED: isize = -3817;
@@ -2178,6 +2186,56 @@ impl Drop for IOSurfaceLockGaurd {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum IOSurfaceComponentName {
+    Unknown,
+    Alpha,
+    Red,
+    Green,
+    Blue,
+    Luma,
+    ChromaRed,
+    ChromaBlue,
+}
+
+const kIOSurfaceComponentNameUnknown    : i32 = 0;
+const kIOSurfaceComponentNameAlpha      : i32 = 1;
+const kIOSurfaceComponentNameRed        : i32 = 2;
+const kIOSurfaceComponentNameGreen      : i32 = 3;
+const kIOSurfaceComponentNameBlue       : i32 = 4;
+const kIOSurfaceComponentNameLuma       : i32 = 5;
+const kIOSurfaceComponentNameChromaRed  : i32 = 6;
+const kIOSurfaceComponentNameChromaBlue : i32 = 7;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum IOSurfaceComponentType {
+    Unknown,
+    UInt,
+    SInt,
+    Float,
+    SNorm,
+}
+
+const kIOSurfaceComponentTypeUnknown          : i32 = 0;
+const kIOSurfaceComponentTypeUnsignedInteger  : i32 = 1;
+const kIOSurfaceComponentTypeSignedInteger    : i32 = 2;
+const kIOSurfaceComponentTypeFloat            : i32 = 3;
+const kIOSurfaceComponentTypeSignedNormalized : i32 = 4;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum IOSurfaceCacheMode {
+    Default,
+    Inhibit,
+    WriteThrough,
+    Copyback,
+    WriteCombine,
+    CopybackInner,
+    PostedWrite,
+    RealTime,
+    PostedReordered,
+    PostedCombinedReordered,
+}
+
 impl IOSurface {
     fn from_ref_unretained(r: IOSurfaceRef) -> Self {
         unsafe { IOSurfaceIncrementUseCount(r); }
@@ -2224,6 +2282,57 @@ impl IOSurface {
     pub(crate) fn get_width_of_plane(&self, plane: usize) -> usize {
         unsafe {
             IOSurfaceGetWidthOfPlane(self.0, plane)
+        }
+    }
+
+    pub(crate) fn get_plane_count(&self) -> usize {
+        unsafe {
+            IOSurfaceGetPlaneCount(self.0)
+        }
+    }
+
+    pub(crate) fn get_plane_component_count(&self, plane: usize) -> usize {
+        unsafe {
+            IOSurfaceGetNumberOfComponentsOfPlane(self.0, plane)
+        }
+    }
+
+    pub(crate) fn get_plane_component_name(&self, plane: usize, component: usize) -> IOSurfaceComponentName {
+        unsafe {
+            match IOSurfaceGetNameOfComponentOfPlane(self.0, plane, component) {
+                kIOSurfaceComponentNameRed        => IOSurfaceComponentName::Red,
+                kIOSurfaceComponentNameGreen      => IOSurfaceComponentName::Green,
+                kIOSurfaceComponentNameBlue       => IOSurfaceComponentName::Blue,
+                kIOSurfaceComponentNameAlpha      => IOSurfaceComponentName::Alpha,
+                kIOSurfaceComponentNameChromaRed  => IOSurfaceComponentName::ChromaRed,
+                kIOSurfaceComponentNameChromaBlue => IOSurfaceComponentName::ChromaBlue,
+                kIOSurfaceComponentNameLuma       => IOSurfaceComponentName::Luma,
+                _                                 => IOSurfaceComponentName::Unknown
+            }
+        }
+    }
+
+    pub(crate) fn get_plane_component_type(&self, plane: usize, component: usize) -> IOSurfaceComponentType {
+        unsafe {
+            match IOSurfaceGetTypeOfComponentOfPlane(self.0, plane, component) {
+                kIOSurfaceComponentTypeSignedInteger    => IOSurfaceComponentType::SInt,
+                kIOSurfaceComponentTypeUnsignedInteger  => IOSurfaceComponentType::UInt,
+                kIOSurfaceComponentTypeFloat            => IOSurfaceComponentType::Float,
+                kIOSurfaceComponentTypeSignedNormalized => IOSurfaceComponentType::SNorm,
+                _                                       => IOSurfaceComponentType::Unknown,
+            }
+        }
+    }
+
+    pub(crate) fn get_plane_component_bit_depth(&self, plane: usize, component: usize) -> usize {
+        unsafe {
+            IOSurfaceGetBitDepthOfComponentOfPlane(self.0, plane, component)
+        }
+    }
+
+    pub(crate) fn get_plane_component_bit_offset(&self, plane: usize, component: usize) -> usize {
+        unsafe {
+            IOSurfaceGetBitOffsetOfComponentOfPlane(self.0, plane, component)
         }
     }
 
@@ -2340,6 +2449,8 @@ impl CFNumberType {
     }
 }
 
+const kCFNumberSInt32Type: isize = 3;
+
 #[repr(C)]
 pub(crate) struct CFNumber(pub(crate) CFNumberRef);
 
@@ -2356,6 +2467,22 @@ impl CFNumber {
             let r = CFNumberCreate(kCFAllocatorNull, CFNumberType::I32.to_isize(), &x as *const i32 as *const c_void);
             Self(r)
         }
+    }
+
+    pub fn as_i32(&self) -> Result<i32, ()> {
+        unsafe {
+            let mut x: i32 = 0;
+            if CFNumberGetValue(self.0, kCFNumberSInt32Type, &mut x as *mut i32 as *mut _).as_bool() {
+                Ok(x)
+            } else {
+                Err(())
+            }
+        }
+    }
+
+    pub fn from_ref_unretained(r: CFNumberRef) -> Self {
+        unsafe { CFRetain(r); }
+        Self(r)
     }
 }
 
@@ -3094,6 +3221,10 @@ pub struct SCScreenshotManager();
 unsafe impl Send for SCScreenshotManager {}
 
 impl SCScreenshotManager {
+    pub fn class_exists() -> bool {
+        AnyClass::get("SCScreenshotManager").is_some()
+    }
+
     pub fn capture_image_with_filter_and_configuration(filter: &SCContentFilter, config: &SCStreamConfiguration, completion_handler: impl FnMut(Result<CGImage, NSError>) + Send + 'static) {
         let completion_handler = Mutex::new(completion_handler);
         let completion_block = RcBlock::new(move |image: CGImageRef, error: *mut AnyObject| {

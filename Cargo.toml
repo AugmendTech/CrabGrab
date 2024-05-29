@@ -28,6 +28,7 @@ dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half", "dx11"]
 screenshot = ["bitmap"]
 wgpu = ["dep:wgpu", "dep:winapi", "dx11", "dxgi", "metal"]
+diagnostic = []
 
 [dependencies]
 futures = "0.3"

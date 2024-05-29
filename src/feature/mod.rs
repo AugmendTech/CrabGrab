@@ -32,3 +32,6 @@ pub mod wgpu;
 pub mod screenshot;
 //#[cfg(feature = "content_picker")]
 //pub mod content_picker;
+
+#[cfg(feature = "diagnostic")]
+pub mod diagnostic;

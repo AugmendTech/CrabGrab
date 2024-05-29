@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crabgrab::prelude::*;
+use crabgrab::{feature::diagnostic::FrameDiagnosticExt, prelude::*};
 
 fn main() { 
     let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -12,23 +12,23 @@ fn main() {
         };
         let filter = CapturableContentFilter::NORMAL_WINDOWS;
         let content = CapturableContent::new(filter).await.unwrap();
-        for window in content.windows() {
-            println!("app: {}, window: {}", window.application().identifier(), window.title());
-        }
         let window = content.windows().filter(|window| {
             let app_identifier = window.application().identifier();
             window.title().len() != 0 && (app_identifier.to_lowercase().contains("terminal") || app_identifier.to_lowercase().contains("explorer"))
         }).next();
         match window {
             Some(window) => {
-                println!("capturing window: {}", window.title()); 
-                let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[0]).unwrap();
-                let mut stream = CaptureStream::new(token, config, |stream_event| {
+                let config = CaptureConfig::with_window(window, CapturePixelFormat::Bgra8888).unwrap();
+                let mut diag_done = false;
+                let mut stream = CaptureStream::new(token, config, move |stream_event| {
                     match stream_event {
                         Ok(event) => {
                             match event {
                                 StreamEvent::Video(frame) => {
-                                    println!("Got frame: {}", frame.frame_id());
+                                    if !diag_done {
+                                        println!("Frame diagnostic: {:?}", frame.diagnostic());
+                                        diag_done = true;
+                                    }
                                 },
                                 _ => {}
                             }
@@ -38,8 +38,7 @@ fn main() {
                         }
                     }
                 }).unwrap();
-                println!("stream created!"); 
-                tokio::task::block_in_place(|| std::thread::sleep(Duration::from_millis(20000)));
+                tokio::task::block_in_place(|| std::thread::sleep(Duration::from_millis(2000)));
                 stream.stop().unwrap();
             },
             None => { println!("Failed to find window"); }
