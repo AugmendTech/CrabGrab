@@ -2742,7 +2742,7 @@ impl NSScreen {
         let screen_number_num = NSNumber::from_id_unretained(screen_number_ptr);
         let screen_number = screen_number_num.as_i32() as u32;
         let physical_size = unsafe { CGDisplayScreenSize(screen_number) };
-        let mut backing_scale_factor: f32 = unsafe { msg_send![self.0, backingScaleFactor] };
+        let mut backing_scale_factor: f64 = unsafe { msg_send![self.0, backingScaleFactor] };
         if backing_scale_factor == 0.0 {
             backing_scale_factor = 1.0;
         }
