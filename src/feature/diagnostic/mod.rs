@@ -40,6 +40,7 @@ pub struct FrameDx11SurfaceInfo {
     height: usize,
 }
 
+/// Diagnostic information about a capture frame
 #[derive(Debug, Clone)]
 pub struct FrameDiagnostic {
     #[cfg(target_os = "macos")]
@@ -52,6 +53,7 @@ pub struct FrameDiagnostic {
     pub dx_feature_level: String,
 }
 
+/// A frame that supports gathering diagnostic information
 pub trait FrameDiagnosticExt {
     fn diagnostic(&self) -> FrameDiagnostic;
 }
