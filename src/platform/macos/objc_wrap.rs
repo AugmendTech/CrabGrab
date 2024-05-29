@@ -260,6 +260,10 @@ unsafe impl Encode for NSString {
     const ENCODING: Encoding = Encoding::Object;
 }
 
+unsafe impl RefEncode for NSString {
+    const ENCODING_REF: Encoding = Self::ENCODING;
+}
+
 impl NSString {
     pub(crate) fn new(s: &str) -> Self {
         unsafe {
@@ -468,7 +472,7 @@ impl NSDictionary {
 
     pub(crate) fn value_for_key(&self, key: CFStringRef) -> *mut AnyObject {
         unsafe {
-            msg_send![self.0, valueForKey: key]
+            msg_send![self.0, valueForKey: key as *mut NSString]
         }
     }
 
