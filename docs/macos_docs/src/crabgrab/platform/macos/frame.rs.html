@@ -222,13 +222,15 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::{Ref, RefCell}, marker::PhantomData, sync::Arc, time::{Duration, Instant}};
 
 <span class="kw">use </span>objc2::runtime::AnyObject;
 
 <span class="kw">use crate</span>::{frame::{AudioCaptureFrame, VideoCaptureFrame}, prelude::{AudioBufferError, AudioChannelCount, AudioChannelData, AudioChannelDataSamples, AudioSampleRate, Point}, util::{Rect, Size}};
 
-<span class="kw">use </span><span class="kw">super</span>::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoBoundingRect, SCStreamFrameInfoContentRect, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
+<span class="kw">use </span><span class="kw">super</span>::objc_wrap::{kAudioFormatFlagIsBigEndian, kAudioFormatFlagIsPacked, kAudioFormatFlagsCanonical, kAudioFormatNativeEndian, AVAudioFormat, AVAudioPCMBuffer, AudioBufferList, AudioStreamBasicDescription, CFDictionary, CGRect, CGRectMakeWithDictionaryRepresentation, CMBlockBuffer, CMSampleBuffer, IOSurface, NSDictionary, NSNumber, NSScreen, SCStreamFrameInfoBoundingRect, SCStreamFrameInfoContentRect, SCStreamFrameInfoContentScale, SCStreamFrameInfoScaleFactor, SCStreamFrameInfoScreenRect};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MacosSCStreamVideoFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) sample_buffer: CMSampleBuffer,
@@ -256,7 +258,7 @@
 }
 
 <span class="kw">impl </span>MacosSCStreamVideoFrame {
-    <span class="kw">fn </span>get_info_dict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">'_</span>, CFDictionary&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_info_dict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">'_</span>, CFDictionary&gt; {
         <span class="kw">let </span>needs_dict = { <span class="self">self</span>.dictionary.borrow().is_none() };
         <span class="kw">if </span>needs_dict {
             <span class="kw">let </span><span class="kw-2">mut </span>dict_opt_mut = <span class="self">self</span>.dictionary.borrow_mut();
@@ -342,16 +344,18 @@
             MacosVideoFrame::SCStream(sc_frame) =&gt; {
                 <span class="kw">let </span>info_dict = sc_frame.get_info_dict();
                 <span class="kw">let </span>content_rect_ptr = <span class="kw">unsafe </span>{ info_dict.get_value(SCStreamFrameInfoContentRect) };
+                <span class="kw">let </span>content_scale_ptr = <span class="kw">unsafe </span>{ info_dict.get_value(SCStreamFrameInfoScaleFactor) };
                 <span class="kw">let </span>content_rect_dict = <span class="kw">unsafe </span>{ NSDictionary::from_id_unretained(content_rect_ptr <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject) };
+                <span class="kw">let </span>content_scale_nsnumber = <span class="kw">unsafe </span>{ NSNumber::from_id_unretained(content_scale_ptr <span class="kw">as </span><span class="kw-2">*mut </span>AnyObject) };
                 <span class="kw">let </span>frame_content_rect = <span class="kw">unsafe </span>{ CGRect::create_from_dictionary_representation(<span class="kw-2">&amp;</span>content_rect_dict) };
                 Rect {
                     origin: Point {
-                        x: frame_content_rect.origin.x,
-                        y: frame_content_rect.origin.y,
+                        x: frame_content_rect.origin.x * content_scale_nsnumber.as_f64(),
+                        y: frame_content_rect.origin.y * content_scale_nsnumber.as_f64(),
                     },
                     size: Size {
-                        width: frame_content_rect.size.x,
-                        height: frame_content_rect.size.y
+                        width: frame_content_rect.size.x * content_scale_nsnumber.as_f64(),
+                        height: frame_content_rect.size.y * content_scale_nsnumber.as_f64()
                     }
                 }
             },

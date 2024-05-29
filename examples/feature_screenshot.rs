@@ -1,4 +1,4 @@
-use crabgrab::{feature::bitmap::VideoFrameBitmap, prelude::*};
+use crabgrab::{feature::bitmap::VideoFrameBitmap as _, prelude::*};
 use futures::executor::block_on;
  
 fn main() { 

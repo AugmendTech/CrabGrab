@@ -6,10 +6,6 @@ fn main() {
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .build().unwrap();
     let future = runtime.spawn(async {
-        let token = match CaptureStream::test_access(true) {
-            Some(token) => token,
-            None => CaptureStream::request_access(true).await.expect("Expected capture access")
-        };
         let filter = CapturableContentFilter::NORMAL_WINDOWS;
         let content = CapturableContent::new(filter).await.unwrap();
         for window in content.windows() {

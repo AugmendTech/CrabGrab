@@ -1,7 +1,7 @@
 [package]
 name = "crabgrab"
 description = "A cross-platform screen/window capture crate"
-version = "0.3.6"
+version = "0.3.7"
 edition = "2021"
 authors = ["Augmend, Inc. <https://github.com/AugmendTech>", "Liam Taylor <https://github.com/OutOfTheVoid>", "Tim Misiak <https://github.com/TimMisiak>"]
 documentation = "https://docs.rs/crabgrab"
@@ -28,6 +28,7 @@ dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half", "dx11"]
 screenshot = ["bitmap"]
 wgpu = ["dep:wgpu", "dep:winapi", "dx11", "dxgi", "metal"]
+diagnostic = []
 
 [dependencies]
 futures = "0.3"

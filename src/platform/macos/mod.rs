@@ -24,6 +24,8 @@ pub(crate) use capturable_content::MacosCapturableApplication as ImplCapturableA
 pub use capture_stream::MacosAudioCaptureConfigExt;
 /// Mac OS specific extensions for capture configs
 pub use capture_stream::MacosCaptureConfigExt;
+/// Mac OS "resolution type"
+pub use capture_stream::MacosCaptureResolutionType;
 
 /// Mac OS specific extensions for capturable windows
 pub use capturable_content::MacosCapturableWindowExt;

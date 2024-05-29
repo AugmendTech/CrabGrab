@@ -34,6 +34,9 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">"metal"</span>)]
 #[cfg(target_os=<span class="string">"macos"</span>)]
 </span><span class="doccomment">/// Frame -&gt; Metal Texture conversion
@@ -68,4 +71,7 @@
 </span><span class="kw">pub mod </span>screenshot;
 <span class="comment">//#[cfg(feature = "content_picker")]
 //pub mod content_picker;
-</span></code></pre></div></section></main></body></html>
+
+</span><span class="attr">#[cfg(feature = <span class="string">"diagnostic"</span>)]
+</span><span class="kw">pub mod </span>diagnostic;
+</code></pre></div></section></main></body></html>
