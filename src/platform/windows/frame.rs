@@ -55,6 +55,12 @@ impl VideoCaptureFrame for WindowsVideoFrame {
     }
 }
 
+impl Drop for WindowsVideoFrame {
+    fn drop(&mut self) {
+        _ = self.frame.Close();
+    }
+}
+
 pub struct WindowsAudioFrame {
     pub(crate) data: Box<[i16]>,
     pub(crate) channel_count: AudioChannelCount,

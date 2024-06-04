@@ -75,10 +75,12 @@ windows = { version = "0.52", features = [
     "Win32_System_Com",
     "Win32_System_Com_StructuredStorage",
     "Win32_System_Variant",
+    "Win32_Security",
     "Foundation",
     "Security_Authorization_AppCapabilityAccess",
     "UI_Core",
     "ApplicationModel_Core",
+    "System",
 ] }
 wgpu = { version = "0.20", optional = true, features = ["dx12", "hal"] }
 d3d12 = "0.20"

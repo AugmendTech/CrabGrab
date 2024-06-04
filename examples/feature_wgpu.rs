@@ -55,18 +55,21 @@ fn main() {
         let config = CaptureConfig::with_display(display, CapturePixelFormat::Bgra8888)
             .with_wgpu_device(gfx.clone())
             .expect("Expected config with wgpu device");
-        let (tx_result, rx_result) = futures::channel::oneshot::channel();
+        let (tx_result, rx_result) = futures::channel::oneshot::channel::<Result<Option<VideoFrame>, StreamError>>();
         let mut tx_result = Some(tx_result);
         let _stream = CaptureStream::new(token, config, move |event_result| {
             match event_result {
                 Ok(event) => {
                     match event {
                         StreamEvent::Video(frame) => {
-                            if let Some(tx_result) = tx_result.take() {
+                            /*if let Some(tx_result) = tx_result.take() {
                                 println!("Sending frame...");
                                 tx_result.send(Ok(Some(frame)))
                                     .expect("Expected to send result");
-                            }
+                            }*/
+                            println!("got texture {}", frame.frame_id());
+                            let texture = frame.get_wgpu_texture(WgpuVideoFramePlaneTexture::Rgba, None).unwrap();
+                            println!("format: {:?}", texture.format());
                         },
                         StreamEvent::End => {
                             if let Some(tx_result) = tx_result.take() {

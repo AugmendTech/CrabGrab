@@ -1,11 +1,11 @@
-use std::{sync::{atomic::{self, AtomicBool, AtomicU64}, Arc}, time::{Duration, Instant}, fmt::Debug};
+use std::{fmt::Debug, sync::{atomic::{self, AtomicBool, AtomicU64}, mpsc, Arc}, time::{Duration, Instant}};
 
 use crate::prelude::{AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame};
 
 use parking_lot::Mutex;
-use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Graphics::{Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED}, WinRT::{Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, Graphics::Capture::IGraphicsCaptureItemInterop}}, UI::HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}}};
+use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Foundation::HWND, Graphics::{Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED}, WinRT::{CreateDispatcherQueueController, Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, DispatcherQueueOptions, Graphics::Capture::IGraphicsCaptureItemInterop, DQTAT_COM_NONE, DQTYPE_THREAD_CURRENT}}, UI::{HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}, WindowsAndMessaging::{DispatchMessageW, GetMessageW, TranslateMessage, MSG}}}};
 
-use super::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::WindowsVideoFrame, frame::WindowsAudioFrame};
+use super::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::{WindowsAudioFrame, WindowsVideoFrame}, AutoCom};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[allow(unused)]
@@ -106,10 +106,12 @@ pub struct WindowsCaptureStream {
     pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
     pub(crate) frame_pool: Direct3D11CaptureFramePool,
     pub(crate) capture_session: GraphicsCaptureSession,
-    should_couninit: bool,
+    auto_com: AutoCom,
     shared_handler_data: Arc<SharedHandlerData>,
     audio_stream: Option<WindowsAudioCaptureStream>,
 }
+
+unsafe impl Send for WindowsCaptureStream {}
 
 pub(crate) struct SharedHandlerData {
     callback: Mutex<Box<dyn FnMut(Result<StreamEvent, StreamError>) + Send + 'static>>,
@@ -130,6 +132,20 @@ impl WindowsCaptureAccessToken {
     pub(crate) fn allows_borderless(&self) -> bool {
         self.borderless
     }
+}
+
+struct StreamCreateOutput {
+    dxgi_adapter: Option<IDXGIAdapter>,
+    dxgi_adapter_error: Option<String>,
+    dxgi_device: IDXGIDevice,
+    d3d11_device: ID3D11Device,
+    #[cfg(feature = "wgpu")]
+    wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
+    frame_pool: Direct3D11CaptureFramePool,
+    capture_session: GraphicsCaptureSession,
+    auto_com: AutoCom,
+    shared_handler_data: Arc<SharedHandlerData>,
+    audio_stream: Option<WindowsAudioCaptureStream>,
 }
 
 impl WindowsCaptureStream {
@@ -199,10 +215,17 @@ impl WindowsCaptureStream {
         }
     }
 
-    pub fn new(token: WindowsCaptureAccessToken, config: CaptureConfig, callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+    fn create_capture_stream(token: WindowsCaptureAccessToken, config: CaptureConfig, callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<StreamCreateOutput, StreamCreateError> {
         let _ = token;
-        let should_couninit = unsafe {
-            CoInitializeEx(None, COINIT_APARTMENTTHREADED).is_ok()
+        let auto_com = AutoCom::new(COINIT_APARTMENTTHREADED);
+
+        let mut dqco = DispatcherQueueOptions::default();
+        dqco.threadType = DQTYPE_THREAD_CURRENT;
+        dqco.apartmentType = DQTAT_COM_NONE;
+        dqco.dwSize = std::mem::size_of::<DispatcherQueueOptions>() as u32;
+        match unsafe { CreateDispatcherQueueController(dqco) } {
+            Ok(_) => {},
+            Err(error) => return Err(StreamCreateError::Other(format!("Failed to create dispatch queue controller: {}", error.to_string()))),
         };
 
         if config.impl_capture_config.borderless && !token.borderless {
@@ -215,10 +238,10 @@ impl WindowsCaptureStream {
             _ => return Err(StreamCreateError::UnsupportedPixelFormat),
         };
 
+        let callback_target = config.target.clone();
+
         let interop: IGraphicsCaptureItemInterop = windows::core::factory::<GraphicsCaptureItem, IGraphicsCaptureItemInterop>()
             .map_err(|_| StreamCreateError::Other("Failed to create IGraphicsCaptureInterop factory".into()))?;
-
-        let callback_target = config.target.clone();
 
         let graphics_capture_item: GraphicsCaptureItem = unsafe {
             match config.target {
@@ -260,7 +283,7 @@ impl WindowsCaptureStream {
 
         let (width, height) = ((config.output_size.width + 0.1) as usize, (config.output_size.height + 0.1) as usize);
 
-        let frame_pool = Direct3D11CaptureFramePool::CreateFreeThreaded(
+        let frame_pool = Direct3D11CaptureFramePool::Create(
             &direct3d_device,
             pixel_format,
             config.buffer_count as i32,
@@ -408,24 +431,89 @@ impl WindowsCaptureStream {
         } else {
             None
         };
+        Ok(
+            StreamCreateOutput {
+                auto_com,
+                audio_stream,
+                capture_session,
+                dxgi_adapter,
+                dxgi_adapter_error,
+                d3d11_device,
+                #[cfg(feature = "wgpu")]
+                wgpu_device,
+                dxgi_device,
+                frame_pool,
+                shared_handler_data
+            }
+        )
+    }
 
-        capture_session.StartCapture().map_err(|_| StreamCreateError::Other("Failed to start capture".into()))?;
+    pub fn new(token: WindowsCaptureAccessToken, config: CaptureConfig, callback: Box<impl FnMut(Result<StreamEvent, StreamError>) + Send + 'static>) -> Result<Self, StreamCreateError> {
+        let auto_com = AutoCom::new(COINIT_APARTMENTTHREADED);
 
-        let stream = WindowsCaptureStream {
-            dxgi_adapter,
-            dxgi_adapter_error,
-            dxgi_device,
-            d3d11_device,
-            #[cfg(feature = "wgpu")]
-            wgpu_device,
-            frame_pool,
-            capture_session,
-            should_couninit,
-            shared_handler_data,
-            audio_stream
-        };
+        let (init_tx, init_rx) = std::sync::mpsc::channel();
 
-        Ok(stream)
+        std::thread::spawn(move || {
+            match Self::create_capture_stream(token, config, callback) {
+                Err(error) => {
+                    _ = init_tx.send(Err(error));
+                    return;
+                },
+                Ok(stream_create_output) => {
+                    let StreamCreateOutput {
+                        dxgi_adapter,
+                        dxgi_adapter_error,
+                        dxgi_device,
+                        d3d11_device,
+                        #[cfg(feature = "wgpu")]
+                        wgpu_device,
+                        frame_pool,
+                        capture_session,
+                        auto_com: _auto_com,
+                        shared_handler_data,
+                        audio_stream,
+                    } = stream_create_output;
+
+                    if let Err(error) = capture_session.StartCapture() {
+                        _ = init_tx.send(Err(StreamCreateError::Other(format!("Failed to start capture session: {}", error.to_string()))));
+                        return;
+                    };
+                    
+                    let thread_shared_handler_data = shared_handler_data.clone();
+
+                    let stream = WindowsCaptureStream {
+                        dxgi_adapter,
+                        dxgi_device,
+                        dxgi_adapter_error,
+                        d3d11_device,
+                        #[cfg(feature = "wgpu")]
+                        wgpu_device,
+                        frame_pool,
+                        capture_session,
+                        auto_com: AutoCom::no_init(),
+                        shared_handler_data,
+                        audio_stream,
+                    };
+
+                    _ = init_tx.send(Ok(stream));
+
+                    let mut message = MSG::default();
+                    while unsafe { GetMessageW(&mut message as *mut _, HWND::default(), 0, 0) }.as_bool() && !thread_shared_handler_data.closed.load(atomic::Ordering::SeqCst) {
+                        unsafe {
+                            TranslateMessage(&message as *const _);
+                            DispatchMessageW(&message as *const _);
+                        }
+                    }
+                }
+            }
+        });
+
+        init_rx.recv()
+            .map_err(|error| StreamCreateError::Other(format!("Failed to receive stream thread start: {}", error.to_string())))?
+            .map(|mut stream| {
+                stream.auto_com = auto_com;
+                stream
+            })
     }
 
     pub fn stop(&self) -> Result<(), StreamStopError> {
@@ -443,9 +531,6 @@ impl Drop for WindowsCaptureStream {
         let _ = self.stop();
         if let Some(audio_stream) = &mut self.audio_stream {
             audio_stream.stop();
-        }
-        if self.should_couninit {
-            unsafe { CoUninitialize(); }
         }
     }
 }
