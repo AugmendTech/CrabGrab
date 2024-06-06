@@ -62,15 +62,11 @@ fn main() {
                 Ok(event) => {
                     match event {
                         StreamEvent::Video(frame) => {
-                            /*if let Some(tx_result) = tx_result.take() {
+                            if let Some(tx_result) = tx_result.take() {
                                 println!("Sending frame...");
                                 tx_result.send(Ok(Some(frame)))
                                     .expect("Expected to send result");
-                            }*/
-                            println!("got texture {}", frame.frame_id());
-                            let texture = frame.get_wgpu_texture(WgpuVideoFramePlaneTexture::Rgba, None).unwrap();
-                            //println!("format: {:?}", texture.format());
-                            //texture.destroy();
+                            }
                         },
                         StreamEvent::End => {
                             if let Some(tx_result) = tx_result.take() {
@@ -101,7 +97,7 @@ fn main() {
                 println!("Got frame! getting wgpu texture...");
                 let wgpu_texture = frame.get_wgpu_texture(crabgrab::feature::wgpu::WgpuVideoFramePlaneTexture::Rgba, Some("wgpu video frame"))
                     .expect("Expected wgpu texture from video frame");
-                println!("Got wgpu texture! Size: {:?}", wgpu_texture.size());
+                println!("Got wgpu texture! Size: {:?}, Format: {:?}", wgpu_texture.size(), wgpu_texture.format());
             },
             None => {
                 println!("Got None! Oh no!");
