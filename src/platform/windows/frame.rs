@@ -5,17 +5,17 @@ use windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelF
 use crate::{prelude::{AudioBufferError, AudioCaptureFrame, AudioChannelCount, AudioChannelDataSamples, AudioSampleRate, Point, Rect, VideoCaptureFrame}, util::Size};
 
 pub struct WindowsVideoFrame {
-    pub(crate) device       : ID3D11Device,
-    pub(crate) frame        : Direct3D11CaptureFrame,
-    pub(crate) frame_size   : (usize, usize),
-    pub(crate) pixel_format : DirectXPixelFormat,
-    pub(crate) frame_id     : u64,
-    pub(crate) dpi          : u32,
-    pub(crate) t_capture    : std::time::Instant,
-    pub(crate) t_origin     : std::time::Duration,
-    pub(crate) duration     : std::time::Duration,
+    pub(crate) device           : ID3D11Device,
+    pub(crate) frame            : Direct3D11CaptureFrame,
+    pub(crate) frame_size       : (usize, usize),
+    pub(crate) pixel_format     : DirectXPixelFormat,
+    pub(crate) frame_id         : u64,
+    pub(crate) dpi              : u32,
+    pub(crate) t_capture        : std::time::Instant,
+    pub(crate) t_origin         : std::time::Duration,
+    pub(crate) duration         : std::time::Duration,
     #[cfg(feature = "wgpu")]
-    pub(crate) wgpu_device  : Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
+    pub(crate) wgpu_device      : Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
 }
 
 impl VideoCaptureFrame for WindowsVideoFrame {
@@ -52,6 +52,12 @@ impl VideoCaptureFrame for WindowsVideoFrame {
             origin: Point::ZERO,
             size: self.size()
         }
+    }
+}
+
+impl Drop for WindowsVideoFrame {
+    fn drop(&mut self) {
+        _ = self.frame.Close();
     }
 }
 

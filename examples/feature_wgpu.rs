@@ -29,12 +29,12 @@ fn main() {
             backends: wgpu::Backends::DX12,
             #[cfg(target_os = "macos")]
             backends: wgpu::Backends::METAL,
-            flags: wgpu::InstanceFlags::default(),
+            flags: wgpu::InstanceFlags::VALIDATION | wgpu::InstanceFlags::GPU_BASED_VALIDATION,
             dx12_shader_compiler: wgpu::Dx12Compiler::default(),
             gles_minor_version: wgpu::Gles3MinorVersion::default(),
         });
         let wgpu_adapter = wgpu_instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::None,
+            power_preference: wgpu::PowerPreference::HighPerformance,
             force_fallback_adapter: false,
             compatible_surface: None,
         }).await.expect("Expected wgpu adapter");
@@ -55,7 +55,7 @@ fn main() {
         let config = CaptureConfig::with_display(display, CapturePixelFormat::Bgra8888)
             .with_wgpu_device(gfx.clone())
             .expect("Expected config with wgpu device");
-        let (tx_result, rx_result) = futures::channel::oneshot::channel();
+        let (tx_result, rx_result) = futures::channel::oneshot::channel::<Result<Option<VideoFrame>, StreamError>>();
         let mut tx_result = Some(tx_result);
         let _stream = CaptureStream::new(token, config, move |event_result| {
             match event_result {
@@ -97,7 +97,7 @@ fn main() {
                 println!("Got frame! getting wgpu texture...");
                 let wgpu_texture = frame.get_wgpu_texture(crabgrab::feature::wgpu::WgpuVideoFramePlaneTexture::Rgba, Some("wgpu video frame"))
                     .expect("Expected wgpu texture from video frame");
-                println!("Got wgpu texture! Size: {:?}", wgpu_texture.size());
+                println!("Got wgpu texture! Size: {:?}, Format: {:?}", wgpu_texture.size(), wgpu_texture.format());
             },
             None => {
                 println!("Got None! Oh no!");

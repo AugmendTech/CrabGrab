@@ -3392,6 +3392,7 @@
 <a href="#3390" id="3390">3390</a>
 <a href="#3391" id="3391">3391</a>
 <a href="#3392" id="3392">3392</a>
+<a href="#3393" id="3393">3393</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unused)]
 #![allow(non_upper_case_globals)]
 
@@ -4821,7 +4822,8 @@
             <span class="kw">let </span>result: bool = <span class="macro">msg_send!</span>[instance, addStreamOutput: SCStreamOutput(handler.<span class="number">0</span>) <span class="kw">type</span>: SCStreamOutputType::Screen.to_encoded() sampleHandlerQueue: handler_queue error: <span class="kw-2">&amp;mut </span>error <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>];
             <span class="kw">if </span>!error.is_null() {
                 <span class="kw">let </span>error = NSError::from_id_retained(error);
-                <span class="macro">println!</span>(<span class="string">"error: {}, reason: {}"</span>, error.description(), error.reason());
+                <span class="kw">let _</span>: () = <span class="macro">msg_send!</span>[instance, release];
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"SCStream error: {}, reason: {}"</span>, error.description(), error.reason()));
             }
             <span class="prelude-val">Ok</span>(SCStream(instance))
         }
@@ -6136,7 +6138,7 @@ kCFNumberCFIndexType = 14,
         <span class="kw">let </span>screen_number_num = NSNumber::from_id_unretained(screen_number_ptr);
         <span class="kw">let </span>screen_number = screen_number_num.as_i32() <span class="kw">as </span>u32;
         <span class="kw">let </span>physical_size = <span class="kw">unsafe </span>{ CGDisplayScreenSize(screen_number) };
-        <span class="kw">let </span><span class="kw-2">mut </span>backing_scale_factor: f32 = <span class="kw">unsafe </span>{ <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, backingScaleFactor] };
+        <span class="kw">let </span><span class="kw-2">mut </span>backing_scale_factor: f64 = <span class="kw">unsafe </span>{ <span class="macro">msg_send!</span>[<span class="self">self</span>.<span class="number">0</span>, backingScaleFactor] };
         <span class="kw">if </span>backing_scale_factor == <span class="number">0.0 </span>{
             backing_scale_factor = <span class="number">1.0</span>;
         }

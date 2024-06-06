@@ -308,7 +308,7 @@
 <a href="#306" id="306">306</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{ffi::OsString, hash::Hash, os::{raw::c_void, windows::ffi::OsStringExt}, sync::Arc};
 
-<span class="kw">use </span>windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextA, GetWindowTextLengthA, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
+<span class="kw">use </span>windows::Win32::{Foundation::{BOOL, LPARAM, RECT, TRUE}, Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR}, System::{ProcessStatus::GetModuleFileNameExW, Threading::{OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ}}, UI::WindowsAndMessaging::{EnumWindows, GetWindowDisplayAffinity, GetWindowRect, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow, IsWindowVisible, WDA_EXCLUDEFROMCAPTURE}};
 
 <span class="kw">pub use </span>windows::Win32::Foundation::HWND;
 

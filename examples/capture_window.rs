@@ -39,7 +39,7 @@ fn main() {
                     }
                 }).unwrap();
                 println!("stream created!"); 
-                tokio::task::block_in_place(|| std::thread::sleep(Duration::from_millis(20000)));
+                tokio::task::block_in_place(|| std::thread::sleep(Duration::from_millis(2000)));
                 stream.stop().unwrap();
             },
             None => { println!("Failed to find window"); }

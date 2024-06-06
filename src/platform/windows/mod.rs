@@ -1,17 +1,44 @@
-use windows::Win32::Foundation::CloseHandle;
-use windows::Win32::Foundation::HANDLE;
+use windows::Win32::{System::Com::{CoInitializeEx, CoUninitialize, COINIT}, Foundation::{CloseHandle, HANDLE}};
 
 pub(crate) mod capture_stream;
 mod capturable_content;
 mod audio_capture_stream;
 pub(crate) mod frame;
 
-pub(crate) struct AutoHandle(HANDLE);
+pub(crate) struct AutoHandle(pub HANDLE);
 impl Drop for AutoHandle {
     fn drop(&mut self) {
         unsafe { let _ = CloseHandle(self.0); }
     }
 }
+
+pub(crate) struct AutoCom(Option<COINIT>);
+
+impl AutoCom {
+    fn new(coinit: COINIT) -> Self {
+        let inner = unsafe {
+            if CoInitializeEx(None, coinit).is_ok() {
+                Some(coinit)
+            } else {
+                None
+            }
+        };
+        Self(inner)
+    }
+
+    fn no_init() -> Self {
+        Self(None)
+    }
+}
+
+impl Drop for AutoCom {
+    fn drop(&mut self) {
+        if let Some(_coinit) = self.0.take() {
+            unsafe { CoUninitialize() };
+        }
+    }
+}
+
 
 pub(crate) use capturable_content::WindowsCapturableApplication as ImplCapturableApplication;
 pub(crate) use capturable_content::WindowsCapturableDisplay as ImplCapturableDisplay;
