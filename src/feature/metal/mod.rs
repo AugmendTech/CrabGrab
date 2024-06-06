@@ -6,7 +6,6 @@ use objc2::msg_send;
 use objc2::runtime::AnyObject;
 use objc2::Encode;
 use objc2::Encoding;
-use objc2::RefEncode;
 
 use crate::platform::platform_impl::objc_wrap::CVPixelFormat;
 use crate::prelude::{CaptureStream, VideoFrame};
