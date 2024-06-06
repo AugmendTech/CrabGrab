@@ -120,12 +120,12 @@
 <a href="#118" id="118">118</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{marker::PhantomData, sync::Arc, time::Duration};
 
-<span class="kw">use </span>windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::{Direct3D11::ID3D11Device}};
+<span class="kw">use </span>windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
 
 <span class="kw">use crate</span>::{prelude::{AudioBufferError, AudioCaptureFrame, AudioChannelCount, AudioChannelDataSamples, AudioSampleRate, Point, Rect, VideoCaptureFrame}, util::Size};
 
 <span class="kw">pub struct </span>WindowsVideoFrame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) device          : ID3D11Device,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) device           : ID3D11Device,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame            : Direct3D11CaptureFrame,
     <span class="kw">pub</span>(<span class="kw">crate</span>) frame_size       : (usize, usize),
     <span class="kw">pub</span>(<span class="kw">crate</span>) pixel_format     : DirectXPixelFormat,

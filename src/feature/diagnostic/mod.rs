@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 #[cfg(target_os = "windows")]
 use windows::{Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_11_0, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_11_1, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_0, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_1, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_12_2, Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL_1_0_CORE};
 

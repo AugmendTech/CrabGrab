@@ -1,10 +1,6 @@
-use std::mem::ManuallyDrop;
 use std::sync::Arc;
 use std::{error::Error, fmt::Display};
 
-use crate::frame;
-#[cfg(target_os = "windows")]
-use crate::platform::platform_impl::AutoHandle;
 use crate::prelude::{CaptureConfig, CaptureStream, VideoFrame};
 
 #[cfg(target_os = "macos")]
@@ -16,32 +12,26 @@ use metal::MTLStorageMode;
 #[cfg(target_os = "macos")]
 use metal::MTLTextureUsage;
 #[cfg(target_os = "windows")]
-use d3d12::{ComPtr, DxgiFactory};
+use d3d12::ComPtr;
 #[cfg(target_os = "windows")]
-use wgpu::hal::{dx12, Device};
+use wgpu::hal::Device;
 #[cfg(target_os = "windows")]
-use windows::core::IUnknown;
+use windows::Win32::Foundation::{CloseHandle, GENERIC_ALL};
 #[cfg(target_os = "windows")]
-use windows::Win32::Foundation::{CloseHandle, DuplicateHandle, DUPLICATE_CLOSE_SOURCE, DUPLICATE_SAME_ACCESS, GENERIC_ALL, HANDLE, WAIT_OBJECT_0};
+use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0};
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1};
+use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3D11DeviceContext4, ID3D11Fence, D3D11_CREATE_DEVICE_DEBUG, D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC};
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3D11DeviceContext4, ID3D11Fence, ID3D11Resource, ID3D11Texture2D1, D3D11_BIND_RENDER_TARGET, D3D11_BIND_SHADER_RESOURCE, D3D11_BIND_UNORDERED_ACCESS, D3D11_CREATE_DEVICE_DEBUG, D3D11_CREATE_DEVICE_DEBUGGABLE, D3D11_RESOURCE_MISC_GDI_COMPATIBLE, D3D11_RESOURCE_MISC_SHARED, D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX, D3D11_RESOURCE_MISC_SHARED_NTHANDLE, D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC, D3D11_TEXTURE2D_DESC1, D3D11_TEXTURE_LAYOUT_UNDEFINED, D3D11_USAGE_DEFAULT, D3D11_USAGE_DYNAMIC};
+use windows::Win32::Graphics::Direct3D12::{ID3D12Fence, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_STATE_COMMON, D3D12_TEXTURE_LAYOUT_UNKNOWN};
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Direct3D12::{ID3D12CommandAllocator, ID3D12CommandList, ID3D12Fence, ID3D12GraphicsCommandList, D3D12_BOX, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_FENCE_FLAG_NONE, D3D12_FENCE_FLAG_SHARED, D3D12_HEAP_FLAGS, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_PLACED_SUBRESOURCE_FOOTPRINT, D3D12_RESOURCE_BARRIER, D3D12_RESOURCE_BARRIER_0, D3D12_RESOURCE_BARRIER_FLAG_NONE, D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_TRANSITION_BARRIER, D3D12_SUBRESOURCE_FOOTPRINT, D3D12_TEXTURE_COPY_LOCATION, D3D12_TEXTURE_COPY_LOCATION_0, D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT, D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE, D3D12_TEXTURE_LAYOUT_UNKNOWN};
-#[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_B8G8R8A8_TYPELESS, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB};
-#[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIAdapter4, IDXGIFactory, IDXGIFactory4, IDXGIFactory5, IDXGIResource, IDXGIResource1, DXGI_ADAPTER_DESC, DXGI_SHARED_RESOURCE_READ, DXGI_SHARED_RESOURCE_WRITE};
-#[cfg(target_os = "windows")]
-use windows::Win32::System::Threading::{CreateEventA, GetCurrentProcess, WaitForSingleObject, INFINITE};
+use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter4, IDXGIFactory5};
 
 #[cfg(target_os = "windows")]
 use crate::platform::windows::capture_stream::WindowsCaptureConfig;
 #[cfg(target_os = "windows")]
 use crate::feature::dx11::*;
 #[cfg(target_os = "windows")]
-use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Direct3D11::{ID3D11Texture2D, ID3D11Device}, Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
+use windows::{core::{Interface, ComInterface}, Graphics::DirectX::DirectXPixelFormat, Win32::Graphics::{Direct3D11::ID3D11Texture2D, Direct3D11::D3D11_CREATE_DEVICE_BGRA_SUPPORT, Direct3D12::{ID3D12CommandQueue, ID3D12Device, ID3D12Resource, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE}}};
 #[cfg(target_os = "windows")]
 use std::ffi::c_void;
 
@@ -97,7 +87,7 @@ impl WgpuCaptureConfigExt for CaptureConfig {
                             .map(|dxgi_adapter: IDXGIAdapter4| (dxgi_adapter, d3d12_device, d3d12_queue));
                     })
                 });
-                let (dxgi_adapter, d3d12_device, d3d12_queue) = dxgi_adapter_result?;
+                let (dxgi_adapter, _d3d12_device, _d3d12_queue) = dxgi_adapter_result?;
                 let dxgi_adapter = dxgi_adapter.cast::<IDXGIAdapter4>().unwrap();
                 let mut d3d11_device = None;
                 D3D11CreateDevice (
