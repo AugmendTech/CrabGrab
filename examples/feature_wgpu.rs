@@ -29,12 +29,12 @@ fn main() {
             backends: wgpu::Backends::DX12,
             #[cfg(target_os = "macos")]
             backends: wgpu::Backends::METAL,
-            flags: wgpu::InstanceFlags::default(),
+            flags: wgpu::InstanceFlags::VALIDATION | wgpu::InstanceFlags::GPU_BASED_VALIDATION,
             dx12_shader_compiler: wgpu::Dx12Compiler::default(),
             gles_minor_version: wgpu::Gles3MinorVersion::default(),
         });
         let wgpu_adapter = wgpu_instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::None,
+            power_preference: wgpu::PowerPreference::HighPerformance,
             force_fallback_adapter: false,
             compatible_surface: None,
         }).await.expect("Expected wgpu adapter");

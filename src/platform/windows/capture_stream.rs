@@ -3,7 +3,7 @@ use std::{fmt::Debug, sync::{atomic::{self, AtomicBool, AtomicU64}, mpsc, Arc}, 
 use crate::prelude::{AudioFrame, Capturable, CaptureConfig, CapturePixelFormat, StreamCreateError, StreamError, StreamEvent, StreamStopError, VideoFrame};
 
 use parking_lot::Mutex;
-use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Foundation::HWND, Graphics::{Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIDevice, IDXGIFactory}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED}, WinRT::{CreateDispatcherQueueController, Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, DispatcherQueueOptions, Graphics::Capture::IGraphicsCaptureItemInterop, DQTAT_COM_NONE, DQTYPE_THREAD_CURRENT}}, UI::{HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}, WindowsAndMessaging::{DispatchMessageW, GetMessageW, TranslateMessage, MSG}}}};
+use windows::{core::{ComInterface, IInspectable, HSTRING}, Foundation::TypedEventHandler, Graphics::{Capture::{Direct3D11CaptureFramePool, GraphicsCaptureAccess, GraphicsCaptureAccessKind, GraphicsCaptureItem, GraphicsCaptureSession}, DirectX::{Direct3D11::IDirect3DDevice, DirectXPixelFormat}, SizeInt32}, Security::Authorization::AppCapabilityAccess::{AppCapability, AppCapabilityAccessStatus}, Win32::{Foundation::HWND, Graphics::{Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0}, Direct3D11::{D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION}, Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIAdapter4, IDXGIDevice, IDXGIFactory, IDXGIFactory5}}, System::{Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED}, WinRT::{CreateDispatcherQueueController, Direct3D11::CreateDirect3D11DeviceFromDXGIDevice, DispatcherQueueOptions, Graphics::Capture::IGraphicsCaptureItemInterop, DQTAT_COM_NONE, DQTYPE_THREAD_CURRENT}}, UI::{HiDpi::{GetDpiForMonitor, GetDpiForWindow, MDT_RAW_DPI}, WindowsAndMessaging::{DispatchMessageW, GetMessageW, TranslateMessage, MSG}}}};
 
 use super::{audio_capture_stream::{WindowsAudioCaptureStream, WindowsAudioCaptureStreamError, WindowsAudioCaptureStreamPacket}, frame::{WindowsAudioFrame, WindowsVideoFrame}, AutoCom};
 
@@ -34,7 +34,7 @@ impl WindowsAudioCaptureConfigExt for CaptureConfig {
 #[derive(Clone)]
 pub struct WindowsCaptureConfig {
     pub(crate) borderless: bool,
-    pub(crate) dxgi_adapter: Option<IDXGIAdapter>,
+    pub(crate) dxgi_adapter: Option<IDXGIAdapter4>,
     pub(crate) d3d11_device: Option<ID3D11Device>,
     #[cfg(feature = "wgpu")]
     pub(crate) wgpu_device: Option<Arc<dyn AsRef<wgpu::Device> + Send + Sync + 'static>>,
@@ -68,7 +68,7 @@ impl WindowsCaptureConfigExt for CaptureConfig {
     fn with_dxgi_adapter(self, dxgi_adapter: IDXGIAdapter) -> Self {
         Self {
             impl_capture_config: WindowsCaptureConfig {
-                dxgi_adapter: Some(dxgi_adapter),
+                dxgi_adapter: Some(dxgi_adapter.cast().unwrap()),
                 ..self.impl_capture_config
             },
             ..self
@@ -193,11 +193,11 @@ impl WindowsCaptureStream {
         }
     }
 
-    fn create_d3d11_device(dxgi_adapter: IDXGIAdapter) -> Result<(Option<IDXGIAdapter>, Option<String>, ID3D11Device), StreamCreateError> {
+    fn create_d3d11_device(dxgi_adapter: IDXGIAdapter4) -> Result<(Option<IDXGIAdapter4>, Option<String>, ID3D11Device), StreamCreateError> {
         unsafe {
             let mut d3d11_device = None;
             let d3d11_device_result = D3D11CreateDevice(
-                Some(&dxgi_adapter),
+                Some(&dxgi_adapter.cast().unwrap()),
                 D3D_DRIVER_TYPE_UNKNOWN,
                 None,
                 D3D11_CREATE_DEVICE_BGRA_SUPPORT,
@@ -264,11 +264,11 @@ impl WindowsCaptureStream {
             },
             (Some(dxgi_adapter), None) => Self::create_d3d11_device(dxgi_adapter)?,
             (None, None) => {
-                let dxgi_factory: IDXGIFactory = unsafe { CreateDXGIFactory()
+                let dxgi_factory: IDXGIFactory5 = unsafe { CreateDXGIFactory()
                     .map_err(|_| StreamCreateError::Other("Failed to create IDXGIAdapter factory".into())) }?;
                 let dxgi_adapter = unsafe { dxgi_factory.EnumAdapters(0) }
                     .map_err(|_| StreamCreateError::Other("Failed to enumerate IDXGIAdapter".into()))?;
-                Self::create_d3d11_device(dxgi_adapter)?
+                Self::create_d3d11_device(dxgi_adapter.cast().unwrap())?
             }
         };
 
@@ -376,7 +376,7 @@ impl WindowsCaptureStream {
                 t_origin,
                 duration,
                 #[cfg(feature = "wgpu")]
-                wgpu_device: callback_wgpu_device.clone()
+                wgpu_device: callback_wgpu_device.clone(),
             };
             let video_frame = VideoFrame {
                 impl_video_frame
@@ -436,7 +436,7 @@ impl WindowsCaptureStream {
                 auto_com,
                 audio_stream,
                 capture_session,
-                dxgi_adapter,
+                dxgi_adapter: dxgi_adapter.map(|adapter| adapter.cast().unwrap()),
                 dxgi_adapter_error,
                 d3d11_device,
                 #[cfg(feature = "wgpu")]
