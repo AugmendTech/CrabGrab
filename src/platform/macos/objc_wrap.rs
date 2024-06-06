@@ -1427,7 +1427,8 @@ impl SCStream {
             let result: bool = msg_send![instance, addStreamOutput: SCStreamOutput(handler.0) type: SCStreamOutputType::Screen.to_encoded() sampleHandlerQueue: handler_queue error: &mut error as *mut _];
             if !error.is_null() {
                 let error = NSError::from_id_retained(error);
-                println!("error: {}, reason: {}", error.description(), error.reason());
+                let _: () = msg_send![instance, release];
+                return Err(format!("SCStream error: {}, reason: {}", error.description(), error.reason()));
             }
             Ok(SCStream(instance))
         }

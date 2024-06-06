@@ -112,24 +112,30 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{marker::PhantomData, sync::Arc, time::Duration};
 
-<span class="kw">use </span>windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::Direct3D11::ID3D11Device};
+<span class="kw">use </span>windows::{Graphics::{Capture::Direct3D11CaptureFrame, DirectX::DirectXPixelFormat, SizeInt32}, Win32::Graphics::{Direct3D11::ID3D11Device}};
 
 <span class="kw">use crate</span>::{prelude::{AudioBufferError, AudioCaptureFrame, AudioChannelCount, AudioChannelDataSamples, AudioSampleRate, Point, Rect, VideoCaptureFrame}, util::Size};
 
 <span class="kw">pub struct </span>WindowsVideoFrame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) device       : ID3D11Device,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) frame        : Direct3D11CaptureFrame,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) frame_size   : (usize, usize),
-    <span class="kw">pub</span>(<span class="kw">crate</span>) pixel_format : DirectXPixelFormat,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) frame_id     : u64,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) dpi          : u32,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) t_capture    : std::time::Instant,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) t_origin     : std::time::Duration,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) duration     : std::time::Duration,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) device          : ID3D11Device,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) frame            : Direct3D11CaptureFrame,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) frame_size       : (usize, usize),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) pixel_format     : DirectXPixelFormat,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) frame_id         : u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) dpi              : u32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) t_capture        : std::time::Instant,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) t_origin         : std::time::Duration,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) duration         : std::time::Duration,
     <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device  : <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) wgpu_device      : <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>AsRef&lt;wgpu::Device&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 }
 
 <span class="kw">impl </span>VideoCaptureFrame <span class="kw">for </span>WindowsVideoFrame {
@@ -166,6 +172,12 @@
             origin: Point::ZERO,
             size: <span class="self">self</span>.size()
         }
+    }
+}
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>WindowsVideoFrame {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">_ </span>= <span class="self">self</span>.frame.Close();
     }
 }
 
