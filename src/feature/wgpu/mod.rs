@@ -10,17 +10,17 @@ use crate::prelude::{CaptureConfig, CaptureStream, VideoFrame};
 use crate::platform::macos::{capture_stream::MacosCaptureConfig, frame::MacosVideoFrame};
 #[cfg(target_os = "macos")]
 use crate::feature::metal::*;
-use d3d12::DxgiFactory;
+use d3d12::{ComPtr, DxgiFactory};
 #[cfg(target_os = "macos")]
 use metal::MTLStorageMode;
 #[cfg(target_os = "macos")]
 use metal::MTLTextureUsage;
-use wgpu::hal::dx12;
+use wgpu::hal::{dx12, Device};
 use windows::core::IUnknown;
 use windows::Win32::Foundation::{CloseHandle, DuplicateHandle, DUPLICATE_CLOSE_SOURCE, DUPLICATE_SAME_ACCESS, GENERIC_ALL, HANDLE, WAIT_OBJECT_0};
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1};
-use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3D11Resource, ID3D11Texture2D1, D3D11_BIND_RENDER_TARGET, D3D11_BIND_SHADER_RESOURCE, D3D11_BIND_UNORDERED_ACCESS, D3D11_CREATE_DEVICE_DEBUG, D3D11_CREATE_DEVICE_DEBUGGABLE, D3D11_RESOURCE_MISC_GDI_COMPATIBLE, D3D11_RESOURCE_MISC_SHARED, D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX, D3D11_RESOURCE_MISC_SHARED_NTHANDLE, D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC, D3D11_TEXTURE2D_DESC1, D3D11_TEXTURE_LAYOUT_UNDEFINED, D3D11_USAGE_DEFAULT, D3D11_USAGE_DYNAMIC};
-use windows::Win32::Graphics::Direct3D12::{ID3D12CommandAllocator, ID3D12CommandList, ID3D12Fence, ID3D12GraphicsCommandList, D3D12_BOX, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_FENCE_FLAG_NONE, D3D12_HEAP_FLAGS, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_PLACED_SUBRESOURCE_FOOTPRINT, D3D12_RESOURCE_BARRIER, D3D12_RESOURCE_BARRIER_0, D3D12_RESOURCE_BARRIER_FLAG_NONE, D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_TRANSITION_BARRIER, D3D12_SUBRESOURCE_FOOTPRINT, D3D12_TEXTURE_COPY_LOCATION, D3D12_TEXTURE_COPY_LOCATION_0, D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT, D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE, D3D12_TEXTURE_LAYOUT_UNKNOWN};
+use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3D11DeviceContext4, ID3D11Fence, ID3D11Resource, ID3D11Texture2D1, D3D11_BIND_RENDER_TARGET, D3D11_BIND_SHADER_RESOURCE, D3D11_BIND_UNORDERED_ACCESS, D3D11_CREATE_DEVICE_DEBUG, D3D11_CREATE_DEVICE_DEBUGGABLE, D3D11_RESOURCE_MISC_GDI_COMPATIBLE, D3D11_RESOURCE_MISC_SHARED, D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX, D3D11_RESOURCE_MISC_SHARED_NTHANDLE, D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC, D3D11_TEXTURE2D_DESC1, D3D11_TEXTURE_LAYOUT_UNDEFINED, D3D11_USAGE_DEFAULT, D3D11_USAGE_DYNAMIC};
+use windows::Win32::Graphics::Direct3D12::{ID3D12CommandAllocator, ID3D12CommandList, ID3D12Fence, ID3D12GraphicsCommandList, D3D12_BOX, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_FENCE_FLAG_NONE, D3D12_FENCE_FLAG_SHARED, D3D12_HEAP_FLAGS, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_PLACED_SUBRESOURCE_FOOTPRINT, D3D12_RESOURCE_BARRIER, D3D12_RESOURCE_BARRIER_0, D3D12_RESOURCE_BARRIER_FLAG_NONE, D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_TRANSITION_BARRIER, D3D12_SUBRESOURCE_FOOTPRINT, D3D12_TEXTURE_COPY_LOCATION, D3D12_TEXTURE_COPY_LOCATION_0, D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT, D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE, D3D12_TEXTURE_LAYOUT_UNKNOWN};
 use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_B8G8R8A8_TYPELESS, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB};
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIAdapter4, IDXGIFactory, IDXGIFactory4, IDXGIFactory5, IDXGIResource, IDXGIResource1, DXGI_ADAPTER_DESC, DXGI_SHARED_RESOURCE_READ, DXGI_SHARED_RESOURCE_WRITE};
 use windows::Win32::System::Threading::{CreateEventA, GetCurrentProcess, WaitForSingleObject, INFINITE};
@@ -286,9 +286,10 @@ impl WgpuVideoFrameExt for VideoFrame {
                     depth_or_array_layers: 1,
                 };
                 AsRef::as_ref(&*wgpu_device).as_hal::<wgpu::hal::api::Dx12, _, _>(|wgpu_dx12_device| {
-                    let d3d12_device_ptr = wgpu_dx12_device.unwrap().raw_device().as_ptr() as *mut c_void;
+                    let wgpu_dx12_device = wgpu_dx12_device.unwrap();
+                    let d3d12_device_ptr = wgpu_dx12_device.raw_device().as_ptr() as *mut c_void;
                     let d3d12_device = ID3D12Device::from_raw_borrowed(&d3d12_device_ptr).unwrap();
-                    let d3d12_queue_ptr = wgpu_dx12_device.unwrap().raw_queue().as_ptr() as *mut c_void;
+                    let d3d12_queue_ptr = wgpu_dx12_device.raw_queue().as_ptr() as *mut c_void;
                     let d3d12_queue = ID3D12CommandQueue::from_raw_borrowed(&d3d12_queue_ptr).unwrap();
 
                     let mut frame_desc = D3D11_TEXTURE2D_DESC::default();
@@ -325,33 +326,66 @@ impl WgpuVideoFrameExt for VideoFrame {
                     ).map_err(|error| WgpuVideoFrameError::Other(format!("Failed to create d3d12 texture: {}", error.to_string())))?;
                     let d3d12_texture: ID3D12Resource = d3d12_texture.unwrap();
 
-                    let dxgi_shared_handle = d3d12_device.CreateSharedHandle(
+                    let dxgi_shared_texture_handle = d3d12_device.CreateSharedHandle(
                         &d3d12_texture,
                         None,
                         GENERIC_ALL.0,
                         None
                     ).map_err(|error| WgpuVideoFrameError::Other(format!("Failed to share d3d12 texture: {}", error.to_string())))?;
 
-                    let d3d11_shared_texture: ID3D11Texture2D = d3d11_5_device.OpenSharedResource1(dxgi_shared_handle)
+                    let d3d11_shared_texture: ID3D11Texture2D = d3d11_5_device.OpenSharedResource1(dxgi_shared_texture_handle)
                     .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to use dxgi shared texture in d3d11: {}", error.to_string())))?;
 
+                    let wgpu_dx12_fence = wgpu::hal::dx12::Device::create_fence(&wgpu_dx12_device)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to create fence: {}", error.to_string())))?;
+                    let d3d12_fence_ptr = wgpu_dx12_fence.raw_fence().as_ptr() as *mut c_void;
+                    let d3d12_fence = ID3D12Fence::from_raw_borrowed(&d3d12_fence_ptr).unwrap();
+
+                    let dxgi_shared_fence_handle = d3d12_device.CreateSharedHandle(
+                        d3d12_fence,
+                        None,
+                        GENERIC_ALL.0,
+                        None
+                    ).map_err(|error| WgpuVideoFrameError::Other(format!("Failed to share fence with dxgi: {}", error.to_string())))?;
+
+                    let mut d3d11_shared_fence = None;
+                    d3d11_5_device.OpenSharedFence(dxgi_shared_fence_handle, &mut d3d11_shared_fence)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to use dxgi shared fence: {}", error.to_string())))?;
+                    let d3d11_shared_fence: ID3D11Fence = d3d11_shared_fence.unwrap();
+
                     {
-                        let device_context = self.impl_video_frame.device.GetImmediateContext()
-                            .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to get d3d11 device context: {}", error.to_string())))?;
+                        let device_context: ID3D11DeviceContext4 = self.impl_video_frame.device.GetImmediateContext()
+                            .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to get d3d11 device context: {}", error.to_string())))?
+                            .cast()
+                            .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to get d3d11 device context v4: {}", error.to_string())))?;
                         device_context.CopyResource(&d3d11_shared_texture, &frame_texture);
-                        device_context.Flush();
+                        device_context.Signal(&d3d11_shared_fence, 1)
+                            .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to queue fence signal: {}", error.to_string())))?;
                         drop(frame_texture);
                         drop(d3d11_shared_texture);
+                        drop(d3d11_shared_fence);
+                        device_context.Flush();
                     }
 
+                    CloseHandle(dxgi_shared_texture_handle)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close shared texture handle: {}", error.to_string())))?;
+                    CloseHandle(dxgi_shared_fence_handle)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close shared fence handle: {}", error.to_string())))?;
+
+                    let texture_ptr: ComPtr<winapi::um::d3d12::ID3D12Resource> = d3d12::ComPtr::from_raw(d3d12_texture.into_raw() as *mut _);
+
                     let hal_texture = wgpu::hal::dx12::Device::texture_from_raw(
-                        d3d12::ComPtr::from_raw(d3d12_texture.into_raw() as *mut _),
+                        texture_ptr.clone(),
                         wgpu_format,
                         wgpu::TextureDimension::D2,
                         wgpu_size,
                         1,
                         1
                     );
+
+                    d3d12_queue.Wait(d3d12_fence, 1)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to wait on fence: {}", error.to_string())))?;
+                    
                     let desc = wgpu::TextureDescriptor {
                         label,
                         size: wgpu_size,
@@ -366,7 +400,13 @@ impl WgpuVideoFrameExt for VideoFrame {
                         },
                         view_formats: &[]
                     };
-                    Ok((*wgpu_device).as_ref().create_texture_from_hal::<wgpu::hal::api::Dx12>(hal_texture, &desc))
+                    let result = Ok((*wgpu_device).as_ref().create_texture_from_hal::<wgpu::hal::api::Dx12>(hal_texture, &desc));
+                    
+                    // dirty hack to reduce the refount by two
+                    std::mem::drop(std::mem::transmute_copy::<_, ComPtr<winapi::um::d3d12::ID3D12Resource>>(&texture_ptr));
+                    std::mem::drop(std::mem::transmute_copy::<_, ComPtr<winapi::um::d3d12::ID3D12Resource>>(&texture_ptr));
+
+                    result
                 }).unwrap()
             }
         }

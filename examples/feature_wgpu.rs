@@ -69,7 +69,8 @@ fn main() {
                             }*/
                             println!("got texture {}", frame.frame_id());
                             let texture = frame.get_wgpu_texture(WgpuVideoFramePlaneTexture::Rgba, None).unwrap();
-                            println!("format: {:?}", texture.format());
+                            //println!("format: {:?}", texture.format());
+                            //texture.destroy();
                         },
                         StreamEvent::End => {
                             if let Some(tx_result) = tx_result.take() {
