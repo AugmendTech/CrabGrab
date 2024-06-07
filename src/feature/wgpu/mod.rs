@@ -15,6 +15,8 @@ use metal::MTLTextureUsage;
 use d3d12::ComPtr;
 #[cfg(target_os = "windows")]
 use wgpu::hal::Device;
+use windows::core::PCWSTR;
+use windows::Win32::Foundation::WAIT_OBJECT_0;
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::{CloseHandle, GENERIC_ALL};
 #[cfg(target_os = "windows")]
@@ -25,6 +27,9 @@ use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3
 use windows::Win32::Graphics::Direct3D12::{ID3D12Fence, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_STATE_COMMON, D3D12_TEXTURE_LAYOUT_UNKNOWN};
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter4, IDXGIFactory5};
+use windows::Win32::System::Threading::{WaitForSingleObjectEx, CREATE_EVENT, INFINITE};
+#[cfg(target_os = "windows")]
+use windows::Win32::System::Threading::{CreateEventExW, THREAD_DELETE, THREAD_SYNCHRONIZE};
 
 #[cfg(target_os = "windows")]
 use crate::platform::windows::capture_stream::WindowsCaptureConfig;
@@ -339,6 +344,10 @@ impl WgpuVideoFrameExt for VideoFrame {
                         .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to create fence: {}", error.to_string())))?;
                     let d3d12_fence_ptr = wgpu_dx12_fence.raw_fence().as_ptr() as *mut c_void;
                     let d3d12_fence = ID3D12Fence::from_raw_borrowed(&d3d12_fence_ptr).unwrap();
+                    let fence_event = CreateEventExW(None, PCWSTR(std::ptr::null()), CREATE_EVENT(0), THREAD_DELETE.0 | THREAD_SYNCHRONIZE.0)
+                        .map_err(|error|  WgpuVideoFrameError::Other(format!("Failed to create fence event: {}", error)))?;
+                    d3d12_fence.SetEventOnCompletion(1, fence_event)
+                        .map_err(|error|  WgpuVideoFrameError::Other(format!("Failed to set fence completion event: {}", error.to_string())))?;
 
                     let dxgi_shared_fence_handle = d3d12_device.CreateSharedHandle(
                         d3d12_fence,
@@ -383,7 +392,14 @@ impl WgpuVideoFrameExt for VideoFrame {
                     );
 
                     d3d12_queue.Wait(d3d12_fence, 1)
-                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to wait on fence: {}", error.to_string())))?;
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to enqueue wait on fence: {}", error.to_string())))?;
+
+                    if WaitForSingleObjectEx(fence_event, INFINITE, false) != WAIT_OBJECT_0 {
+                        Err(WgpuVideoFrameError::Other(format!("Failed wait on completion fence")))?
+                    }
+                    
+                    CloseHandle(fence_event)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close fence event handle: {}", error.to_string())))?;
                     
                     let desc = wgpu::TextureDescriptor {
                         label,
@@ -400,7 +416,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                         view_formats: &[]
                     };
                     let result = Ok((*wgpu_device).as_ref().create_texture_from_hal::<wgpu::hal::api::Dx12>(hal_texture, &desc));
-                    
+
                     // dirty hack to reduce the refount by two
                     std::mem::drop(std::mem::transmute_copy::<_, ComPtr<winapi::um::d3d12::ID3D12Resource>>(&texture_ptr));
                     std::mem::drop(std::mem::transmute_copy::<_, ComPtr<winapi::um::d3d12::ID3D12Resource>>(&texture_ptr));
