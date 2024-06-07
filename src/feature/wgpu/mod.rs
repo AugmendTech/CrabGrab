@@ -16,15 +16,27 @@ use d3d12::ComPtr;
 #[cfg(target_os = "windows")]
 use wgpu::hal::Device;
 #[cfg(target_os = "windows")]
+use windows::core::PCWSTR;
+#[cfg(target_os = "windows")]
+use windows::Win32::Foundation::WAIT_OBJECT_0;
+#[cfg(target_os = "windows")]
 use windows::Win32::Foundation::{CloseHandle, GENERIC_ALL};
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0};
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3D11DeviceContext4, ID3D11Fence, D3D11_CREATE_DEVICE_DEBUG, D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC};
 #[cfg(target_os = "windows")]
-use windows::Win32::Graphics::Direct3D12::{ID3D12Fence, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_STATE_COMMON, D3D12_TEXTURE_LAYOUT_UNKNOWN};
+use windows::Win32::Graphics::Direct3D12::{D3D12_CLEAR_VALUE, D3D12_FENCE_FLAG_NONE, D3D12_FENCE_FLAG_SHARED};
+#[cfg(target_os = "windows")]
+use windows::Win32::Graphics::Direct3D12::{ID3D12Fence, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON, D3D12_TEXTURE_LAYOUT_UNKNOWN};
+#[cfg(target_os = "windows")]
+use windows::Win32::Graphics::Dxgi::Common::DXGI_FORMAT_B8G8R8A8_TYPELESS;
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter4, IDXGIFactory5};
+#[cfg(target_os = "windows")]
+use windows::Win32::System::Threading::{CreateEventA, WaitForSingleObjectEx, CREATE_EVENT, INFINITE, PROCESS_DELETE, PROCESS_SYNCHRONIZE};
+#[cfg(target_os = "windows")]
+use windows::Win32::System::Threading::{CreateEventExW, THREAD_DELETE, THREAD_SYNCHRONIZE};
 
 #[cfg(target_os = "windows")]
 use crate::platform::windows::capture_stream::WindowsCaptureConfig;
@@ -278,12 +290,6 @@ impl WgpuVideoFrameExt for VideoFrame {
                 _ => return Err(WgpuVideoFrameError::Other("Unsupported DirectXPixelFormat".to_string()))
             };
             unsafe {
-                let size = self.size();
-                let wgpu_size = wgpu::Extent3d {
-                    width: size.width as u32,
-                    height: size.height as u32,
-                    depth_or_array_layers: 1,
-                };
                 AsRef::as_ref(&*wgpu_device).as_hal::<wgpu::hal::api::Dx12, _, _>(|wgpu_dx12_device| {
                     let wgpu_dx12_device = wgpu_dx12_device.unwrap();
                     let d3d12_device_ptr = wgpu_dx12_device.raw_device().as_ptr() as *mut c_void;
@@ -293,6 +299,12 @@ impl WgpuVideoFrameExt for VideoFrame {
 
                     let mut frame_desc = D3D11_TEXTURE2D_DESC::default();
                     frame_texture.GetDesc(&mut frame_desc as *mut _);
+
+                    let wgpu_size = wgpu::Extent3d {
+                        width: frame_desc.Width,
+                        height: frame_desc.Height,
+                        depth_or_array_layers: frame_desc.ArraySize,
+                    };
 
                     let d3d12_texture_desc = D3D12_RESOURCE_DESC {
                         Dimension: D3D12_RESOURCE_DIMENSION_TEXTURE2D,
@@ -304,7 +316,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                         Format: frame_desc.Format,
                         SampleDesc: frame_desc.SampleDesc,
                         Layout: D3D12_TEXTURE_LAYOUT_UNKNOWN,
-                        Flags: D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS
+                        Flags: D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
                     };
                     let d3d12_texture_heap_properties = D3D12_HEAP_PROPERTIES {
                         Type: D3D12_HEAP_TYPE_DEFAULT,
@@ -313,6 +325,12 @@ impl WgpuVideoFrameExt for VideoFrame {
                         CreationNodeMask: 0,
                         VisibleNodeMask: 0,
                     };  
+                    let d3d12_texture_clear_value = D3D12_CLEAR_VALUE {
+                        Format: frame_desc.Format,
+                        Anonymous: windows::Win32::Graphics::Direct3D12::D3D12_CLEAR_VALUE_0 {
+                            Color: [0.0, 0.0, 0.0, 0.0]
+                        }
+                    };
 
                     let mut d3d12_texture = None;
                     d3d12_device.CreateCommittedResource(
@@ -320,7 +338,7 @@ impl WgpuVideoFrameExt for VideoFrame {
                         D3D12_HEAP_FLAG_SHARED,
                         &d3d12_texture_desc as *const _,
                         D3D12_RESOURCE_STATE_COMMON,
-                        None,
+                        Some(&d3d12_texture_clear_value),
                         &mut d3d12_texture as *mut _
                     ).map_err(|error| WgpuVideoFrameError::Other(format!("Failed to create d3d12 texture: {}", error.to_string())))?;
                     let d3d12_texture: ID3D12Resource = d3d12_texture.unwrap();
@@ -335,13 +353,15 @@ impl WgpuVideoFrameExt for VideoFrame {
                     let d3d11_shared_texture: ID3D11Texture2D = d3d11_5_device.OpenSharedResource1(dxgi_shared_texture_handle)
                     .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to use dxgi shared texture in d3d11: {}", error.to_string())))?;
 
-                    let wgpu_dx12_fence = wgpu::hal::dx12::Device::create_fence(&wgpu_dx12_device)
-                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to create fence: {}", error.to_string())))?;
-                    let d3d12_fence_ptr = wgpu_dx12_fence.raw_fence().as_ptr() as *mut c_void;
-                    let d3d12_fence = ID3D12Fence::from_raw_borrowed(&d3d12_fence_ptr).unwrap();
+                    let d3d12_fence: ID3D12Fence = d3d12_device.CreateFence(0, D3D12_FENCE_FLAG_SHARED)
+                        .map_err(|error|  WgpuVideoFrameError::Other(format!("Failed to create fence: {}", error)))?;
+                    let fence_event = CreateEventA(None, false, false, None)
+                        .map_err(|error|  WgpuVideoFrameError::Other(format!("Failed to create fence event: {}", error)))?;
+                    d3d12_fence.SetEventOnCompletion(1, fence_event)
+                        .map_err(|error|  WgpuVideoFrameError::Other(format!("Failed to set fence completion event: {}", error.to_string())))?;
 
                     let dxgi_shared_fence_handle = d3d12_device.CreateSharedHandle(
-                        d3d12_fence,
+                        &d3d12_fence,
                         None,
                         GENERIC_ALL.0,
                         None
@@ -368,8 +388,6 @@ impl WgpuVideoFrameExt for VideoFrame {
 
                     CloseHandle(dxgi_shared_texture_handle)
                         .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close shared texture handle: {}", error.to_string())))?;
-                    CloseHandle(dxgi_shared_fence_handle)
-                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close shared fence handle: {}", error.to_string())))?;
 
                     let texture_ptr: ComPtr<winapi::um::d3d12::ID3D12Resource> = d3d12::ComPtr::from_raw(d3d12_texture.into_raw() as *mut _);
 
@@ -378,31 +396,35 @@ impl WgpuVideoFrameExt for VideoFrame {
                         wgpu_format,
                         wgpu::TextureDimension::D2,
                         wgpu_size,
-                        1,
-                        1
+                        frame_desc.MipLevels.max(1),
+                        frame_desc.SampleDesc.Count
                     );
 
-                    d3d12_queue.Wait(d3d12_fence, 1)
-                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to wait on fence: {}", error.to_string())))?;
+                    d3d12_queue.Wait(&d3d12_fence, 1)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to enqueue wait on fence: {}", error.to_string())))?;
+
+                    if WaitForSingleObjectEx(fence_event, INFINITE, false) != WAIT_OBJECT_0 {
+                        Err(WgpuVideoFrameError::Other(format!("Failed wait on completion fence")))?
+                    }
+
+                    CloseHandle(dxgi_shared_fence_handle)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close shared fence handle: {}", error.to_string())))?;
+                    CloseHandle(fence_event)
+                        .map_err(|error| WgpuVideoFrameError::Other(format!("Failed to close fence event handle: {}", error.to_string())))?;
                     
                     let desc = wgpu::TextureDescriptor {
                         label,
                         size: wgpu_size,
-                        mip_level_count: 1,
-                        sample_count: 1,
+                        mip_level_count: frame_desc.MipLevels.max(1),
+                        sample_count: frame_desc.SampleDesc.Count,
                         dimension: wgpu::TextureDimension::D2,
                         format: wgpu_format,
-                        usage: {
-                            if d3d12_texture_desc.Flags.contains(D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) { wgpu::TextureUsages::RENDER_ATTACHMENT } else { wgpu::TextureUsages::empty() }.union(
-                                if !d3d12_texture_desc.Flags.contains(D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE) { wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING } else { wgpu::TextureUsages::empty() }
-                            ).union(wgpu::TextureUsages::COPY_SRC)
-                        },
-                        view_formats: &[]
+                        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING,
+                        view_formats: &[wgpu_format]
                     };
                     let result = Ok((*wgpu_device).as_ref().create_texture_from_hal::<wgpu::hal::api::Dx12>(hal_texture, &desc));
-                    
-                    // dirty hack to reduce the refount by two
-                    std::mem::drop(std::mem::transmute_copy::<_, ComPtr<winapi::um::d3d12::ID3D12Resource>>(&texture_ptr));
+
+                    // dirty hack to reduce the refount
                     std::mem::drop(std::mem::transmute_copy::<_, ComPtr<winapi::um::d3d12::ID3D12Resource>>(&texture_ptr));
 
                     result
