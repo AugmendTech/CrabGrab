@@ -15,7 +15,9 @@ use metal::MTLTextureUsage;
 use d3d12::ComPtr;
 #[cfg(target_os = "windows")]
 use wgpu::hal::Device;
+#[cfg(target_os = "windows")]
 use windows::core::PCWSTR;
+#[cfg(target_os = "windows")]
 use windows::Win32::Foundation::WAIT_OBJECT_0;
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::{CloseHandle, GENERIC_ALL};
@@ -23,12 +25,15 @@ use windows::Win32::Foundation::{CloseHandle, GENERIC_ALL};
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_UNKNOWN, D3D_FEATURE_LEVEL_11_0};
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11Device5, ID3D11DeviceContext4, ID3D11Fence, D3D11_CREATE_DEVICE_DEBUG, D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC};
+#[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D12::{D3D12_CLEAR_VALUE, D3D12_FENCE_FLAG_NONE, D3D12_FENCE_FLAG_SHARED};
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D12::{ID3D12Fence, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_HEAP_FLAG_SHARED, D3D12_HEAP_PROPERTIES, D3D12_HEAP_TYPE_DEFAULT, D3D12_MEMORY_POOL_UNKNOWN, D3D12_RESOURCE_DESC, D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON, D3D12_TEXTURE_LAYOUT_UNKNOWN};
+#[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Dxgi::Common::DXGI_FORMAT_B8G8R8A8_TYPELESS;
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter4, IDXGIFactory5};
+#[cfg(target_os = "windows")]
 use windows::Win32::System::Threading::{CreateEventA, WaitForSingleObjectEx, CREATE_EVENT, INFINITE, PROCESS_DELETE, PROCESS_SYNCHRONIZE};
 #[cfg(target_os = "windows")]
 use windows::Win32::System::Threading::{CreateEventExW, THREAD_DELETE, THREAD_SYNCHRONIZE};
