@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"crabgrab":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html\" title=\"trait core::ops::drop::Drop\">Drop</a> for <a class=\"struct\" href=\"crabgrab/feature/iosurface/struct.IoSurface.html\" title=\"struct crabgrab::feature::iosurface::IoSurface\">IoSurface</a>"]]
+"crabgrab":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.79.0/core/ops/drop/trait.Drop.html\" title=\"trait core::ops::drop::Drop\">Drop</a> for <a class=\"struct\" href=\"crabgrab/feature/iosurface/struct.IoSurface.html\" title=\"struct crabgrab::feature::iosurface::IoSurface\">IoSurface</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

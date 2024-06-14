@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"crabgrab":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"crabgrab/platform/macos/enum.MacosWindowLevel.html\" title=\"enum crabgrab::platform::macos::MacosWindowLevel\">MacosWindowLevel</a>"]]
+"crabgrab":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.79.0/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"crabgrab/platform/macos/enum.MacosWindowLevel.html\" title=\"enum crabgrab::platform::macos::MacosWindowLevel\">MacosWindowLevel</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -24,7 +24,7 @@ fn main() {
                             Ok(bitmap) => {
                                 match bitmap {
                                     crabgrab::feature::bitmap::FrameBitmap::BgraUnorm8x4(_) => println!("format: BgraUnorm8x4"),
-                                    crabgrab::feature::bitmap::FrameBitmap::RgbaUnormPacked1010102(_) => println!("format: RgbaUnormPacked1010102"),
+                                    crabgrab::feature::bitmap::FrameBitmap::ArgbUnormPacked2101010(_) => println!("format: RgbaUnormPacked1010102"),
                                     crabgrab::feature::bitmap::FrameBitmap::RgbaF16x4(_) => println!("format: RgbaF16x4"),
                                     crabgrab::feature::bitmap::FrameBitmap::YCbCr(_) => println!("format: YCbCr"),
                                 }
