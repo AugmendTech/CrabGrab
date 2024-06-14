@@ -731,6 +731,8 @@
 <a href="#731" id="731">731</a>
 <a href="#732" id="732">732</a>
 <a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg(feature = <span class="string">"bitmap"</span>)]
 
 </span><span class="kw">use </span>std::error::Error;
@@ -1150,34 +1152,36 @@
                         map_result.map_err(|<span class="kw">_</span>| VideoFrameBitmapError::Other(<span class="string">"Couldn't map staging texture"</span>.to_string()))<span class="question-mark">?</span>;
                         <span class="kw">match </span>pixel_format {
                             DirectXPixelFormat::B8G8R8A8UIntNormalized =&gt; {
-                                <span class="kw">let </span><span class="kw-2">mut </span>image_data = <span class="macro">vec!</span>[[<span class="number">0u8</span>; <span class="number">4</span>]; width * height];
                                 <span class="kw">let </span>bpr = mapped_resource.RowPitch <span class="kw">as </span>usize;
-                                <span class="kw">let </span>surface_slice = std::slice::from_raw_parts(mapped_resource.pData <span class="kw">as </span><span class="kw-2">*const </span>u8, bpr * height);
-                                <span class="kw">for </span>y <span class="kw">in </span><span class="number">0</span>..height {
-                                    <span class="kw">let </span>source_slice = bytemuck::cast_slice::&lt;<span class="kw">_</span>, [u8; <span class="number">4</span>]&gt;(<span class="kw-2">&amp;</span>surface_slice[(bpr * y)..(bpr * y + <span class="number">4 </span>* width)]);
-                                    image_data[(width * y)..(width * y + width)].copy_from_slice(source_slice);
-                                }
-                                <span class="kw">let _ </span>= device.Unmap(<span class="kw-2">&amp;</span>staging_texture, <span class="number">0</span>);
-                                <span class="prelude-val">Ok</span>(FrameBitmap::BgraUnorm8x4(FrameBitmapBgraUnorm8x4 {
-                                    data: image_data.into_boxed_slice(),
+
+                                <span class="kw">let </span>plane_ptr = VideoFramePlanePtr {
+                                    ptr: mapped_resource.pData <span class="kw">as </span><span class="kw-2">*const </span>c_void,
                                     width,
                                     height,
-                                }))
+                                    bytes_per_row: bpr
+                                };
+        
+                                <span class="kw">let </span>mapping_result = output_mapping(VideoFrameDataCopyPtrs::Bgra8888(plane_ptr));
+                                
+                                <span class="kw">let _ </span>= device.Unmap(<span class="kw-2">&amp;</span>staging_texture, <span class="number">0</span>);
+
+                                mapping_result
                             },
                             DirectXPixelFormat::R10G10B10A2UIntNormalized =&gt; {
-                                <span class="kw">let </span><span class="kw-2">mut </span>image_data = <span class="macro">vec!</span>[<span class="number">0u32</span>; width * height];
                                 <span class="kw">let </span>bpr = mapped_resource.RowPitch <span class="kw">as </span>usize;
-                                <span class="kw">let </span>surface_slice = std::slice::from_raw_parts(mapped_resource.pData <span class="kw">as </span><span class="kw-2">*const </span>u8, bpr * height);
-                                <span class="kw">for </span>y <span class="kw">in </span><span class="number">0</span>..height {
-                                    <span class="kw">let </span>source_slice = bytemuck::cast_slice::&lt;<span class="kw">_</span>, u32&gt;(<span class="kw-2">&amp;</span>surface_slice[(bpr * y)..(bpr * y + <span class="number">4 </span>* width)]);
-                                    image_data[(width * y)..(width * y + width)].copy_from_slice(source_slice);
-                                }
-                                <span class="kw">let _ </span>= device.Unmap(<span class="kw-2">&amp;</span>staging_texture, <span class="number">0</span>);
-                                <span class="prelude-val">Ok</span>(FrameBitmap::RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102 {
-                                    data: image_data.into_boxed_slice(),
+
+                                <span class="kw">let </span>plane_ptr = VideoFramePlanePtr {
+                                    ptr: mapped_resource.pData <span class="kw">as </span><span class="kw-2">*const </span>c_void,
                                     width,
                                     height,
-                                }))
+                                    bytes_per_row: bpr
+                                };
+        
+                                <span class="kw">let </span>mapping_result = output_mapping(VideoFrameDataCopyPtrs::ArgbPacked2101010(plane_ptr));
+                                
+                                <span class="kw">let _ </span>= device.Unmap(<span class="kw-2">&amp;</span>staging_texture, <span class="number">0</span>);
+                                
+                                mapping_result
                             },
                             <span class="kw">_ </span>=&gt; {
                                 <span class="prelude-val">Err</span>(VideoFrameBitmapError::Other(<span class="string">"Unknown or unsupported pixel format on DXGISurface"</span>.to_string()))
