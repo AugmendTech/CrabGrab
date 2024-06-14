@@ -33,7 +33,7 @@ diagnostic = []
 [dependencies]
 futures = "0.3"
 parking_lot = "0.12"
-half = { version = "2.4", optional = true }
+half = { version = "2.4", features = ["bytemuck"], optional = true }
 bytemuck = { version = "1.15", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

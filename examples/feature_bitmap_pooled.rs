@@ -16,17 +16,18 @@ fn main() {
             let app_identifier = window.application().identifier();
             window.title().len() != 0 && app_identifier.to_lowercase().contains("firefox")
         }).next();
+        let bitmap_pool = FrameBitmapPool::new(10);
         match window {
             Some(window) => {
                 println!("capturing window: {}", window.title()); 
                 let config = CaptureConfig::with_window(window, CaptureStream::supported_pixel_formats()[0]).unwrap();
-                let mut stream = CaptureStream::new(token, config, |stream_event| {
+                let mut stream = CaptureStream::new(token, config, move |stream_event| {
                     match stream_event {
                         Ok(event) => {
                             match event {
                                 StreamEvent::Video(frame) => {
                                     println!("Got frame: {}", frame.frame_id());
-                                    match frame.get_bitmap() {
+                                    match frame.get_pooled_bitmap(&bitmap_pool) {
                                         Ok(bitmap) => {
                                             match bitmap {
                                                 crabgrab::feature::bitmap::FrameBitmap::BgraUnorm8x4(_) => println!("format: BgraUnorm8x4"),
