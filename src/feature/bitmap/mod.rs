@@ -417,34 +417,36 @@ impl VideoFrameBitmapInternal for VideoFrame {
                         map_result.map_err(|_| VideoFrameBitmapError::Other("Couldn't map staging texture".to_string()))?;
                         match pixel_format {
                             DirectXPixelFormat::B8G8R8A8UIntNormalized => {
-                                let mut image_data = vec![[0u8; 4]; width * height];
                                 let bpr = mapped_resource.RowPitch as usize;
-                                let surface_slice = std::slice::from_raw_parts(mapped_resource.pData as *const u8, bpr * height);
-                                for y in 0..height {
-                                    let source_slice = bytemuck::cast_slice::<_, [u8; 4]>(&surface_slice[(bpr * y)..(bpr * y + 4 * width)]);
-                                    image_data[(width * y)..(width * y + width)].copy_from_slice(source_slice);
-                                }
-                                let _ = device.Unmap(&staging_texture, 0);
-                                Ok(FrameBitmap::BgraUnorm8x4(FrameBitmapBgraUnorm8x4 {
-                                    data: image_data.into_boxed_slice(),
+
+                                let plane_ptr = VideoFramePlanePtr {
+                                    ptr: mapped_resource.pData as *const c_void,
                                     width,
                                     height,
-                                }))
+                                    bytes_per_row: bpr
+                                };
+        
+                                let mapping_result = output_mapping(VideoFrameDataCopyPtrs::Bgra8888(plane_ptr));
+                                
+                                let _ = device.Unmap(&staging_texture, 0);
+
+                                mapping_result
                             },
                             DirectXPixelFormat::R10G10B10A2UIntNormalized => {
-                                let mut image_data = vec![0u32; width * height];
                                 let bpr = mapped_resource.RowPitch as usize;
-                                let surface_slice = std::slice::from_raw_parts(mapped_resource.pData as *const u8, bpr * height);
-                                for y in 0..height {
-                                    let source_slice = bytemuck::cast_slice::<_, u32>(&surface_slice[(bpr * y)..(bpr * y + 4 * width)]);
-                                    image_data[(width * y)..(width * y + width)].copy_from_slice(source_slice);
-                                }
-                                let _ = device.Unmap(&staging_texture, 0);
-                                Ok(FrameBitmap::RgbaUnormPacked1010102(FrameBitmapRgbaUnormPacked1010102 {
-                                    data: image_data.into_boxed_slice(),
+
+                                let plane_ptr = VideoFramePlanePtr {
+                                    ptr: mapped_resource.pData as *const c_void,
                                     width,
                                     height,
-                                }))
+                                    bytes_per_row: bpr
+                                };
+        
+                                let mapping_result = output_mapping(VideoFrameDataCopyPtrs::ArgbPacked2101010(plane_ptr));
+                                
+                                let _ = device.Unmap(&staging_texture, 0);
+                                
+                                mapping_result
                             },
                             _ => {
                                 Err(VideoFrameBitmapError::Other("Unknown or unsupported pixel format on DXGISurface".to_string()))
