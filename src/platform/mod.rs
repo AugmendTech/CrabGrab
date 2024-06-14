@@ -12,4 +12,10 @@ pub mod windows;
 #[cfg(target_os = "windows")]
 pub(crate)  use windows as platform_impl;
 
+#[cfg(target_os = "linux")]
+pub mod linux;
+
+#[cfg(target_os = "linux")]
+pub(crate) use linux as platform_impl;
+
 
