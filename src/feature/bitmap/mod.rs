@@ -36,53 +36,19 @@ use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D11::D3D11_USAGE_DYNAMIC;
 
-pub trait ZeroValue {
-    fn zero_value() -> Self;
-}
-
-impl ZeroValue for u8 {
-    fn zero_value() -> Self {
-        0
-    }
-}
-
-impl ZeroValue for [u8; 2] {
-    fn zero_value() -> Self {
-        [0, 0]
-    }
-}
-
-impl ZeroValue for [u8; 4] {
-    fn zero_value() -> Self {
-        [0, 0, 0, 0]
-    }
-}
-
-impl ZeroValue for [f16; 4] {
-    fn zero_value() -> Self {
-        [f16::ZERO, f16::ZERO, f16::ZERO, f16::ZERO]
-    }
-}
-
-impl ZeroValue for u32 {
-    fn zero_value() -> Self {
-        0
-    }
-}
-
 #[derive(Clone)]
-struct BitmapPool<T: Sized + ZeroValue + Copy> {
+struct BitmapPool<T: Sized + Zeroable + Copy> {
     free_bitmaps_and_count: Arc<Mutex<(Vec<Box<[T]>>, usize)>>,
     free_condition: Arc<Condvar>,
     max: usize,
 }
 
-impl<T: Sized + ZeroValue + Copy> BitmapPool<T> {
+impl<T: Sized + Zeroable + Copy> BitmapPool<T> {
     pub fn new(initial_count: usize, max: usize, initial_resolution: (usize, usize)) -> Arc<Self> {
         let mut free_bitmaps = Vec::new();
         for _ in 0..initial_count {
             free_bitmaps.push(
-                vec![T::zero_value(); initial_resolution.0 * initial_resolution.1].into_boxed_slice()
+                vec![T::zeroed(); initial_resolution.0 * initial_resolution.1].into_boxed_slice()
             )
         }
         Arc::new(Self {
@@ -95,7 +61,7 @@ impl<T: Sized + ZeroValue + Copy> BitmapPool<T> {
     fn make_new_bitmap(self: &Arc<Self>, resolution: (usize, usize)) -> Option<PooledBitmap<T>> {
         Some(PooledBitmap {
             data: PooledBitmapData {
-                data: Some(vec![T::zero_value(); resolution.0 * resolution.1].into_boxed_slice()),
+                data: Some(vec![T::zeroed(); resolution.0 * resolution.1].into_boxed_slice()),
                 pool: self.clone()
             },
             width: resolution.0,
@@ -149,12 +115,12 @@ impl<T: Sized + ZeroValue + Copy> BitmapPool<T> {
     }
 }
 
-struct PooledBitmapData<T: Sized + ZeroValue + Copy> {
+struct PooledBitmapData<T: Sized + Zeroable + Copy> {
     pub data: Option<Box<[T]>>,
     pub pool: Arc<BitmapPool<T>>,
 }
 
-impl<T: Sized + ZeroValue + Copy> Drop for PooledBitmapData<T> {
+impl<T: Sized + Zeroable + Copy> Drop for PooledBitmapData<T> {
     fn drop(&mut self) {
         if let Some(data) = self.data.take() {
             let mut free_bitmaps_and_count = self.pool.free_bitmaps_and_count.lock();
@@ -164,49 +130,53 @@ impl<T: Sized + ZeroValue + Copy> Drop for PooledBitmapData<T> {
     }
 }
 
-pub struct PooledBitmap<T: Sized + Copy + ZeroValue> {
+/// A pooled bitmap, belinging to it's creator BitmapPool. When this bitmap is dropped, it will be returned to it's pool.
+pub struct PooledBitmap<T: Sized + Copy + Zeroable> {
     data: PooledBitmapData<T>,
     pub width: usize,
     pub height: usize,
 }
 
-impl<T: Sized + ZeroValue + Copy> AsRef<[T]> for PooledBitmap<T> {
+impl<T: Sized + Zeroable + Copy> AsRef<[T]> for PooledBitmap<T> {
     fn as_ref(&self) -> &[T] {
         &self.data.data.as_ref().unwrap()[..]
     }
 }
 
-impl<T: Sized + ZeroValue + Copy> AsMut<[T]> for PooledBitmap<T> {
+impl<T: Sized + Zeroable + Copy> AsMut<[T]> for PooledBitmap<T> {
     fn as_mut(&mut self) -> &mut [T] {
         &mut self.data.data.as_mut().unwrap()[..]
     }
 }
 
-pub trait DataTypeBgra8x4: Sized + AsRef<[[u8; 4]]> + AsMut<[[u8; 4]]> {}
-impl<T: Sized + AsRef<[[u8; 4]]> + AsMut<[[u8; 4]]>> DataTypeBgra8x4 for T {}
+/// Bitmap data in the Bgra8888 format
+pub trait BitmapDataBgra8x4: Sized + AsRef<[[u8; 4]]> + AsMut<[[u8; 4]]> {}
+impl<T: Sized + AsRef<[[u8; 4]]> + AsMut<[[u8; 4]]>> BitmapDataBgra8x4 for T {}
 
 /// A Bgra8888 format bitmap
-pub struct FrameBitmapBgraUnorm8x4<Data: DataTypeBgra8x4> {
+pub struct FrameBitmapBgraUnorm8x4<Data: BitmapDataBgra8x4> {
     pub data: Data,
     pub width:  usize,
     pub height: usize,
 }
 
-pub trait DataTypeArgbUnormPacked2101010: Sized + AsRef<[u32]> {}
-impl<T: Sized + AsRef<[u32]> + AsMut<[u32]>> DataTypeArgbUnormPacked2101010 for T {}
+/// Bitmap data in the Argb2101010 format
+pub trait BitmapDataArgbUnormPacked2101010: Sized + AsRef<[u32]> {}
+impl<T: Sized + AsRef<[u32]> + AsMut<[u32]>> BitmapDataArgbUnormPacked2101010 for T {}
 
 /// A Rgba1010102 format bitmap
-pub struct FrameBitmapArgbUnormPacked2101010<Data: DataTypeArgbUnormPacked2101010> {
+pub struct FrameBitmapArgbUnormPacked2101010<Data: BitmapDataArgbUnormPacked2101010> {
     pub data: Data,
     pub width:  usize,
     pub height: usize,
 }
 
-pub trait DataTypeRgbaF16x4: Sized + AsRef<[[f16; 4]]> {}
-impl<T: Sized + AsRef<[[f16; 4]]> + AsMut<[[f16; 4]]>> DataTypeRgbaF16x4 for T {}
+/// Bitmap data in the RgbaF16x4 format
+pub trait BitmapDataRgbaF16x4: Sized + AsRef<[[f16; 4]]> {}
+impl<T: Sized + AsRef<[[f16; 4]]> + AsMut<[[f16; 4]]>> BitmapDataRgbaF16x4 for T {}
 
 /// A RgbaF16x4 format bitmap
-pub struct FrameBitmapRgbaF16x4<Data: DataTypeRgbaF16x4> {
+pub struct FrameBitmapRgbaF16x4<Data: BitmapDataRgbaF16x4> {
     pub data: Data,
     pub width:  usize,
     pub height: usize,
@@ -220,18 +190,20 @@ pub enum VideoRange {
     Full,
 }
 
-pub trait DataTypeLuma: Sized + AsRef<[u8]> {}
-impl<T: Sized + AsRef<[u8]> + AsMut<[u8]>> DataTypeLuma for T {}
+/// Bitmap data in the Luma/u8 format
+pub trait BitmapDataLuma: Sized + AsRef<[u8]> {}
+impl<T: Sized + AsRef<[u8]> + AsMut<[u8]>> BitmapDataLuma for T {}
 
-pub trait DataTypeChroma: Sized + AsRef<[[u8; 2]]> {}
-impl<T: Sized + AsRef<[[u8; 2]]> + AsMut<[[u8; 2]]>> DataTypeChroma for T {}
+/// Bitmap data in the CbCr Chroma/u8x2 format
+pub trait BitmapDataChroma: Sized + AsRef<[[u8; 2]]> {}
+impl<T: Sized + AsRef<[[u8; 2]]> + AsMut<[[u8; 2]]>> BitmapDataChroma for T {}
 
 /// A YCbCr image, corresponding to either V420 or F420 pixel formats.
 /// 
 /// Dual-planar, with luminance (Y) in one plane, and chrominance (CbCr) in another.
 /// Note that each plane may have a different size, as with V420 format, where
 /// the chroma plane is 2 by 2 blocks, but luma is per-pixel
-pub struct FrameBitmapYCbCr<LumaData: DataTypeLuma, ChromaData: DataTypeChroma> {
+pub struct FrameBitmapYCbCr<LumaData: BitmapDataLuma, ChromaData: BitmapDataChroma> {
     pub luma_data: LumaData,
     pub luma_width: usize,
     pub luma_height: usize,
@@ -242,13 +214,14 @@ pub struct FrameBitmapYCbCr<LumaData: DataTypeLuma, ChromaData: DataTypeChroma> 
 }
 
 /// A bitmap image of the selected format
-pub enum FrameBitmap<DataBgra: DataTypeBgra8x4, DataArgbPacked: DataTypeArgbUnormPacked2101010, DataRgbaF16: DataTypeRgbaF16x4, DataLuma: DataTypeLuma, DataChroma: DataTypeChroma> {
+pub enum FrameBitmap<DataBgra: BitmapDataBgra8x4, DataArgbPacked: BitmapDataArgbUnormPacked2101010, DataRgbaF16: BitmapDataRgbaF16x4, DataLuma: BitmapDataLuma, DataChroma: BitmapDataChroma> {
     BgraUnorm8x4(FrameBitmapBgraUnorm8x4<DataBgra>),
     ArgbUnormPacked2101010(FrameBitmapArgbUnormPacked2101010<DataArgbPacked>),
     RgbaF16x4(FrameBitmapRgbaF16x4<DataRgbaF16>),
     YCbCr(FrameBitmapYCbCr<DataLuma, DataChroma>),
 }
 
+/// A Bitmap with boxed-slice image data
 pub type BoxedSliceFrameBitmap = FrameBitmap<
     // Bgra8888
     Box<[[u8; 4]]>,
@@ -262,6 +235,7 @@ pub type BoxedSliceFrameBitmap = FrameBitmap<
     Box<[[u8; 2]]>
 >;
 
+/// A bitmap with booled images as bitmap data
 pub type PooledFrameBitmap = FrameBitmap<
     // Bgra8888
     PooledBitmap<[u8; 4]>,
@@ -275,6 +249,7 @@ pub type PooledFrameBitmap = FrameBitmap<
     PooledBitmap<[u8; 2]>,
 >;
 
+/// A pool of frame bitmaps
 pub struct FrameBitmapPool {
     bgra_u8x4: Arc<BitmapPool<[u8; 4]>>,
     argb_packed_2101010: Arc<BitmapPool<u32>>,
@@ -284,6 +259,7 @@ pub struct FrameBitmapPool {
 }
 
 impl FrameBitmapPool {
+    /// Create a new bitmap pool with an initial `capacity` and `resolution` for the given `format`, limited to `max` pooled bitmaps
     pub fn new_with_initial_capacity(capacity: usize, initial_resolution: (usize, usize), max: usize, format: CapturePixelFormat) -> Self {
         Self {
             bgra_u8x4: BitmapPool::new(
@@ -314,6 +290,7 @@ impl FrameBitmapPool {
         }
     }
 
+    /// Create a new frame bitmap pool, limited to `max` pooled bitmaps
     pub fn new(max: usize) -> Self {
         Self {
             bgra_u8x4: BitmapPool::new(0, max, (0, 0)),
@@ -324,6 +301,7 @@ impl FrameBitmapPool {
         }
     }
 
+    /// Free all pooled bitmaps - this happens automatically on `drop()`, but you can free them ahead of time if you need to.
     pub fn free_pooled(&self) {
         self.bgra_u8x4.free_pooled();
         self.argb_packed_2101010.free_pooled();
@@ -339,7 +317,11 @@ pub trait VideoFrameBitmap {
     /// and is an expensive operation.
     fn get_bitmap(&self) -> Result<BoxedSliceFrameBitmap, VideoFrameBitmapError>;
 
+    /// Try and get a pooled bitmap using the given bitmap pool, and return Ok(None) if there are no pooled bitmaps available
+    /// and `max` pooled bitmaps exist
     fn try_get_pooled_bitmap(&self, bitmap_pool: &FrameBitmapPool) -> Result<Option<PooledFrameBitmap>, VideoFrameBitmapError>;
+
+    /// Get a pooled bitmap, waiting for one to become available if `max` pooled bitmaps are checked out
     fn get_pooled_bitmap(&self, bitmap_pool: &FrameBitmapPool) -> Result<PooledFrameBitmap, VideoFrameBitmapError>;
 }
 
@@ -545,8 +527,8 @@ impl VideoFrameBitmapInternal for VideoFrame {
     }
 }
 
-fn copy_boxed_slice_plane<T: Sized + Copy + Pod + ZeroValue>(plane_ptr: VideoFramePlanePtr) -> Box<[T]> {
-    let mut image_data = vec![T::zero_value(); plane_ptr.width * plane_ptr.height];
+fn copy_boxed_slice_plane<T: Sized + Copy + Pod + Zeroable>(plane_ptr: VideoFramePlanePtr) -> Box<[T]> {
+    let mut image_data = vec![T::zeroed(); plane_ptr.width * plane_ptr.height];
     let src_slice = unsafe { std::slice::from_raw_parts(plane_ptr.ptr as *const u8, plane_ptr.bytes_per_row * plane_ptr.height) };
     for y in 0..plane_ptr.height {
         let source_slice = bytemuck::cast_slice::<_, T>(&src_slice[(plane_ptr.bytes_per_row * y)..(plane_ptr.bytes_per_row * y + std::mem::size_of::<T>() * plane_ptr.width)]);
@@ -555,7 +537,7 @@ fn copy_boxed_slice_plane<T: Sized + Copy + Pod + ZeroValue>(plane_ptr: VideoFra
     image_data.into_boxed_slice()
 }
 
-fn copy_pooled_plane<T: Sized + Copy + Pod + ZeroValue>(plane_ptr: VideoFramePlanePtr, pool: &Arc<BitmapPool<T>>) -> PooledBitmap<T> {
+fn copy_pooled_plane<T: Sized + Copy + Pod + Zeroable>(plane_ptr: VideoFramePlanePtr, pool: &Arc<BitmapPool<T>>) -> PooledBitmap<T> {
     let mut bitmap = pool.get_bitmap((plane_ptr.width, plane_ptr.height));
     let src_slice = unsafe { std::slice::from_raw_parts(plane_ptr.ptr as *const u8, plane_ptr.bytes_per_row * plane_ptr.height) };
     for y in 0..plane_ptr.height {
@@ -565,7 +547,7 @@ fn copy_pooled_plane<T: Sized + Copy + Pod + ZeroValue>(plane_ptr: VideoFramePla
     bitmap
 }
 
-fn try_copy_pooled_plane<T: Sized + Copy + Pod + ZeroValue>(plane_ptr: VideoFramePlanePtr, pool: &Arc<BitmapPool<T>>) -> Option<PooledBitmap<T>> {
+fn try_copy_pooled_plane<T: Sized + Copy + Pod + Zeroable>(plane_ptr: VideoFramePlanePtr, pool: &Arc<BitmapPool<T>>) -> Option<PooledBitmap<T>> {
     let mut bitmap = pool.try_get_bitmap((plane_ptr.width, plane_ptr.height))?;
     let src_slice = unsafe { std::slice::from_raw_parts(plane_ptr.ptr as *const u8, plane_ptr.bytes_per_row * plane_ptr.height) };
     for y in 0..plane_ptr.height {
