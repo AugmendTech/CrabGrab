@@ -23,11 +23,12 @@ config = "spellcheck/cfg.toml"
 [features]
 iosurface = []
 metal = ["dep:metal"]
+ash = ["dep:ash"]
 dxgi = []
 dx11 = ["dxgi"]
 bitmap = ["dep:bytemuck", "dep:half", "dx11"]
 screenshot = ["bitmap"]
-wgpu = ["dep:wgpu", "dep:winapi", "dx11", "dxgi", "metal"]
+wgpu = ["dep:wgpu", "dx11", "dxgi", "metal", "ash"]
 diagnostic = []
 
 [dependencies]
@@ -45,6 +46,11 @@ lazy_static = "1.4"
 core-graphics-types = "0.1"
 mach2 = "0.4"
 wgpu = { version = "^0.20", optional = true, features = ["metal", "hal"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+xcb = "1.4"
+ash = { version = "0.38.0", optional = true }
+wgpu = { version = "^0.20", optional = true, features = ["hal"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.52", features = [
@@ -82,11 +88,11 @@ windows = { version = "0.52", features = [
     "ApplicationModel_Core",
     "System",
 ] }
-wgpu = { version = "0.20", optional = true, features = ["dx12", "hal"] }
+wgpu = { version = "^0.20", optional = true, features = ["dx12", "hal"] }
 d3d12 = "0.20"
 winapi = { version = "0.3", optional = true }
 
 [dev-dependencies]
 futures = "0.3"
 tokio = { version = "1.37", features = ["rt", "macros", "rt-multi-thread"] }
-wgpu = "0.20"
+wgpu = "^0.20"
