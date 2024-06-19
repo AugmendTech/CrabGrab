@@ -37,5 +37,4 @@ pub mod screenshot;
 pub mod diagnostic;
 
 #[cfg(feature = "ash")]
-#[cfg(target_os="linux")]
 pub mod ash;
