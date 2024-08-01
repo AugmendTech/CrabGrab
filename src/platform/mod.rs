@@ -10,6 +10,10 @@ pub(crate) use macos as platform_impl;
 pub mod windows;
 
 #[cfg(target_os = "windows")]
-pub(crate)  use windows as platform_impl;
+pub(crate) use windows as platform_impl;
 
+#[cfg(target_os = "linux")]
+pub mod linux_wayland;
 
+#[cfg(target_os = "linux")]
+pub(crate) use linux_wayland as platform_impl;

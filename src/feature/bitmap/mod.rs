@@ -36,6 +36,9 @@ use windows::Win32::System::WinRT::Direct3D11::IDirect3DDxgiInterfaceAccess;
 #[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Direct3D11::D3D11_USAGE_DYNAMIC;
 
+#[cfg(target_os = "linux")]
+use pipewire::spa::param::video::VideoFormat;
+
 #[derive(Clone)]
 struct BitmapPool<T: Sized + Zeroable + Copy> {
     free_bitmaps_and_count: Arc<Mutex<(Vec<Box<[T]>>, usize)>>,
@@ -524,6 +527,22 @@ impl VideoFrameBitmapInternal for VideoFrame {
                 }
             } else {
                 Err(VideoFrameBitmapError::Other("Failed to lock iosurface".to_string()))
+            }
+        }
+        #[cfg(target_os = "linux")]
+        {
+            match self.impl_video_frame.format.format() {
+                VideoFormat::BGRA | VideoFormat::BGRx => {
+                    let plane_ptr = VideoFramePlanePtr {
+                        ptr: self.impl_video_frame.data,
+                        width: self.impl_video_frame.size.width as usize,
+                        height: self.impl_video_frame.size.height as usize,
+                        bytes_per_row: self.impl_video_frame.size.width as usize * 4,
+                    };
+
+                    output_mapping(VideoFrameDataCopyPtrs::Bgra8888(plane_ptr))
+                }
+                _ => Err(VideoFrameBitmapError::Other("Invalid pixel format".to_string())),
             }
         }
     }

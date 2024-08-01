@@ -86,6 +86,10 @@ wgpu = { version = "0.20", optional = true, features = ["dx12", "hal"] }
 d3d12 = "0.20"
 winapi = { version = "0.3", optional = true }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+ashpd = "0.9.1"
+pipewire = "0.8.0"
+
 [dev-dependencies]
 futures = "0.3"
 tokio = { version = "1.37", features = ["rt", "macros", "rt-multi-thread"] }
