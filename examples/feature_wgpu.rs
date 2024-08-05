@@ -42,6 +42,7 @@ fn main() {
             label: Some("wgpu adapter"),
             required_features: wgpu::Features::default(),
             required_limits: wgpu::Limits::default(),
+            memory_hints: wgpu::MemoryHints::default(),
         }, None).await.expect("Expected wgpu device");
         let gfx = Arc::new(Gfx {
             device: wgpu_device,
