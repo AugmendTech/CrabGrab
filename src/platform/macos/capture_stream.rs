@@ -387,95 +387,177 @@ impl MacosCaptureStream {
                 })
             },
             Capturable::Display(display) => {
-                let options_dict = NSDictionary::new_mutable();
-
-                #[cfg(feature = "metal")]
-                let callback_metal_device = metal_device.clone();
-                
-                let display_id = display.impl_capturable_display.display.raw_id();
-
-                let size = (capture_config.output_size.width.ceil() as usize, capture_config.output_size.height.ceil() as usize);
-
+                let mut config = SCStreamConfiguration::new();
                 let (pixel_format, set_color_matrix) = match capture_config.pixel_format {
                     CapturePixelFormat::Bgra8888 =>    (SCStreamPixelFormat::BGRA8888, false),
                     CapturePixelFormat::Argb2101010 => (SCStreamPixelFormat::L10R, false),
                     CapturePixelFormat::V420 =>        (SCStreamPixelFormat::V420, true),
                     CapturePixelFormat::F420 =>        (SCStreamPixelFormat::F420, true),
                 };
+                if set_color_matrix {
+                    config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
+                }
+                config.set_pixel_format(pixel_format);
+                config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| 1.0 / x).unwrap_or(1.0 / 120.0) as f64, 240));
+                /*config.set_source_rect(CGRect {
+                    origin: CGPoint {
+                        x: capture_config.source_rect.origin.x,
+                        y: capture_config.source_rect.origin.y,
+                    },
+                    size: CGSize {
+                        x: capture_config.source_rect.size.width,
+                        y: capture_config.source_rect.size.height
+                    }
+                });*/
+                let resolution_type = match capture_config.impl_capture_config.resolution_type {
+                    MacosCaptureResolutionType::Automatic => SCCaptureResolutionType::SCCaptureResolutionAutomatic,
+                    MacosCaptureResolutionType::Best => SCCaptureResolutionType::SCCaptureResolutionBest,
+                    MacosCaptureResolutionType::Nominal => SCCaptureResolutionType::SCCaptureResolutionNominal,
+                };
+                _ = config.set_resolution_type(resolution_type);
+                config.set_size(CGSize {
+                    x: capture_config.output_size.width,
+                    y: capture_config.output_size.height,
+                });
+                config.set_scales_to_fit(capture_config.impl_capture_config.scale_to_fit);
+                config.set_queue_depth(capture_config.buffer_count as isize);
+                config.set_show_cursor(capture_config.show_cursor);
+                match capture_config.capture_audio {
+                    Some(audio_config) => {
+                        config.set_capture_audio(true);
+                        let channel_count = match audio_config.channel_count {
+                            crate::prelude::AudioChannelCount::Mono => 1,
+                            crate::prelude::AudioChannelCount::Stereo => 2,
+                        };
+                        config.set_channel_count(channel_count);
+                        config.set_exclude_current_process_audio(audio_config.impl_capture_audio_config.exclude_current_process_audio);
+                        let sample_rate = match audio_config.sample_rate {
+                            crate::prelude::AudioSampleRate::Hz8000 =>  SCStreamSampleRate::R8000,
+                            crate::prelude::AudioSampleRate::Hz16000 => SCStreamSampleRate::R16000,
+                            crate::prelude::AudioSampleRate::Hz24000 => SCStreamSampleRate::R24000,
+                            crate::prelude::AudioSampleRate::Hz48000 => SCStreamSampleRate::R48000,
+                        };
+                        config.set_sample_rate(sample_rate);
+                    },
+                    None => {
+                        config.set_capture_audio(false);
+                    }
+                }
+                let mut filter;
+                let windows = capture_config.excluded_windows;
+                let mut sc_windows = Vec::new();
+                if let Some(windows) = windows {
+                    for w in windows {
+                        sc_windows.push(w.impl_capturable_window.window);
+                    }
+                    filter = SCContentFilter::new_with_display_excluding_window(display.impl_capturable_display.display, Some(sc_windows));
+                } else {
+                    filter = SCContentFilter::new_with_display_excluding_window(display.impl_capturable_display.display, None);
+                }
 
-                let dispatch_queue = DispatchQueue::make_concurrent("crabgrab.capture".into());
-                
+
+                let handler_queue = DispatchQueue::make_concurrent("com.augmend.crabgrab.window_capture".into());
+
                 let mut audio_frame_id_counter = AtomicU64::new(0);
                 let mut video_frame_id_counter = AtomicU64::new(0);
 
                 let stopped_flag = Arc::new(AtomicBool::new(false));
                 let callback_stopped_flag = stopped_flag.clone();
-
-                let capture_time = Instant::now();
-
-                let stream_callback = move |status, duration, io_surface: IOSurface| {
-                    let now = Instant::now();
-                    match status {
-                        CGDisplayStreamFrameStatus::Complete => {
-                            let frame_id = video_frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
-                            let rect = display.impl_capturable_display.display.frame();
-                            let w = io_surface.get_width();
-                            let h = io_surface.get_height();
-                            let video_frame = VideoFrame{
-                                impl_video_frame: MacosVideoFrame::CGDisplayStream (
-                                    MacosCGDisplayStreamVideoFrame {
-                                        io_surface,
-                                        duration,
-                                        capture_timestamp: now,
-                                        capture_time: now - capture_time,
-                                        frame_id,
-                                        source_rect: Rect {
-                                            origin: Point { x: rect.origin.x, y: rect.origin.y },
-                                            size: Size { width: rect.size.x, height: rect.size.y },
-                                        },
-                                        dest_size: Size { width: w as f64, height: h as f64 },
-                                        #[cfg(feature = "metal")]
-                                        metal_device: callback_metal_device.clone(),
-                                        #[cfg(feature = "wgpu")]
-                                        wgpu_device: callback_wgpu_device.clone(),
+                
+                let handler = SCStreamHandler::new(Box::new(move |stream_result: Result<(CMSampleBuffer, SCStreamOutputType), SCStreamCallbackError>| {
+                    let mut callback = stream_shared_callback.lock();
+                    let capture_time = Instant::now();
+                    match stream_result {
+                        Ok((sample_buffer, output_type)) => {
+                            match output_type {
+                                SCStreamOutputType::Audio => {
+                                    let frame_id = audio_frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
+                                    // TODO...
+                                },
+                                SCStreamOutputType::Screen => {
+                                    let attachments = sample_buffer.get_sample_attachment_array();
+                                    if attachments.len() == 0 {
+                                        return;
                                     }
-                                )
+                                    let status_nsnumber_ptr = unsafe { attachments[0].get_value(SCStreamFrameInfoStatus) };
+                                    if status_nsnumber_ptr.is_null() {
+                                        return;
+                                    }
+                                    let status_i32 = unsafe { NSNumber::from_id_unretained(status_nsnumber_ptr as *mut AnyObject).as_i32() };
+                                    let status_opt = SCFrameStatus::from_i32(status_i32);
+                                    if status_opt.is_none() {
+                                        return;
+                                    }
+                                    match status_opt.unwrap() {
+                                        SCFrameStatus::Complete => {
+                                            if callback_stopped_flag.load(atomic::Ordering::Acquire) {
+                                                return;
+                                            }
+                                            let frame_id = video_frame_id_counter.fetch_add(1, atomic::Ordering::AcqRel);
+                                            let video_frame = VideoFrame {
+                                                impl_video_frame: MacosVideoFrame::SCStream(MacosSCStreamVideoFrame {
+                                                    sample_buffer,
+                                                    capture_time,
+                                                    dictionary: RefCell::new(None),
+                                                    frame_id,
+                                                    #[cfg(feature = "metal")]
+                                                    metal_device: Some(callback_metal_device.clone()),
+                                                    #[cfg(feature = "wgpu")]
+                                                    wgpu_device: callback_wgpu_device.clone(),
+                                                })
+                                            };
+                                            (callback)(Ok(StreamEvent::Video(video_frame)));
+                                        },
+                                        SCFrameStatus::Suspended |
+                                        SCFrameStatus::Idle => {
+                                            if callback_stopped_flag.load(atomic::Ordering::Acquire) {
+                                                return;
+                                            }
+                                            (callback)(Ok(StreamEvent::Idle));
+                                        },
+                                        SCFrameStatus::Stopped => {
+                                            if callback_stopped_flag.fetch_or(true, atomic::Ordering::AcqRel) {
+                                                return;
+                                            }
+                                            (callback)(Ok(StreamEvent::End));
+                                        }
+                                        _ => {}
+                                    }
+
+                                    
+                                },
+                            }
+                        },
+                        Err(err) => {
+                            let event = match err {
+                                SCStreamCallbackError::StreamStopped => {
+                                    if callback_stopped_flag.fetch_or(true, atomic::Ordering::AcqRel) {
+                                        return;
+                                    }
+                                    Ok(StreamEvent::End)
+                                },
+                                SCStreamCallbackError::SampleBufferCopyFailed => Err(StreamError::Other("Failed to copy sample buffer".into())),
+                                SCStreamCallbackError::Other(e) => Err(StreamError::Other(format!("Internal stream failure: [description: {}, reason: {}, code: {}, domain: {}]", e.description(), e.reason(), e.code(), e.domain()))),
                             };
-                            
-                            let mut callback = stream_shared_callback.lock();
-                            if !callback_stopped_flag.load(atomic::Ordering::Acquire) {
-                                (callback)(Ok(StreamEvent::Video(video_frame)));
-                            }
-                        },
-                        CGDisplayStreamFrameStatus::Idle => {
-                            let mut callback = stream_shared_callback.lock();
-                            if !callback_stopped_flag.load(atomic::Ordering::Acquire) {
-                                (callback)(Ok(StreamEvent::Idle));
-                            }
-                        },
-                        CGDisplayStreamFrameStatus::Stopped => {
-                            let mut callback = stream_shared_callback.lock();
-                            if !callback_stopped_flag.fetch_or(true, atomic::Ordering::AcqRel) {
-                                (callback)(Ok(StreamEvent::End));
-                            }
-                        },
-                        _ => {}
+                            (callback)(event);
+                        }
                     }
-                };
+                }));
 
-                let display_stream = CGDisplayStream::new(stream_callback, display_id, size, pixel_format, options_dict, dispatch_queue);
+                let mut sc_stream = SCStream::new(filter, config, handler_queue, handler)
+                    .map_err(|error| StreamCreateError::Other(error))?;
 
-                display_stream.start().map_err(|_| StreamCreateError::Other("Stream failed to start".into()))?;
+                sc_stream.start();
 
                 Ok(MacosCaptureStream {
-                    stream: MacosCaptureStreamInternal::Display(display_stream),
                     stopped_flag,
                     shared_callback,
+                    stream: MacosCaptureStreamInternal::Window(sc_stream),
                     #[cfg(feature = "metal")]
                     metal_device,
                     #[cfg(feature = "wgpu")]
                     wgpu_device
-                }) 
+                })
             }
         }
 

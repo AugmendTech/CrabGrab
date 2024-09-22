@@ -187,6 +187,33 @@ impl ExactSizeIterator for CapturableDisplayIterator<'_> {
     }
 }
 
+/// An iterator over capturable excluding_windows
+pub struct CapturableExcludingWindowIterator<'content> {
+    content: &'content CapturableContent,
+    i: usize
+}
+
+impl Iterator for CapturableExcludingWindowIterator<'_> {
+    type Item = CapturableWindow;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i < self.content.impl_capturable_content.excluding_windows.len() {
+            let i = self.i;
+            self.i += 1;
+            Some(CapturableWindow { impl_capturable_window: ImplCapturableWindow::from_impl(self.content.impl_capturable_content.excluding_windows[i].clone()) })
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.i, Some(self.content.impl_capturable_content.excluding_windows.len()))
+    }
+}
+
+impl ExactSizeIterator for CapturableExcludingWindowIterator<'_> {
+}
+
 impl CapturableContent {
     /// Requests capturable content from the OS
     /// 
@@ -201,6 +228,11 @@ impl CapturableContent {
     /// Get an iterator over the capturable windows
     pub fn windows<'a>(&'a self) -> CapturableWindowIterator<'a> {
         CapturableWindowIterator { content: self, i: 0 }
+    }
+
+    /// Get an iterator over the capturable excluding windows
+    pub fn excluding_windows<'a>(&'a self) -> CapturableExcludingWindowIterator<'a> {
+        CapturableExcludingWindowIterator { content: self, i: 0 }
     }
 
     /// Get an iterator over the capturable displays
@@ -225,6 +257,11 @@ unsafe impl Send for CapturableWindow {}
 unsafe impl Sync for CapturableWindow {}
 
 impl CapturableWindow {
+    /// Gets the id of the window
+    pub fn id(&self) -> u32 {
+        self.impl_capturable_window.id()
+    }
+
     /// Gets the title of the window
     pub fn title(&self) -> String {
         self.impl_capturable_window.title()

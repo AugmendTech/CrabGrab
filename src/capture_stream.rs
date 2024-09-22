@@ -171,6 +171,7 @@ pub struct CaptureConfig {
     pub(crate) capture_audio: Option<AudioCaptureConfig>,
     pub(crate) impl_capture_config: ImplCaptureConfig,
     pub(crate) buffer_count: usize,
+    pub(crate) excluded_windows: Option<Vec<CapturableWindow>>
 }
 
 /// Represents an error creating the capture config
@@ -221,14 +222,16 @@ impl CaptureConfig {
             impl_capture_config: ImplCaptureConfig::new(),
             capture_audio: None,
             buffer_count: 3,
+            excluded_windows: None
         })
     }
 
     /// Create a capture configuration for a given capturable display
-    pub fn with_display(display: CapturableDisplay, pixel_format: CapturePixelFormat) -> CaptureConfig {
+    pub fn with_display(display: CapturableDisplay, pixel_format: CapturePixelFormat, excluded_windows: Option<Vec<CapturableWindow>>) -> CaptureConfig {
         let rect = display.rect();
         CaptureConfig {
             target: Capturable::Display(display),
+            excluded_windows: excluded_windows,
             pixel_format,
             output_size: rect.size,
             show_cursor: false,

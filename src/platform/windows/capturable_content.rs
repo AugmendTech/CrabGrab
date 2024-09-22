@@ -24,6 +24,11 @@ impl WindowsCapturableWindow {
         Self(hwnd)
     }
 
+    pub fn id(&self) -> u32 {
+        todo!("Getting ID not yet implemented for windows");
+        return 0;
+    }
+
     pub fn title(&self) -> String {
         unsafe {
             let text_length = GetWindowTextLengthW(self.0);

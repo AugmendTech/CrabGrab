@@ -398,7 +398,7 @@ impl NSArray {
 
     pub(crate) fn add_object<T: 'static + Encode>(&mut self, object: T) {
         unsafe {
-            let _: () = msg_send![self.0, addAnyObject: object];
+            let _: () = msg_send![self.0, addObject: object];
         }
     }
 
@@ -1215,6 +1215,22 @@ impl SCContentFilter {
         unsafe {
             let id: *mut AnyObject = msg_send![class!(SCContentFilter), alloc];
             let _: *mut AnyObject = msg_send![id, initWithDesktopIndependentWindow: window.clone()];
+            Self(id)
+        }
+    }
+
+    pub(crate) fn new_with_display_excluding_window(display: SCDisplay, windows: Option<Vec<SCWindow>>) -> Self {
+        unsafe {
+
+            let mut windows_nsarray = NSArray::new_mutable();
+            if let Some(windows) = windows {
+                for w in windows {
+                    windows_nsarray.add_object(w.0);
+                }
+            }
+
+            let id: *mut AnyObject = msg_send![class!(SCContentFilter), alloc];
+            let _: *mut AnyObject = msg_send![id, initWithDisplay: display.0 excludingWindows: windows_nsarray.0];
             Self(id)
         }
     }

@@ -10,6 +10,7 @@ use super::objc_wrap::{get_window_description, get_window_levels, CGMainDisplayI
 
 pub struct MacosCapturableContent {
     pub windows: Vec<SCWindow>,
+    pub excluding_windows: Vec<SCWindow>,
     pub displays: Vec<SCDisplay>,
 }
 
@@ -32,6 +33,10 @@ impl MacosCapturableContent {
                     .into_iter()
                     .filter(|window| filter.impl_capturable_content_filter.filter_scwindow(window))
                     .collect();
+                let excluding_windows = content.windows()
+                    .into_iter()
+                    .filter(|window| !filter.impl_capturable_content_filter.filter_scwindow(window))
+                    .collect();
                 let displays = content.displays()
                     .into_iter()
                     .filter(|display| filter.impl_capturable_content_filter.filter_scdisplay(display))
@@ -39,6 +44,7 @@ impl MacosCapturableContent {
                 Ok(Self {
                     windows,
                     displays,
+                    excluding_windows,
                 })
             },
             Ok(Err(error)) => {
@@ -59,6 +65,10 @@ impl MacosCapturableWindow {
         Self {
             window
         }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.window.id().0
     }
 
     pub fn title(&self) -> String {
