@@ -5,7 +5,7 @@ use objc2::runtime::AnyObject;
 use parking_lot::Mutex;
 
 use crate::{capture_stream::{CaptureConfig, StreamCreateError, StreamError, StreamEvent}, platform::platform_impl::{frame::MacosSCStreamVideoFrame, objc_wrap::NSNumber}, prelude::{AudioCaptureConfig, AudioFrame, Capturable, CaptureConfigError, CapturePixelFormat, Point, StreamStopError, VideoFrame}, util::{Rect, Size}};
-use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, IOSurface, NSArray, NSDictionary, NSString, SCCaptureResolutionType, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
+use super::{frame::{MacosAudioFrame, MacosCGDisplayStreamVideoFrame, MacosVideoFrame}, objc_wrap::{kCFBooleanFalse, kCFBooleanTrue, kCGDisplayStreamDestinationRect, kCGDisplayStreamMinimumFrameTime, kCGDisplayStreamPreserveAspectRatio, kCGDisplayStreamQueueDepth, kCGDisplayStreamShowCursor, kCGDisplayStreamSourceRect, CFNumber, CGDisplayStream, CGDisplayStreamFrameStatus, CGPoint, CGRect, CGSize, CMSampleBuffer, CMTime, DispatchQueue, IOSurface, NSArray, NSDictionary, NSString, SCCaptureResolutionType, SCContentFilter, SCFrameStatus, SCStream, SCStreamCallbackError, SCStreamColorMatrix, SCStreamColorSpaceName, SCStreamConfiguration, SCStreamFrameInfoStatus, SCStreamHandler, SCStreamOutputType, SCStreamPixelFormat, SCStreamSampleRate}};
 
 pub type MacosPixelFormat = SCStreamPixelFormat;
 
@@ -233,6 +233,10 @@ impl MacosCaptureStream {
                 };
                 if set_color_matrix {
                     config.set_color_matrix(SCStreamColorMatrix::ItuR709_2);
+                }
+
+                if let Some(color_space)= capture_config.color_space {
+                    config.set_color_space(SCStreamColorSpaceName::from_string(color_space));
                 }
                 config.set_pixel_format(pixel_format);
                 config.set_minimum_time_interval(CMTime::new_with_seconds(capture_config.impl_capture_config.maximum_fps.map(|x| 1.0 / x).unwrap_or(1.0 / 120.0) as f64, 240));

@@ -218,6 +218,31 @@ extern "C" {
     static kCGDisplayStreamYCbCrMatrix_ITU_R_601_4     : CFStringRef;
     static kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995 : CFStringRef;
 
+    static kCGColorSpaceDisplayP3: CFStringRef;
+    static kCGColorSpaceDisplayP3_HLG: CFStringRef;
+    static kCGColorSpaceExtendedLinearDisplayP3: CFStringRef;
+    static kCGColorSpaceSRGB : CFStringRef;
+    static kCGColorSpaceLinearSRGB: CFStringRef;
+    static kCGColorSpaceExtendedSRGB: CFStringRef;
+    static kCGColorSpaceExtendedLinearSRGB: CFStringRef;
+    static kCGColorSpaceGenericGrayGamma2_2: CFStringRef;
+    static kCGColorSpaceLinearGray: CFStringRef;
+    static kCGColorSpaceExtendedGray: CFStringRef;
+    static kCGColorSpaceExtendedLinearGray: CFStringRef;
+    static kCGColorSpaceGenericRGBLinear: CFStringRef;
+    static kCGColorSpaceGenericCMYK: CFStringRef;
+    static kCGColorSpaceGenericXYZ: CFStringRef;
+    static kCGColorSpaceGenericLab: CFStringRef;
+    static kCGColorSpaceACESCGLinear: CFStringRef;
+    static kCGColorSpaceAdobeRGB1998: CFStringRef;
+    static kCGColorSpaceDCIP3: CFStringRef;
+    static kCGColorSpaceITUR_709: CFStringRef;
+    static kCGColorSpaceROMMRGB: CFStringRef;
+    static kCGColorSpaceGenericGray: CFStringRef;
+    static kCGColorSpaceGenericRGB: CFStringRef;
+    static kCGColorSpaceExtendedLinearITUR_2020: CFStringRef;
+    static kCGColorSpaceITUR_2020: CFStringRef;
+
     static NSDeviceSize: CFStringRef;
 
     pub(crate) static CGRectNull     : CGRect;
@@ -856,6 +881,97 @@ impl SCStreamColorMatrix {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub(crate) enum SCStreamColorSpaceName {
+    KCgcolorSpaceDisplayP3,
+    KCgcolorSpaceDisplayP3Hlg,
+    KCgcolorSpaceExtendedLinearDisplayP3,
+    KCgcolorSpaceSrgb,
+    KCgcolorSpaceLinearSrgb,
+    KCgcolorSpaceExtendedSrgb,
+    KCgcolorSpaceExtendedLinearSrgb,
+    KCgcolorSpaceGenericGrayGamma2_2,
+    KCgcolorSpaceLinearGray,
+    KCgcolorSpaceExtendedGray,
+    KCgcolorSpaceExtendedLinearGray,
+    KCgcolorSpaceGenericRgblinear,
+    KCgcolorSpaceGenericCmyk,
+    KCgcolorSpaceGenericXyz,
+    KCgcolorSpaceGenericLab,
+    KCgcolorSpaceAcescglinear,
+    KCgcolorSpaceAdobeRgb1998,
+    KCgcolorSpaceDcip3,
+    KCgcolorSpaceItur709,
+    KCgcolorSpaceRommrgb,
+    KCgcolorSpaceGenericGray,
+    KCgcolorSpaceGenericRgb,
+    KCgcolorSpaceExtendedLinearItur2020,
+    KCgcolorSpaceItur2020,
+}
+
+impl SCStreamColorSpaceName {
+    pub(crate) fn to_cfstringref(&self) -> CFStringRef {
+        unsafe {
+            match self {
+                Self::KCgcolorSpaceDisplayP3 => kCGColorSpaceDisplayP3,
+                Self::KCgcolorSpaceDisplayP3Hlg => kCGColorSpaceDisplayP3_HLG,
+                Self::KCgcolorSpaceExtendedLinearDisplayP3 => kCGColorSpaceExtendedLinearDisplayP3,
+                Self::KCgcolorSpaceSrgb => kCGColorSpaceSRGB,
+                Self::KCgcolorSpaceLinearSrgb => kCGColorSpaceExtendedLinearSRGB,
+                Self::KCgcolorSpaceExtendedSrgb => kCGColorSpaceExtendedSRGB,
+                Self::KCgcolorSpaceExtendedLinearSrgb => kCGColorSpaceExtendedLinearSRGB,
+                Self::KCgcolorSpaceGenericGrayGamma2_2 => kCGColorSpaceGenericGrayGamma2_2,
+                Self::KCgcolorSpaceLinearGray => kCGColorSpaceLinearGray,
+                Self::KCgcolorSpaceExtendedGray => kCGColorSpaceExtendedGray,
+                Self::KCgcolorSpaceExtendedLinearGray => kCGColorSpaceExtendedLinearGray,
+                Self::KCgcolorSpaceGenericRgblinear => kCGColorSpaceGenericRGBLinear,
+                Self::KCgcolorSpaceGenericCmyk => kCGColorSpaceGenericCMYK,
+                Self::KCgcolorSpaceGenericXyz => kCGColorSpaceGenericXYZ,
+                Self::KCgcolorSpaceGenericLab => kCGColorSpaceGenericLab,
+                Self::KCgcolorSpaceAcescglinear => kCGColorSpaceACESCGLinear,
+                Self::KCgcolorSpaceAdobeRgb1998 => kCGColorSpaceAdobeRGB1998,
+                Self::KCgcolorSpaceDcip3 => kCGColorSpaceDCIP3,
+                Self::KCgcolorSpaceItur709 => kCGColorSpaceITUR_709,
+                Self::KCgcolorSpaceRommrgb => kCGColorSpaceROMMRGB,
+                Self::KCgcolorSpaceGenericGray => kCGColorSpaceGenericGray,
+                Self::KCgcolorSpaceGenericRgb => kCGColorSpaceGenericRGB,
+                Self::KCgcolorSpaceExtendedLinearItur2020 => kCGColorSpaceExtendedLinearITUR_2020,
+                Self::KCgcolorSpaceItur2020 => kCGColorSpaceITUR_2020,
+            }
+        }
+    }
+
+    pub fn from_string(color_space_name: String) -> Self {
+        match color_space_name.as_str() {
+            "KCgcolorSrgb" => Self::KCgcolorSpaceSrgb,
+            "KCgcolorSpaceDisplayP3Hlg" => Self::KCgcolorSpaceDisplayP3Hlg,
+            "KCgcolorSpaceExtendedLinearDisplayP3" => Self::KCgcolorSpaceExtendedLinearDisplayP3,
+            "KCgcolorSpaceAcescglinear" => Self::KCgcolorSpaceAcescglinear,
+            "KCgcolorSpaceAdobeRgb1998" => Self::KCgcolorSpaceAdobeRgb1998,
+            "KCgcolorSpaceDcip3" => Self::KCgcolorSpaceDcip3,
+            "KCgcolorSpaceExtendedGray" => Self::KCgcolorSpaceExtendedGray,
+            "KCgcolorSpaceExtendedLinearGray" => Self::KCgcolorSpaceExtendedLinearGray,
+            "KCgcolorSpaceExtendedLinearItur2020" => Self::KCgcolorSpaceExtendedLinearItur2020,
+            "KCgcolorSpaceExtendedLinearSrgb" => Self::KCgcolorSpaceExtendedLinearSrgb,
+            "KCgcolorSpaceExtendedSrgb" => Self::KCgcolorSpaceExtendedSrgb,
+            "KCgcolorSpaceGenericCmyk" => Self::KCgcolorSpaceGenericCmyk,
+            "KCgcolorSpaceGenericGray" => Self::KCgcolorSpaceGenericGray,
+            "KCgcolorSpaceGenericGrayGamma2_2" => Self::KCgcolorSpaceGenericGrayGamma2_2,
+            "KCgcolorSpaceGenericLab" => Self::KCgcolorSpaceGenericLab,
+            "KCgcolorSpaceGenericRgb" => Self::KCgcolorSpaceGenericRgb,
+            "KCgcolorSpaceGenericRgblinear" => Self::KCgcolorSpaceGenericRgblinear,
+            "KCgcolorSpaceGenericXyz" => Self::KCgcolorSpaceGenericXyz,
+            "KCgcolorSpaceItur2020" => Self::KCgcolorSpaceItur2020,
+            "KCgcolorSpaceItur709" => Self::KCgcolorSpaceItur709,
+            "KCgcolorSpaceLinearGray" => Self::KCgcolorSpaceLinearGray,
+            "KCgcolorSpaceLinearSrgb" => Self::KCgcolorSpaceLinearSrgb,
+            "KCgcolorSpaceRommrgb" => Self::KCgcolorSpaceRommrgb,
+            "KCgcolorSpaceSrgb" => Self::KCgcolorSpaceSrgb,
+            default => Self::KCgcolorSpaceSrgb
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SCCaptureResolutionType {
     SCCaptureResolutionAutomatic = 0,
     SCCaptureResolutionBest      = 1,
@@ -916,6 +1032,12 @@ impl SCStreamConfiguration {
     pub(crate) fn set_color_matrix(&mut self, color_matrix: SCStreamColorMatrix) {
         unsafe {
             let _: () = msg_send![self.0, setColorMatrix: CFStringRefEncoded(color_matrix.to_cfstringref())];
+        }
+    }
+
+    pub(crate) fn set_color_space(&mut self, color_space: SCStreamColorSpaceName) {
+        unsafe {
+            let _: () = msg_send![self.0, setColorSpaceName: CFStringRefEncoded(color_space.to_cfstringref())];
         }
     }
 

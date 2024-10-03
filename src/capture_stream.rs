@@ -171,6 +171,7 @@ pub struct CaptureConfig {
     pub(crate) capture_audio: Option<AudioCaptureConfig>,
     pub(crate) impl_capture_config: ImplCaptureConfig,
     pub(crate) buffer_count: usize,
+    pub(crate) color_space: Option<String>
 }
 
 /// Represents an error creating the capture config
@@ -221,6 +222,7 @@ impl CaptureConfig {
             impl_capture_config: ImplCaptureConfig::new(),
             capture_audio: None,
             buffer_count: 3,
+            color_space: None,
         })
     }
 
@@ -235,6 +237,7 @@ impl CaptureConfig {
             impl_capture_config: ImplCaptureConfig::new(),
             capture_audio: None,
             buffer_count: 3,
+            color_space: None,
         }
     }
 
@@ -260,6 +263,13 @@ impl CaptureConfig {
     pub fn with_output_size(self, output_size: Size) -> Self {
         Self {
             output_size,
+            ..self
+        }
+    }
+
+    pub fn with_color_space_name(self, color_space_name: String) -> Self {
+        Self {
+            color_space: Some(color_space_name),
             ..self
         }
     }
